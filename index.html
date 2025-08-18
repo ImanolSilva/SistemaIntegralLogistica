@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Liverpool - Inicio</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+    <style>
+        :root {
+            --rosa-principal: #E6007E;
+            --rosa-gradiente-luz: #ff4081;
+            --negro-fondo: #1a1a1a;
+            --blanco: #ffffff;
+            --gris-claro: #f8f9fa;
+            --gris-medio: #dee2e6;
+            --gris-oscuro: #6c757d;
+            --texto-principal: #212529;
+            --oro: #FFD700;
+            --plata: #C0C0C0;
+            --bronce: #CD7F32;
+            --fuego-naranja: #ffae42;
+            --fuego-rojo: #e25822;
+        }
+
+        /* === Fondo Animado y Estilos Base === */
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--blanco);
+            background: linear-gradient(-45deg, #E6007E, #a3005a, #d11a9a, #1a1a1a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh; /* Asegura que ocupe toda la altura */
+            display: flex;
+            flex-direction: column;
+            position: relative; /* Necesario para posicionar el canvas */
+            z-index: 0; /* Asegura que el canvas esté detrás del contenido */
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Estilos para el canvas de partículas */
+        #particles-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Detrás del contenido principal, pero encima del fondo */
+            pointer-events: none; /* Permite hacer clic a través del canvas */
+        }
+
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--negro-fondo);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity .7s ease, visibility .7s ease
+        }
+
+        .preloader .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #444;
+            border-top-color: var(--rosa-principal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite
+        }
+
+        .preloader.hidden {
+            opacity: 0;
+            visibility: hidden
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .app-header {
+            background: rgba(0, 0, 0, .3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 0.8rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+            border-bottom: 1px solid rgba(255, 255, 255, .1)
+        }
+
+        .header-title {
+            color: var(--blanco);
+            font-weight: 700
+        }
+
+        #logout-btn {
+            background: transparent;
+            border: 2px solid var(--blanco);
+            color: var(--blanco);
+            border-radius: 50px;
+            width: 45px;
+            height: 45px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            transition: all .3s ease
+        }
+
+        #logout-btn:hover {
+            background: var(--blanco);
+            color: var(--rosa-principal);
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .main-container {
+            margin: 2rem auto;
+            padding: clamp(2rem, 5vw, 3rem);
+            background: var(--blanco);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, .2);
+            animation: fadeIn .8s ease-out;
+            color: var(--texto-principal);
+            margin-bottom: 2rem;
+            flex-grow: 1; /* Permite que el contenedor principal crezca y ocupe el espacio disponible */
+            z-index: 2; /* Asegura que el contenido esté encima del canvas */
+            position: relative; /* Necesario para z-index */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* === ESTILOS NUEVO MENÚ HAMBURGUESA Y OVERLAY === */
+        #hamburger-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            z-index: 1051;
+            position: relative;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hamburger-icon {
+            width: 24px;
+            height: 2px;
+            background: var(--blanco);
+            display: block;
+            position: relative;
+            transition: background 0.3s 0s ease;
+        }
+
+        .hamburger-icon::before,
+        .hamburger-icon::after {
+            content: '';
+            width: 24px;
+            height: 2px;
+            background: var(--blanco);
+            display: block;
+            position: absolute;
+            left: 0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .hamburger-icon::before {
+            top: -8px;
+        }
+
+        .hamburger-icon::after {
+            top: 8px;
+        }
+
+        #hamburger-btn.open .hamburger-icon {
+            background: transparent;
+        }
+
+        #hamburger-btn.open .hamburger-icon::before {
+            transform: translateY(8px) rotate(45deg);
+        }
+
+        #hamburger-btn.open .hamburger-icon::after {
+            transform: translateY(-8px) rotate(-45deg);
+        }
+
+        .offcanvas.offcanvas-start {
+            width: 320px;
+            background-color: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.7, 0, 0.3, 1);
+            visibility: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .offcanvas.offcanvas-start.show {
+            transform: translateX(0);
+            visibility: visible;
+        }
+
+        .offcanvas-header {
+            padding: 1.5rem 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--blanco);
+        }
+
+        .btn-close-white {
+            opacity: 0.8;
+            transition: all 0.2s ease;
+        }
+
+        .btn-close-white:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .offcanvas-body {
+            padding: 1rem 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .offcanvas .nav-link {
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            margin: 0.25rem 0;
+        }
+
+        .offcanvas .nav-link .bi {
+            font-size: 1.5rem;
+            margin-right: 1.25rem;
+            width: 2rem;
+            text-align: center;
+            color: var(--rosa-principal);
+            transition: all 0.3s ease;
+        }
+
+        .offcanvas .nav-link:hover {
+            background-color: rgba(230, 0, 126, 0.15);
+            color: var(--blanco);
+            border-left-color: var(--rosa-gradiente-luz);
+        }
+
+        .offcanvas .nav-link:hover .bi {
+            transform: scale(1.1);
+            color: var(--rosa-gradiente-luz);
+        }
+
+        .offcanvas .nav-link.active {
+            color: var(--blanco);
+            font-weight: 600;
+            border-left-color: var(--rosa-principal);
+            background-color: rgba(230, 0, 126, 0.25);
+        }
+
+        .offcanvas .nav-link.active .bi {
+            color: var(--blanco);
+        }
+
+        /* === Estilos del Hero Section === */
+        .hero-content h1 {
+            font-size: clamp(2.2rem, 5vw, 3rem);
+            font-weight: 700;
+            animation: slideInLeft 1s ease-out; /* Animación para el título */
+        }
+
+        .hero-content h1 span {
+            color: var(--rosa-principal);
+        }
+
+        .hero-content .lead {
+            font-size: clamp(1.1rem, 3vw, 1.25rem);
+            margin: 1rem 0;
+            color: var(--gris-oscuro);
+            animation: fadeIn 1.2s ease-out; /* Animación para la descripción */
+        }
+
+        .typewriter-text {
+            color: var(--rosa-principal);
+            font-weight: 600;
+            border-right: 2px solid var(--rosa-principal);
+            animation: blinkCursor .75s step-end infinite;
+            padding-right: 2px;
+            display: inline-block;
+        }
+
+        @keyframes blinkCursor {
+
+            from,
+            to {
+                border-color: transparent
+            }
+
+            50% {
+                border-color: var(--rosa-principal);
+            }
+        }
+
+        #authButton {
+            background-image: linear-gradient(45deg, var(--rosa-gradiente-luz), var(--rosa-principal));
+            padding: 14px 45px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            color: white;
+            transition: all .3s ease;
+            letter-spacing: 0.5px;
+            animation: pulseButton 2s infinite; /* Animación para el botón */
+        }
+
+        #authButton:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(230, 0, 126, .4)
+        }
+
+        @keyframes pulseButton {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 0, 126, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(230, 0, 126, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 0, 126, 0); }
+        }
+
+        /* === Mini-Dashboard de KPIs === */
+        #dashboard-kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+
+        .kpi-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border-left: 5px solid var(--rosa-principal);
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .kpi-card .kpi-icon {
+            font-size: 2.5rem;
+            color: var(--rosa-principal);
+        }
+
+        .kpi-card .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--texto-principal);
+            margin: 0.5rem 0;
+        }
+
+        .kpi-card .kpi-label {
+            font-size: 0.85rem;
+            color: var(--gris-oscuro);
+        }
+
+        /* === Paneles de Leaderboard (ESTILO ORIGINAL RESTAURADO) === */
+        .leaderboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2.5rem;
+        }
+
+        .leaderboard-panel {
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--gris-medio);
+        }
+
+        .leaderboard-panel .panel-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--texto-principal);
+            font-size: 1.25rem;
+        }
+
+        .leaderboard-panel .panel-title .bi {
+            color: var(--rosa-principal);
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .leaderboard-list li {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 0.5rem;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .leaderboard-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* --- ESTILOS TOP 1 --- */
+        .leaderboard-list li.rank-1 {
+            background: #4a0e0e;
+            background-image: linear-gradient(0deg, #2c0b0b, #4a1a1a);
+            transform: scale(1.05);
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            z-index: 2;
+            border: 1px solid #ffae424d;
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        .rank-1 .user-name,
+        .rank-1 .rank {
+            color: white !important;
+        }
+
+        @keyframes pulse-glow {
+            from {
+                box-shadow: 0 0 15px -5px var(--fuego-naranja), 0 0 30px -10px var(--fuego-rojo);
+            }
+
+            to {
+                box-shadow: 0 0 25px 0px var(--fuego-naranja), 0 0 40px -5px var(--fuego-rojo);
+            }
+        }
+
+        .fire-animation-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .fire {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            width: 120px;
+            height: 120px;
+            transform: translateX(-50%);
+            filter: blur(2px);
+        }
+
+        .fire .particle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            background: var(--fuego-naranja);
+            border-radius: 50%;
+            animation: flame-up 2s ease-in-out infinite;
+        }
+
+        @keyframes flame-up {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+                box-shadow: 0 0 10px 5px var(--fuego-naranja), 0 0 20px 10px var(--fuego-rojo);
+            }
+
+            100% {
+                transform: translateY(-100px) scale(0);
+                opacity: 0;
+                box-shadow: 0 0 2px 1px var(--fuego-naranja), 0 0 5px 2px var(--fuego-rojo);
+            }
+        }
+
+        .crown-container {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            color: var(--oro);
+            z-index: 10;
+            animation: crown-float 3s ease-in-out infinite;
+        }
+
+        @keyframes crown-float {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0px) rotate(-3deg);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(-8px) rotate(3deg);
+            }
+        }
+
+        /* --- ESTILOS TOP 2 y 3 --- */
+        .leaderboard-list li.rank-2,
+        .leaderboard-list li.rank-3 {
+            border-radius: 8px;
+            margin: 0.25rem 0;
+        }
+
+        .leaderboard-list li.rank-2 {
+            background: #f0f4f8;
+            border-left: 4px solid var(--plata);
+        }
+
+        .leaderboard-list li.rank-3 {
+            background: #fff5e9;
+            border-left: 4px solid var(--bronce);
+        }
+
+        .leaderboard-list li.rank-2:hover,
+        .leaderboard-list li.rank-3:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            z-index: 1;
+        }
+
+        .detail-icon {
+            margin-left: 8px;
+            font-size: 1.1rem;
+            animation: bounce-icon 2.5s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes bounce-icon {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-4px) rotate(5deg);
+            }
+        }
+
+        /* --- ESTILOS GENERALES Y CORRECCIONES --- */
+        .leaderboard-list .rank {
+            font-weight: 700;
+            font-size: 1.2rem;
+            width: 30px;
+            color: var(--texto-principal);
+        }
+
+        .leaderboard-list .user-name {
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .leaderboard-list .scan-count {
+            margin-left: auto;
+            font-weight: 700;
+            background-color: var(--gris-claro);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--texto-principal);
+        }
+
+        .rank-1 .scan-count {
+            color: var(--blanco) !important;
+            background-color: rgba(255, 255, 255, 0.15);
+            text-shadow: 0 0 3px black;
+        }
+
+        .leaderboard-list .trophy-icon {
+            font-size: 1.8rem;
+            margin-right: 0.75rem;
+        }
+
+        .trophy-gold {
+            color: var(--oro);
+        }
+
+        .trophy-silver {
+            color: var(--plata);
+        }
+
+        .trophy-bronze {
+            color: var(--bronce);
+        }
+
+        /* === Tarjetas de Acceso Rápido (Diseño Mejorado) === */
+        .quick-access-section h2 {
+            font-weight: 700;
+            margin-bottom: 2.5rem;
+        }
+
+        .quick-access-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .action-card {
+            background: var(--blanco);
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--texto-principal);
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease-out;
+            position: relative;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        .action-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 40px -15px rgba(0, 0, 0, 0.15);
+            border-color: var(--rosa-principal);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            text-align: left;
+        }
+
+        .action-card .card-icon {
+            font-size: 2.5rem;
+            color: var(--rosa-principal);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .action-card h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-card p {
+            font-size: 0.9rem;
+            color: var(--gris-oscuro);
+            line-height: 1.6;
+        }
+
+        .action-card .go-corner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            overflow: hidden;
+            top: 0;
+            right: 0;
+            background-color: var(--rosa-principal);
+            border-radius: 0 4px 0 32px;
+        }
+
+        .action-card .go-arrow {
+            margin-top: -4px;
+            margin-right: -4px;
+            color: white;
+            font-family: 'bootstrap-icons';
+            content: '\F138';
+            font-size: 1.2rem;
+        }
+
+        .welcome-user-name {
+            color: var(--rosa-principal);
+            font-weight: 700;
+        }
+
+        /* Estilos para SweetAlert2 */
+        .swal2-popup {
+            border-radius: 1rem !important;
+            background: rgba(30, 30, 46, 0.9) !important; /* Fondo oscuro transparente */
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            border: 1px solid var(--rosa-principal) !important;
+            color: var(--blanco) !important;
+            box-shadow: 0 0 40px rgba(230, 0, 126, 0.5) !important;
+        }
+
+        .swal2-title {
+            color: var(--blanco) !important;
+            text-shadow: 0 0 10px var(--rosa-principal), 0 0 20px var(--rosa-principal);
+        }
+
+        .swal2-html-container {
+            color: var(--texto-secundario) !important;
+        }
+
+        .swal2-icon.swal2-success [class^=swal2-success-line] {
+            background-color: var(--rosa-principal) !important;
+        }
+
+        .swal2-icon.swal2-warning {
+            border-color: var(--fuego-naranja) !important;
+            color: var(--fuego-naranja) !important;
+        }
+
+        .swal2-confirm.swal2-styled {
+            background-color: var(--rosa-principal) !important;
+            border-color: var(--rosa-principal) !important;
+            box-shadow: 0 0 10px rgba(230, 0, 126, 0.5) !important;
+            transition: all 0.3s ease;
+        }
+
+        .swal2-confirm.swal2-styled:hover {
+            background-color: var(--rosa-gradiente-luz) !important;
+            border-color: var(--rosa-gradiente-luz) !important;
+            transform: translateY(-2px);
+        }
+
+        .swal2-cancel.swal2-styled {
+            background-color: var(--gris-oscuro) !important;
+            border-color: var(--gris-oscuro) !important;
+            transition: all 0.3s ease;
+        }
+
+        .swal2-cancel.swal2-styled:hover {
+            background-color: #5a6268 !important;
+            border-color: #5a6268 !important;
+            transform: translateY(-2px);
+        }
+
+        .swal2-loading .swal2-spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: .3em;
+            border-color: var(--rosa-principal) var(--rosa-principal) transparent transparent;
+        }
+        .swal2-loading .swal2-html-container {
+            margin-top: 1.5rem;
+            font-size: 1.1rem;
+            color: var(--blanco);
+        }
+
+        /* Animación para el login-card */
+        .login-card-animation {
+            animation: card-pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes card-pulse {
+            0% {
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0px rgba(230, 0, 126, 0.2);
+            }
+            50% {
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(230, 0, 126, 0.4);
+            }
+            100% {
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0px rgba(230, 0, 126, 0.2);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Canvas para el efecto de partículas -->
+    <canvas id="particles-canvas"></canvas>
+
+    <div class="preloader">
+        <div class="spinner"></div>
+    </div>
+
+    <header class="app-header d-flex justify-content-between align-items-center">
+        <button id="hamburger-btn" aria-label="Abrir menú" style="display: none;"><span
+                class="hamburger-icon"></span></button>
+        <h1 class="header-title m-0">Sistema Liverpool</h1>
+        <button id="logout-btn" style="display: none;" aria-label="Cerrar sesión" title="Cerrar Sesión"><i
+                class="bi bi-power"></i></button>
+    </header>
+
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title fw-bold">Menú Principal</h5>
+            <button type="button" class="btn-close btn-close-white" id="close-menu-btn" aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="index.html"><i class="bi bi-house-heart-fill"></i>Inicio</a>
+                <a class="nav-link" href="Manifiestos/Manifiestos.html"><i
+                        class="bi bi-file-earmark-text-fill"></i>Manifiestos</a>
+                <a class="nav-link" href="Adminroles/admin.html"><i class="bi bi-person-fill-gear"></i>Administrar
+                    Roles</a>
+
+            </nav>
+        </div>
+    </div>
+
+    <main class="container main-container">
+        <div class="hero-content text-center" data-aos="fade-up">
+            <h1 id="welcomeMessage">Bienvenido al <span>Sistema Liverpool</span></h1>
+            <p class="lead" data-aos="fade-up" data-aos-delay="200">
+                Tu herramienta para <span class="typewriter-text"></span>
+            </p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+                <button class="btn btn-primary shadow-lg" data-aos="fade-up" data-aos-delay="400"
+                    id="authButton">Acceder</button>
+            </div>
+        </div>
+
+        <div id="dashboard-kpis" style="display: none;"></div>
+
+        <div id="leaderboard-container" class="leaderboard-grid"></div>
+
+        <hr class="my-5">
+
+        <div class="quick-access-section" style="display: none;">
+            <h2 class="text-center mb-5" data-aos="fade-up">Acceso Rápido</h2>
+            <div class="quick-access-grid">
+
+                <a href="Manifiestos/Manifiestos.html" class="action-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card-content">
+                        <div class="card-icon"><i class="bi bi-file-earmark-check-fill"></i></div>
+                        <h3>Manifiestos</h3>
+                        <p>Genera, consulta y administra los manifiestos de mercancía.</p>
+                    </div>
+                    <div class="go-corner">
+                        <div class="go-arrow"></div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AOS.init({ once: true, duration: 800 });
+
+            /***************************************************
+             * CONFIGURACIÓN DE FIREBASE
+             ***************************************************/
+            const firebaseConfig = {
+                apiKey: "AIzaSyD1-ZhYGtJzJFY4WfSUS_lbnzLhzWfT1D8",
+                authDomain: "sistemaintegrall.firebaseapp.com",
+                projectId: "sistemaintegrall",
+                storageBucket: "sistemaintegrall.firebasestorage.app",
+                messagingSenderId: "302291844621",
+                appId: "1:302291844621:web:6ebf1845790bdeabfc1f44",
+                measurementId: "G-E5BT7GXRZN"
+            };
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.firestore();
+            const auth = firebase.auth();
+            const storage = firebase.storage(); // Usando la sintaxis de v8
+
+            const ADMIN_UIDS = ["wz4A81Vp8tQIjzVXMANmOHUlsNH2", "8NfEfPSyusZdNUFgXWPtvi3p6Ns1"]; // Tus UIDs de administrador
+
+            const ui = {
+                authButton: document.getElementById("authButton"),
+                logoutButton: document.getElementById("logout-btn"),
+                adminTab: document.getElementById("adminTab"),
+                segArtTab: document.getElementById("seguimientoArticulosTab"),
+                welcomeMessage: document.getElementById("welcomeMessage"),
+                kpisContainer: document.getElementById("dashboard-kpis"),
+                leaderboardContainer: document.getElementById("leaderboard-container"),
+                adminCard: document.getElementById("adminCard"),
+                seguimientoCard: document.getElementById("seguimientoArticulosCard"),
+                preloader: document.querySelector('.preloader'),
+                typewriterText: document.querySelector(".typewriter-text"),
+                typewriterContainer: document.querySelector(".lead"),
+                quickAccessSection: document.querySelector(".quick-access-section"),
+                hamburgerBtn: document.getElementById('hamburger-btn'),
+                menuLateral: document.getElementById('menuLateral'),
+                closeMenuBtn: document.getElementById('close-menu-btn')
+            };
+
+            const toggleMenu = () => {
+                ui.hamburgerBtn.classList.toggle('open');
+                ui.menuLateral.classList.toggle('show');
+            };
+
+            if (ui.hamburgerBtn && ui.menuLateral && ui.closeMenuBtn) {
+                ui.hamburgerBtn.addEventListener('click', toggleMenu);
+                ui.closeMenuBtn.addEventListener('click', toggleMenu);
+            }
+
+            function getGreeting() {
+                const hour = new Date().getHours();
+                if (hour < 12) return "Buenos días";
+                if (hour < 19) return "Buenas tardes";
+                return "Buenas noches";
+            }
+
+            const typewriter = {
+                texts: ["optimizar tu flujo de trabajo.", "gestionar tarimas con eficiencia.", "digitalizar tus manifiestos.", "simplificar el control de inventario.", "agilizar el escaneo de contenedores.", "mejorar la precisión de tus registros."],
+                speed: 80, textIndex: 0, charIndex: 0, isDeleting: false,
+                type() {
+                    if (!ui.typewriterText) return;
+                    const currentText = this.texts[this.textIndex];
+                    let displayedText;
+                    if (this.isDeleting) { displayedText = currentText.substring(0, this.charIndex - 1); this.charIndex--; }
+                    else { displayedText = currentText.substring(0, this.charIndex + 1); this.charIndex++; }
+                    ui.typewriterText.innerHTML = displayedText;
+                    let typeSpeed = this.isDeleting ? this.speed / 2 : this.speed;
+                    if (!this.isDeleting && this.charIndex === currentText.length) { typeSpeed = 2000; this.isDeleting = true; }
+                    else if (this.isDeleting && this.charIndex === 0) { this.isDeleting = false; this.textIndex = (this.textIndex + 1) % this.texts.length; typeSpeed = 500; }
+                    setTimeout(() => this.type(), typeSpeed);
+                }
+            };
+
+            const updateUIForLoggedOutUser = () => {
+                if (ui.logoutButton) ui.logoutButton.style.display = 'none';
+                if (ui.hamburgerBtn) ui.hamburgerBtn.style.display = 'none';
+                if (ui.authButton) ui.authButton.style.display = 'block';
+                if (ui.welcomeMessage) ui.welcomeMessage.innerHTML = `Bienvenido al <span>Sistema Liverpool</span>`;
+                if (ui.typewriterContainer) ui.typewriterContainer.style.display = 'block';
+                if (ui.kpisContainer) ui.kpisContainer.style.display = 'none';
+                if (ui.leaderboardContainer) ui.leaderboardContainer.innerHTML = '';
+                if (ui.quickAccessSection) ui.quickAccessSection.style.display = 'none';
+                [ui.adminTab, ui.segArtTab, ui.adminCard, ui.seguimientoCard].forEach(el => { if (el) el.style.display = "none"; });
+            };
+
+            const updateUIForLoggedInUser = async (user) => {
+                // Alerta mejorada para manifiestos
+                if (!sessionStorage.getItem('manifestWarningShown')) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Aviso Importante sobre Manifiestos',
+                        html: `<div style="text-align: left; padding: 1rem;"><p><i class="bi bi-clock-history" style="color: var(--fuego-naranja);"></i> Los manifiestos se archivan y eliminan automáticamente después de <strong>3 días</strong>.</p><p><i class="bi bi-envelope-exclamation" style="color: var(--fuego-rojo);"></i> Al 4º día, se enviará un reporte por correo a las jefaturas correspondientes.</p><p class="mt-3">Por favor, mantente al pendiente del estado de tus manifiestos o consúltalo con tu jefe de recibos para no verte afectado.</p></div>`,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: 'var(--rosa-principal)',
+                        customClass: {
+                            popup: 'animate__animated animate__bounceIn' // Animación de entrada
+                        }
+                    });
+                    sessionStorage.setItem('manifestWarningShown', 'true');
+                }
+
+                if (ui.logoutButton) ui.logoutButton.style.display = 'inline-flex';
+                if (ui.hamburgerBtn) ui.hamburgerBtn.style.display = 'flex';
+                if (ui.authButton) ui.authButton.style.display = 'none';
+                const name = user.displayName || user.email.split('@')[0];
+                if (ui.welcomeMessage) ui.welcomeMessage.innerHTML = `${getGreeting()}, <span class="welcome-user-name">${name}</span>`;
+                if (ui.typewriterContainer) ui.typewriterContainer.style.display = 'none';
+
+                try {
+                    const userDoc = await db.collection("usuarios").doc(user.uid).get();
+                    if (!userDoc.exists || userDoc.data().status !== "aprobado") { 
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Acceso Denegado',
+                            text: 'Tu cuenta no existe o no está aprobada. Contacta a un administrador.',
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: 'var(--rosa-principal)',
+                            customClass: {
+                                popup: 'animate__animated animate__shakeX'
+                            }
+                        }).then(() => auth.signOut()); // Redirige al login después de la alerta
+                        return; // Detiene la ejecución si el acceso es denegado
+                    }
+                    const data = userDoc.data();
+                    const isAdmin = ADMIN_UIDS.includes(user.uid);
+                    const kpiData = await fetchDashboardData();
+
+                    if (ui.kpisContainer) {
+                        let kpisHTML = `<div class="kpi-card" data-aos="fade-up" data-aos-delay="100"><div class="kpi-icon"><i class="bi bi-journal-album"></i></div><div class="kpi-value">${kpiData.manifestsCount}</div><div class="kpi-label">Manifiestos en Tienda</div></div><div class="kpi-card" data-aos="fade-up" data-aos-delay="200"><div class="kpi-icon"><i class="bi bi-lock-fill"></i></div><div class="kpi-value">${kpiData.closedContainersCount.toLocaleString()}</div><div class="kpi-label">Contenedores Cerrados</div></div><div class="kpi-card" data-aos="fade-up" data-aos-delay="300"><div class="kpi-icon"><i class="bi bi-check-all"></i></div><div class="kpi-value">${kpiData.totalScanned.toLocaleString()}</div><div class="kpi-label">Piezas Escaneadas (Total)</div></div>`;
+                        if (kpiData.expiringManifests.length > 0) {
+                            kpisHTML += `<div id="expiring-manifests-trigger" class="kpi-card" data-aos="fade-up" data-aos-delay="400" style="cursor: pointer; border-color: var(--fuego-rojo);"><div class="kpi-icon" style="color: var(--fuego-rojo);"><i class="bi bi-alarm-fill"></i></div><div class="kpi-value" style="color: var(--fuego-rojo);">${kpiData.expiringManifests.length}</div><div class="kpi-label">Manifiestos por Vencer</div></div>`;
+                        }
+                        ui.kpisContainer.innerHTML = kpisHTML;
+                        ui.kpisContainer.style.display = 'grid';
+                        const expiringCardTrigger = document.getElementById('expiring-manifests-trigger');
+                        if (expiringCardTrigger) {
+                            expiringCardTrigger.addEventListener('click', () => {
+                                Swal.fire({
+                                    title: 'Manifiestos Próximos a Eliminar',
+                                    html: createExpiringManifestsHTML(kpiData.expiringManifests),
+                                    icon: 'warning',
+                                    confirmButtonText: 'Entendido',
+                                    confirmButtonColor: 'var(--rosa-principal)',
+                                    customClass: {
+                                        popup: 'animate__animated animate__bounceIn'
+                                    }
+                                });
+                            });
+                        }
+                    }
+
+                    if (ui.leaderboardContainer) {
+                        const nombreMesActual = new Date().toLocaleString('es-MX', { month: 'long' });
+                        const tituloMensual = `Top 3 de ${nombreMesActual.charAt(0).toUpperCase() + nombreMesActual.slice(1)}`;
+                        ui.leaderboardContainer.innerHTML = `
+                    ${kpiData.topScannersMensual.length > 0 ? createLeaderboardHTML(tituloMensual, kpiData.topScannersMensual, 'bi-calendar-month') : ''}
+                    ${kpiData.topScannersHistorico.length > 0 ? createLeaderboardHTML('Top 3 Histórico (MVP)', kpiData.topScannersHistorico, 'bi-trophy-fill') : ''}
+                `;
+                    }
+
+                    if (ui.quickAccessSection) ui.quickAccessSection.style.display = 'block';
+                    const isAdminDisplay = isAdmin ? "block" : "none";
+                    if (ui.adminTab) ui.adminTab.style.display = isAdmin ? "list-item" : "none";
+                    if (ui.segArtTab) ui.segArtTab.style.display = isAdmin ? "list-item" : "none";
+                    if (ui.adminCard) ui.adminCard.style.display = isAdminDisplay;
+                    if (ui.seguimientoCard) ui.seguimientoCard.style.display = isAdminDisplay;
+                } catch (error) {
+                    console.error("Error al actualizar UI de usuario:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Carga',
+                        text: 'Hubo un problema al cargar tus datos. Por favor, inténtalo de nuevo.',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: 'var(--rosa-principal)',
+                        customClass: {
+                            popup: 'animate__animated animate__shakeX'
+                        }
+                    }).then(() => auth.signOut());
+                }
+            };
+
+            function createLeaderboardHTML(title, scanners, titleIcon) {
+                const trophies = [
+                    { icon: 'bi-trophy-fill', color: 'trophy-gold' },
+                    { icon: 'bi-award-fill', color: 'trophy-silver' },
+                    { icon: 'bi-star-fill', color: 'trophy-bronze' }
+                ];
+                const rankOneAnimation = `<div class="crown-container">👑</div><div class="fire-animation-container"><div class="fire">${Array.from({ length: 7 }).map(() => `<div class="particle"></div>`).join('')}</div></div>`;
+                return `<div class="leaderboard-panel" data-aos="fade-up"><h3 class="panel-title"><i class="bi ${titleIcon}"></i> ${title}</h3><ul class="leaderboard-list">${scanners.length > 0 ? scanners.map((scanner, index) => { const rankClasses = ['rank-1', 'rank-2', 'rank-3']; const detailIcons = { 1: '<span class="detail-icon">⚡️</span>', 2: '<span class="detail-icon">✨</span>' }; const rankClass = rankClasses[index] || ''; const detailIcon = detailIcons[index] || ''; return `<li class="${rankClass}">${index === 0 ? rankOneAnimation : ''}<span class="rank">${index + 1}.</span><i class="bi ${trophies[index]?.icon || 'person-fill'} trophy-icon ${trophies[index]?.color || ''}"></i><span class="user-name">${scanner.email}${detailIcon}</span><span class="scan-count">${scanner.count.toLocaleString()} pz.</span></li>`; }).join('') : '<li class="text-muted">Aún no hay datos para este período.</li>'}</ul></div>`;
+            }
+
+            function createExpiringManifestsHTML(manifests) {
+                return `<p class="text-start text-muted px-3 small">Estos manifiestos tienen 3 o más días de antigüedad y serán archivados y notificados pronto.</p><ul class="leaderboard-list text-start" style="max-height: 400px; overflow-y: auto; padding: 0.5rem;">${manifests.map(manifest => `<li style="border-left: 4px solid var(--fuego-naranja); background: #fffaf5; border-radius: 8px; margin-bottom: 0.5rem; padding-left: 1rem;"><i class="bi bi-file-earmark-excel-fill trophy-icon" style="color: var(--fuego-naranja);"></i><span class="user-name">${manifest.fileName}</span><span class="scan-count" style="background-color: #ffe8d6; color: #c25a33;">${manifest.daysOld} días</span></li>`).join('')}</ul>`;
+            }
+
+            async function fetchDashboardData() {
+                Swal.fire({
+                    title: 'Calculando Estadísticas...',
+                    html: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Consultando registros activos y archivados. Esto puede tardar un momento.</p>',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => Swal.showLoading(),
+                    customClass: {
+                        popup: 'animate__animated animate__fadeInDown'
+                    }
+                });
+
+                try {
+                    // --- Contadores para la verificación ---
+                    let firestoreScanCount = 0;
+                    let archivedFileCount = 0;
+                    let archivedScanCount = 0;
+
+                    let totalScanned = 0;
+                    const allTimeScanCounts = {};
+                    const monthlyScanCounts = {};
+                    const nowForCalc = new Date();
+                    const startOfMonth = new Date(nowForCalc.getFullYear(), nowForCalc.getMonth(), 1);
+                    const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+
+                    // --- TAREA 1: DATOS ACTIVOS DE FIRESTORE ---
+                    const manifestsQuery = db.collection('manifiestos').where('store', '==', '0042');
+                    const manifestSnapshot = await manifestsQuery.get();
+                    const manifests = manifestSnapshot.docs;
+                    let closedContainersCount = 0;
+                    let expiringManifests = [];
+                    manifests.forEach(doc => {
+                        const data = doc.data();
+                        if (data.closedContainers) {
+                            closedContainersCount += Object.values(data.closedContainers).filter(Boolean).length;
+                        }
+                        const createdAt = data.createdAt?.toDate();
+                        if (createdAt && (nowForCalc - createdAt > threeDaysInMs)) {
+                            const diffTime = Math.abs(nowForCalc - createdAt);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            expiringManifests.push({ fileName: data.fileName, daysOld: diffDays });
+                        }
+                    });
+                    expiringManifests.sort((a, b) => b.daysOld - a.daysOld);
+                    const scanPromises = manifests.map(doc => db.collection('manifiestos').doc(doc.id).collection('scans').get());
+                    const allScanSnapshots = await Promise.all(scanPromises);
+                    allScanSnapshots.forEach(scanSnapshot => {
+                        scanSnapshot.forEach(doc => {
+                            const scan = doc.data();
+                            const userEmail = scan.user;
+                            const scanCount = (scan.type !== 'subtract' && scan.type !== 'delete') ? (Number(scan.quantity) || 1) : 0;
+                            const scanDate = scan.scannedAt?.toDate();
+                            if (userEmail && scanCount > 0) {
+                                firestoreScanCount += scanCount;
+                                totalScanned += scanCount;
+                                allTimeScanCounts[userEmail] = (allTimeScanCounts[userEmail] || 0) + scanCount;
+                                if (scanDate && scanDate >= startOfMonth) {
+                                    monthlyScanCounts[userEmail] = (monthlyScanCounts[userEmail] || 0) + scanCount;
+                                }
+                            }
+                        });
+                    });
+
+                    // --- TAREA 2: DATOS ARCHIVADOS DE STORAGE ---
+                    const folderPaths = ['Archivados/0042', 'Archivados/ALL', 'Archivados/General'];
+                    const listPromises = folderPaths.map(path => storage.ref(path).listAll());
+                    const allResults = await Promise.all(listPromises);
+                    const allFileItems = allResults.flatMap(result => result.items);
+                    archivedFileCount = allFileItems.length;
+                    const filePromises = allFileItems.map(async (fileRef) => {
+                        const url = await fileRef.getDownloadURL();
+                        const response = await fetch(url);
+                        const data = await response.arrayBuffer();
+                        const workbook = XLSX.read(data, { type: 'buffer' });
+                        const sheetName = workbook.SheetNames[0];
+                        if (sheetName) {
+                            const worksheet = workbook.Sheets[sheetName];
+                            return XLSX.utils.sheet_to_json(worksheet);
+                        }
+                        return [];
+                    });
+                    const archivedScansArrays = await Promise.all(filePromises);
+                    archivedScansArrays.forEach(scansArray => {
+                        scansArray.forEach(scan => {
+                            const userEmail = scan.LAST_SCANNED_BY;
+                            const scanCount = (scan.type !== 'subtract' && scan.type !== 'delete') ? (Number(scan.SCANNER) || 1) : 0;
+                            if (userEmail && scanCount > 0) {
+                                archivedScanCount += scanCount;
+                                totalScanned += scanCount;
+                                allTimeScanCounts[userEmail] = (allTimeScanCounts[userEmail] || 0) + scanCount;
+                            }
+                        });
+                    });
+
+                    // --- TAREA 3: FINALIZAR Y MOSTRAR RESUMEN ---
+                    Swal.close();
+
+                    Swal.fire({
+                        title: 'Cálculo Completado',
+                        icon: 'success',
+                        html: `
+                            <div style="text-align: left; padding: 0 1rem;">
+                                <p>Se procesó la siguiente información:</p>
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Piezas de Manifiestos Activos:
+                                        <span class="badge bg-primary rounded-pill">${firestoreScanCount.toLocaleString()}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Piezas de Archivos Históricos:
+                                        <span class="badge bg-info rounded-pill">${archivedScanCount.toLocaleString()}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <strong>Total de Piezas Calculadas:</strong>
+                                        <span class="badge bg-success rounded-pill">${totalScanned.toLocaleString()}</span>
+                                    </li>
+                                </ul>
+                                <hr>
+                                <small class="text-muted">Se analizaron <strong>${archivedFileCount}</strong> archivos históricos.</small>
+                            </div>
+                        `,
+                        confirmButtonText: '¡Entendido!',
+                        confirmButtonColor: 'var(--rosa-principal)',
+                        customClass: {
+                            popup: 'animate__animated animate__bounceIn'
+                        }
+                    });
+
+                    const manifestsCount = manifests.length;
+                    const topScannersMensual = Object.entries(monthlyScanCounts).map(([email, count]) => ({ email: email.split('@')[0], count })).sort((a, b) => b.count - a.count).slice(0, 3);
+                    const topScannersHistorico = Object.entries(allTimeScanCounts).map(([email, count]) => ({ email: email.split('@')[0], count })).sort((a, b) => b.count - a.count).slice(0, 3);
+
+                    return {
+                        manifestsCount,
+                        closedContainersCount,
+                        totalScanned,
+                        topScannersMensual,
+                        topScannersHistorico,
+                        expiringManifests
+                    };
+
+                } catch (error) {
+                    console.error("Error al calcular datos del dashboard:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudieron calcular las estadísticas. Revisa la consola para más detalles.',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: 'var(--rosa-principal)',
+                        customClass: {
+                            popup: 'animate__animated animate__shakeX'
+                        }
+                    });
+                    return {
+                        manifestsCount: 0,
+                        closedContainersCount: 0,
+                        totalScanned: 0,
+                        topScannersMensual: [],
+                        topScannersHistorico: [],
+                        expiringManifests: []
+                    };
+                }
+            }
+
+            if (ui.authButton) ui.authButton.addEventListener('click', () => window.location.href = "Login/login.html");
+            if (ui.logoutButton) ui.logoutButton.addEventListener('click', () => { auth.signOut(); });
+
+            auth.onAuthStateChanged(async user => {
+                if (user) { await updateUIForLoggedInUser(user); }
+                else { updateUIForLoggedOutUser(); }
+                if (ui.preloader) ui.preloader.classList.add('hidden');
+            });
+
+            if (ui.typewriterContainer && ui.typewriterContainer.style.display !== 'none') {
+                typewriter.type();
+            }
+
+            // ========== LÓGICA DE PARTÍCULAS EN EL FONDO ==========
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 100; // Número de partículas
+
+            // Clase para cada partícula
+            class Particle {
+                constructor(x, y, size, speedX, speedY, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.size = size;
+                    this.speedX = speedX;
+                    this.speedY = speedY;
+                    this.color = color;
+                }
+
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+
+                    // Si la partícula sale de la pantalla, reubicarla
+                    if (this.x < 0 || this.x > canvas.width) {
+                        this.speedX *= -1; // Rebotar
+                    }
+                    if (this.y < 0 || this.y > canvas.height) {
+                        this.speedY *= -1; // Rebotar
+                    }
+                }
+
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Inicializar partículas
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    const size = Math.random() * 3 + 1; // Tamaño entre 1 y 4
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    const speedX = Math.random() * 0.5 - 0.25; // Velocidad entre -0.25 y 0.25
+                    const speedY = Math.random() * 0.5 - 0.25;
+                    const color = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`; // Blanco semitransparente
+                    particles.push(new Particle(x, y, size, speedX, speedY, color));
+                }
+            }
+
+            // Función de animación
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar canvas
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+                requestAnimationFrame(animateParticles); // Bucle de animación
+            }
+
+            // Ajustar tamaño del canvas al redimensionar la ventana
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                initParticles(); // Reinicializar partículas para que se adapten al nuevo tamaño
+            }
+
+            // Event listeners para el canvas
+            window.addEventListener('resize', resizeCanvas);
+            // Iniciar el canvas cuando la ventana carga
+            window.onload = function() {
+                resizeCanvas(); // Establece el tamaño inicial
+                animateParticles(); // Inicia la animación
+            };
+        });
+    </script>
+
+</body>
+
+</html>

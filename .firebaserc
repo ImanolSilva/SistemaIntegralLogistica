@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "loginliverpool",
+    "logins": "loginliverpool",
+    "archivos": "loginliverpool"
+  },
+  "targets": {},
+  "etags": {}
+}
