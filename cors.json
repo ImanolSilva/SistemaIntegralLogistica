@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["http://127.0.0.1:5500"],
+    "origin": ["https://imanolsilva.github.io", "http://127.0.0.1:5500"],
     "method": ["GET"],
     "maxAgeSeconds": 3600
   }

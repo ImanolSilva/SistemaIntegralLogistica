@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control de Inventario - Sistema Liverpool</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        /* CSS (sin cambios) */
+        :root {
+            --rosa-principal: #E6007E;
+            --rosa-gradiente-luz: #ff4081; 
+            --negro-fondo: #1a1a1a;
+            --blanco: #ffffff;
+            --gris-claro: #f8f9fa;
+            --gris-medio: #dee2e6;
+            --gris-oscuro: #6c757d;
+            --texto-principal: #343a40;
+            --sombra-fuerte: 0 1rem 3rem rgba(0, 0, 0, 0.1);
+        }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #E6007E 0%, var(--negro-fondo) 100%); color: var(--texto-principal); }
+        .app-header { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, .2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 1030; border-bottom: 1px solid rgba(255, 255, 255, .1) }
+        .header-title { color: var(--blanco); font-weight: 700; margin: 0 }
+        #logout-btn { background: transparent; border: 2px solid var(--blanco); color: var(--blanco); border-radius: 50px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.2rem; transition: all .3s ease }
+        #logout-btn:hover { background: var(--blanco); color: var(--rosa-principal); transform: scale(1.1) rotate(10deg) }
+        #hamburger-btn { background: transparent; border: none; cursor: pointer; padding: 10px; z-index: 1051; position: relative; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
+        .hamburger-icon { width: 24px; height: 2px; background: var(--blanco); display: block; position: relative; transition: background 0.3s 0s ease; }
+        .hamburger-icon::before, .hamburger-icon::after { content: ''; width: 24px; height: 2px; background: var(--blanco); display: block; position: absolute; left: 0; transition: all 0.3s ease-in-out; }
+        .hamburger-icon::before { top: -8px; }
+        .hamburger-icon::after { top: 8px; }
+        #hamburger-btn.open .hamburger-icon { background: transparent; }
+        #hamburger-btn.open .hamburger-icon::before { transform: translateY(8px) rotate(45deg); }
+        #hamburger-btn.open .hamburger-icon::after { transform: translateY(-8px) rotate(-45deg); }
+        .offcanvas.offcanvas-start { width: 320px; background-color: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-right: 1px solid rgba(255, 255, 255, 0.1); }
+        .offcanvas-header { padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); color: var(--blanco); }
+        .offcanvas-body { padding: 1rem 0; }
+        .offcanvas .nav-link { display: flex; align-items: center; color: rgba(255, 255, 255, 0.8); font-size: 1.1rem; font-weight: 500; padding: 1rem 1.5rem; transition: all 0.3s ease; border-left: 4px solid transparent; margin: 0.25rem 0; }
+        .offcanvas .nav-link .bi { font-size: 1.5rem; margin-right: 1.25rem; width: 2rem; text-align: center; color: var(--rosa-principal); transition: all 0.3s ease; }
+        .offcanvas .nav-link:hover { background-color: rgba(230, 0, 126, 0.15); color: var(--blanco); border-left-color: var(--rosa-gradiente-luz); }
+        .offcanvas .nav-link.active { color: var(--blanco); font-weight: 600; border-left-color: var(--rosa-principal); background-color: rgba(230, 0, 126, 0.25); }
+        .offcanvas .nav-link.active .bi { color: var(--blanco); }
+        .main-container { max-width: 850px; margin: 2rem auto; padding: clamp(1.5rem, 5vw, 2.5rem); background: var(--blanco); border-radius: 20px; box-shadow: 0 15px 40px rgba(0, 0, 0, .2); animation: fadeIn .8s ease-out }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
+        .card { border: none; border-radius: 1.25rem; box-shadow: var(--sombra-fuerte); overflow: hidden; }
+        .step-title { font-weight: 600; color: var(--texto-principal); display: flex; align-items: center; gap: 0.75rem; }
+        .step-title .bi { font-size: 1.75rem; color: var(--rosa-principal); }
+        .progress { height: 8px; border-radius: 8px; }
+        .progress-bar { background-color: var(--rosa-principal); }
+        .btn-pill { border-radius: 30px !important; font-weight: 600; transition: all .3s ease; border: none; color: #fff !important; display: inline-flex; align-items: center; justify-content: center; gap: .5rem; box-shadow: 0 4px 10px rgba(0, 0, 0, .15); white-space: nowrap; padding: .6rem 1.5rem }
+        .btn-pill:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 6px 15px rgba(0, 0, 0, .25); filter: brightness(1.1) }
+        .btn-pill.btn-primary { background-image: linear-gradient(45deg, #ff75b5, #E6007E) }
+        .btn-pill.btn-secondary { background-image: linear-gradient(45deg, #9e9e9e, #616161) }
+        .btn-pill.btn-success { background-image: linear-gradient(45deg, #66bb6a, #43a047) }
+        .btn-pill.btn-info { background-image: linear-gradient(45deg, #29b6f6, #0288d1) }
+        #dropzone { border: 3px dashed var(--gris-medio); border-radius: 1rem; padding: 2.5rem; transition: all 0.3s ease; cursor: pointer; }
+        #dropzone:hover { border-color: var(--rosa-principal); background-color: #fff5f9; }
+        .form-control:focus, .form-select:focus { border-color: var(--rosa-principal); box-shadow: 0 0 0 4px rgba(230, 0, 126, 0.15); }
+        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); transform: scale(0); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); background-image: linear-gradient(45deg, #ff75b5, #E6007E); color: white; border: none; }
+        .fab.visible { transform: scale(1); }
+        .fab:hover { transform: scale(1.15) rotate(15deg); }
+        .wizard-step { display: none; animation: fade-in 0.5s ease; }
+        .wizard-step.active { display: block; }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <button id="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-controls="menuLateral" aria-label="Abrir menú">
+            <span class="hamburger-icon"></span>
+        </button>
+        <h1 class="header-title">Control de Inventario</h1>
+        
+        <div class="d-flex align-items-center gap-2 ms-auto me-3">
+            <span id="connection-status" class="badge rounded-pill"></span>
+            <span id="sync-status" class="badge rounded-pill"></span>
+        </div>
+        
+        <button id="logout-btn"><i class="bi bi-power"></i></button>
+    </header>
+
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title text-white fw-bold" id="menuLateralLabel"><i class="bi bi-box-seam-fill me-2"></i> Menú Principal</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+        </div>
+<div class="offcanvas-body p-0">
+    <nav class="nav flex-column">
+        <a class="nav-link" href="../index.html"><i class="bi bi-house-fill me-2"></i>Inicio</a>
+        <a class="nav-link" href="../Manifiestos/Manifiestos.html"><i class="bi bi-file-earmark-check-fill me-2"></i>Manifiestos</a>
+        <a class="nav-link" href="../Rechazos/index.html"><i class="bi bi-x-circle-fill me-2"></i>Rechazos</a>
+        <a class="nav-link active" href="../Inventarios/Inventarios.html"><i class="bi bi-box-seam-fill me-2"></i>Inventarios</a>
+        <a class="nav-link" href="../Reportes/index.html"><i class="bi bi-graph-up-arrow me-2"></i>Reportes</a>
+    </nav>
+</div>
+    </div>
+
+    <main class="container main-container">
+        <div id="inventory-wizard-app">
+            <div class="text-center mb-5" data-aos="fade-down">
+                <h1 class="display-5 fw-bold text-dark">Asistente de Inventario</h1>
+                <p class="fs-5 text-muted">Sigue los pasos para completar tu conteo de forma rápida y sencilla.</p>
+            </div>
+
+            <div class="progress mb-5" role="progressbar" data-aos="fade-up">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div id="wizard-form">
+                <div class="wizard-step" id="step-1">
+                    <div class="card" data-aos="fade-up">
+                        <div class="card-body p-4 p-lg-5">
+                            <h4 class="step-title mb-4"><i class="bi bi-file-earmark-arrow-up-fill"></i>Paso 1: Selecciona el Archivo</h4>
+                            <div id="adminUploadSection" style="display: none;">
+                                <div class="mb-3"><label for="bossUploadSelect" class="form-label fw-bold">Jefe de área:</label><select id="bossUploadSelect" class="form-select form-select-lg"></select></div>
+                                <div id="dropzone" class="text-center"><i class="bi bi-cloud-upload display-3 text-muted"></i><p class="fs-5 mb-0 mt-2">Arrastra el archivo o haz clic</p><input type="file" id="fileInput" class="d-none" /></div>
+                                <hr class="my-4" />
+                                <div id="adminDeleteColumnsSection" class="card mb-4" style="display: none;">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-trash"></i> Eliminar Columnas al Cargar Excel</h5>
+    </div>
+    <div class="card-body">
+        <p class="card-text">Si tu archivo Excel tiene columnas que no necesitas (ej. Precio, Costo, etc.), puedes especificarlas aquí para que sean eliminadas automáticamente al cargar el archivo. Ingresa el nombre exacto de la columna.</p>
+        <div id="columnsToDeleteContainer">
+            </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addColumnToDeleteBtn">
+            <i class="bi bi-plus-circle"></i> Añadir columna a eliminar
+        </button>
+        <small class="form-text text-muted d-block mt-3">Las columnas se eliminarán del JSON antes de guardarse en la base de datos. Esto no afecta el archivo Excel original en Storage.</small>
+    </div>
+</div>
+                            </div>
+                            <div class="mb-3"><label for="fileList" class="form-label fw-bold">O selecciona un inventario existente:</label><div class="input-group input-group-lg"><label for="bossFilterSelect" class="input-group-text"><i class="bi bi-person-badge-fill"></i></label><select id="bossFilterSelect" class="form-select"></select><select id="fileList" class="form-select" style="flex-grow: 2;"></select></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wizard-step" id="step-2">
+                    <div class="card" data-aos="fade-up">
+                        <div class="card-body p-4 p-lg-5 text-center">
+                            <h4 class="step-title mb-4 justify-content-center"><i class="bi bi-tag-fill"></i>Paso 2: Asigna un Marbete</h4>
+                            <p class="text-muted">Dale un nombre o código único a este conteo para identificarlo.</p>
+                            <div class="input-group input-group-lg mt-3 w-75 mx-auto"><span class="input-group-text"><i class="bi bi-pencil-square"></i></span><input type="text" id="marbeteInput" class="form-control" placeholder="Ej: Pasillo 5, Zona A-01..." /><button class="btn btn-primary" id="confirmMarbeteBtn"><i class="bi bi-check-lg"></i></button></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wizard-step" id="step-3">
+                    <div class="card" data-aos="fade-up">
+                        <div class="card-body p-4 p-lg-5">
+                            <h4 class="step-title mb-4"><i class="bi bi-upc-scan"></i>Paso 3: Escanea y Administra</h4>
+                            <div id="scan-summary" class="alert alert-primary d-flex align-items-center gap-3"></div>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="bi bi-qr-code-scan"></i></span>
+                                <input type="text" id="scanInput" class="form-control" placeholder="Esperando escaneo automático..." autocomplete="off" />
+                                <div class="input-group-text"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="locationCheckbox"><label class="form-check-label" for="locationCheckbox">Piso</label></div></div>
+                            </div>
+                            <div class="d-flex flex-wrap justify-content-center gap-3 mt-4">
+                                <button class="btn btn-pill btn-success" id="saveDataBtn"><i class="bi bi-cloud-sync-fill me-2"></i>Forzar Sincronización</button>
+                                <button class="btn btn-pill btn-info" id="downloadBtn"><i class="bi bi-download me-2"></i>Descargar</button>
+                                <button class="btn btn-pill btn-secondary" id="viewSheetBtn"><i class="bi bi-table me-2"></i>Ver Tabla</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between mt-5">
+                <button class="btn btn-pill btn-secondary" id="backBtn" style="visibility: hidden;"><i class="bi bi-arrow-left-circle me-2"></i>Atrás</button>
+                <button class="btn btn-pill btn-primary" id="nextBtn" disabled>Siguiente<i class="bi bi-arrow-right-circle ms-2"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <button id="fab-manual-edit" class="fab" data-bs-toggle="tooltip" title="Edición Manual"><i class="bi bi-pencil-fill"></i></button>
+    <div class="modal fade" id="manualEditModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edición Manual</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" id="manualMarbeteSearch" class="form-control" placeholder="Ingresa el marbete a buscar..." />
+                        <button class="btn btn-outline-primary" id="searchMarbeteBtn"><i class="bi bi-search"></i></button>
+                    </div>
+                    <div id="manualEditResults" class="mt-3 table-responsive" style="max-height: 50vh;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="saveManualBtn" style="display: none;"><i class="bi bi-save-fill me-2"></i>Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="viewSheetModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-table me-2"></i>Vista de Inventario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" id="tableSearchInput" class="form-control" placeholder="Buscar por SKU...">
+                    </div>
+                    <div class="table-responsive" style="max-height: 60vh;">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>DESCRIPCION</th>
+                                    <th>OH</th>
+                                    <th>PISO</th>
+                                    <th>BODEGA</th>
+                                    <th>AJUSTE</th>
+                                    <th>MARBETE</th>
+                                    <th class="text-center">Acciones</th> </tr>
+                            </thead>
+                            <tbody id="viewSheetTableBody">
+                                <tr><td colspan="8" class="text-center text-muted">Cargando datos...</td></tr> 
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <script src="inventario.js" defer></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const menuLateral = document.getElementById('menuLateral');
+
+            if (hamburgerBtn && menuLateral) {
+                menuLateral.addEventListener('show.bs.offcanvas', () => {
+                    hamburgerBtn.classList.add('open');
+                });
+                menuLateral.addEventListener('hide.bs.offcanvas', () => {
+                    hamburgerBtn.classList.remove('open');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

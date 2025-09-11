@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inventario de Navidad - Sistema Liverpool</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  
+  <style>
+    /* === VARIABLES Y ANIMACIONES === */
+    @keyframes fadeIn { from { opacity:0; transform: translateY(20px);} to { opacity:1; transform: translateY(0);} }
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes bodegaRise {
+      0% { transform: translateY(100%); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    
+    :root {
+      --rosa: #E6007E;
+      --rosa-2: #ac005c;
+      --blanco: #ffffff;
+      --borde: #e6ebf1;
+      --texto: #2b2f36;
+      --card: #ffffff;
+      --sombra: 0 10px 30px rgba(0,0,0,.08);
+      --radio: 16px;
+      --ok: #22c55e;
+      --warn: #facc15;
+      --danger: #ef4444;
+      
+      /* Colores de las colecciones según la leyenda */
+      --color-circo-haus: #e0e0e0; /* Gris claro */
+      --color-roja-haus: #d9534f; /* Rojo */
+      --color-destellos-haus: #f0ad4e; /* Naranja/Amarillo */
+      --color-destellos-narrative: #c0c0c0; /* Gris */
+      --color-rosa-christmas: #ee82ee; /* Rosa */
+      --color-roja-christmas: #d9534f; /* Rojo */
+      --color-generica-christmas: #d4ac7e; /* Beige */
+      --color-guinda-christmas: #8e44ad; /* Morado/Guinda */
+      --color-metallic-christmas: #a9a9a9; /* Gris oscuro */
+      --color-bolo: #4682b4; /* Azul */
+      --color-disney: #8a2be2; /* Morado */
+      --color-bosque-pinos: #5cb85c; /* Verde */
+      --color-inflables: #98fb98; /* Verde claro */
+      --color-villas: #9e9e9e; /* Gris */
+      --color-bodega: #8d6e63; /* Marrón */
+
+      /* Colores adicionales para el mapa */
+      --color-pasillo: #f8f9fa; /* Gris muy claro para pasillos */
+      --color-servicio: #adb5bd; /* Gris medio para áreas de servicio */
+    }
+
+    /* === GENERALES === */
+    html,body { height: 100%; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: var(--texto);
+      background: linear-gradient(-45deg, var(--rosa), var(--rosa-2), #1a1a1a);
+      background-size: 400% 400%;
+      animation: gradientBG 18s ease infinite;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .btn { transition: all .2s ease; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,.1); }
+
+    /* === ENCABEZADO Y BOTONES === */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 0.8rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 1040;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .header-title { color: var(--blanco); font-weight: 700; margin: 0; }
+    #logout-btn { background: transparent; border: 2px solid var(--blanco); color: var(--blanco); border-radius: 50px; width: 45px; height: 45px; display: inline-flex; justify-content: center; align-items: center; font-size: 1.2rem; transition: all .3s ease; }
+    #logout-btn:hover { background: var(--blanco); color: var(--rosa); transform: scale(1.1) rotate(10deg); }
+    #hamburger-btn { background: transparent; border: none; cursor: pointer; padding: 10px; z-index: 1051; position: relative; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
+    .hamburger-icon { width: 24px; height: 2px; background: var(--blanco); display: block; position: relative; transition: background 0.3s 0s ease; }
+    .hamburger-icon::before, .hamburger-icon::after { content: ''; width: 24px; height: 2px; background: var(--blanco); display: block; position: absolute; left: 0; transition: all 0.3s ease-in-out; }
+    .hamburger-icon::before { top: -8px; }
+    .hamburger-icon::after { top: 8px; }
+    #hamburger-btn.open .hamburger-icon { background: transparent; }
+    #hamburger-btn.open .hamburger-icon::before { transform: translateY(8px) rotate(45deg); }
+    #hamburger-btn.open .hamburger-icon::after { transform: translateY(-8px) rotate(-45deg); }
+
+    /* === MENÚ LATERAL (OFFCANVAS) === */
+    .offcanvas.offcanvas-start { width: 320px; background-color: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-right: 1px solid rgba(255, 255, 255, 0.1); }
+    .offcanvas-header { padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); color: var(--blanco); }
+    .offcanvas-body { padding: 1rem 0; }
+    .offcanvas .nav-link { display: flex; align-items: center; color: rgba(255, 255, 255, 0.8); font-size: 1.1rem; font-weight: 500; padding: 1rem 1.5rem; transition: all 0.3s ease; border-left: 4px solid transparent; margin: 0.25rem 0; }
+    .offcanvas .nav-link:hover { background-color: rgba(230, 0, 126, 0.15); color: var(--blanco); border-left-color: var(--rosa-2); }
+
+    /* === CONTENIDO PRINCIPAL === */
+    .main-container { max-width: 1200px; margin: 2rem auto; animation: fadeIn .7s ease-out; flex: 1; }
+    .card { border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra); overflow: hidden; transition: transform .3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,.1); }
+    .card-header { background: #fff; border-bottom: 1px solid var(--borde); }
+    .card-title { color: var(--rosa); margin: 0; }
+
+    /* Inputs & botones */
+    .form-control:focus { border-color: var(--rosa); box-shadow: 0 0 0 4px rgba(230,0,126,.15); }
+    .btn-lg { font-weight: 600; border-radius: 999px; padding: .75rem 1.5rem; }
+    .btn-primary { background: linear-gradient(135deg, var(--rosa), var(--rosa-2)); border: none; }
+    .btn-primary:hover { filter: brightness(1.06); }
+    .btn-success { background: var(--ok); border: none; }
+    .btn-success:hover { filter: brightness(1.05); }
+    
+    /* === MAPA INTERACTIVO === */
+    .floor-plan-container {
+      position: relative;
+      width: 100%; /* Ajusta según sea necesario para el tamaño base de tu mapa */
+      padding-top: 100%; /* Para mantener la proporción cuadrada, ajusta según el ratio de tu imagen */
+      background-color: var(--color-pasillo); /* Fondo para áreas no asignadas */
+      border-radius: var(--radio);
+      overflow: hidden;
+      box-shadow: var(--sombra);
+    }
+
+    /* Ajustar estas dimensiones y posiciones basadas en el plano de alta calidad */
+    .map-area {
+      position: absolute;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      border: 1px solid rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(0,0,0,0.7);
+      text-align: center;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    .map-area:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+    .map-area.low-stock { border: 2px solid var(--warn); }
+    .map-area.no-stock { border: 2px solid var(--danger); }
+    .map-area .count-label {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        background: rgba(255,255,255,0.7);
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-size: 0.65rem;
+        color: var(--texto);
+    }
+
+
+    /* Definiciones de estilo para cada área del mapa */
+    /* Las coordenadas son aproximadas y deben ajustarse con la imagen */
+
+    /* ÁREAS DE SERVICIO - Color gris más oscuro */
+    .map-area.servicio { background-color: var(--color-servicio); color: var(--blanco); border-color: rgba(255,255,255,0.2); }
+    .map-area[data-collection="Pasillo Superior Izquierdo"] { top: 0%; left: 0%; width: 15%; height: 50%; background-color: var(--color-pasillo); }
+    .map-area[data-collection="Pasillo Superior Central"] { top: 0%; left: 15%; width: 70%; height: 20%; background-color: var(--color-pasillo); }
+    .map-area[data-collection="Pasillo Superior Derecho"] { top: 0%; right: 0%; width: 15%; height: 50%; background-color: var(--color-pasillo); }
+    .map-area[data-collection="Areas de Servicio"] { top: 0%; left: 0%; width: 100%; height: 15%; background-color: var(--color-servicio); }
+    .map-area[data-collection="Entrada Principal"] { bottom: 0%; left: 0%; width: 100%; height: 10%; background-color: var(--color-pasillo); }
+
+    /* BOSQUE DE PINOS - Verde */
+    .map-area[data-collection="Bosque de Pinos"] {
+        background-color: var(--color-bosque-pinos);
+        top: 25%; left: 5%; width: 25%; height: 20%;
+        border-radius: 8px;
+    }
+
+    /* INFLABLES - Verde claro */
+    .map-area[data-collection="Inflables y elementos grandes"] {
+        background-color: var(--color-inflables);
+        top: 50%; left: 5%; width: 15%; height: 10%;
+        border-radius: 8px;
+    }
+
+    /* HAUS - Rojo, Destellos Haus - Naranja, Circo Haus - Gris claro */
+    .map-area[data-collection="Colección Circo Haus"] {
+        background-color: var(--color-circo-haus);
+        top: 65%; left: 10%; width: 10%; height: 10%;
+        border-radius: 50%; /* Como un círculo */
+    }
+    .map-area[data-collection="Colección Roja Haus"] {
+        background-color: var(--color-roja-haus);
+        top: 75%; left: 15%; width: 12%; height: 12%;
+        transform: rotate(15deg); /* Rotado ligeramente */
+    }
+    .map-area[data-collection="Colección Destellos Haus"] {
+        background-color: var(--color-destellos-haus);
+        top: 80%; left: 3%; width: 8%; height: 8%;
+        border-radius: 50%;
+    }
+
+    /* CHRISTMAS SPIRIT - Rosa, Rojo, Beige, Guinda, Gris oscuro */
+    .map-area[data-collection="Colección Rosa Christmas Spirit"] {
+        background-color: var(--color-rosa-christmas);
+        top: 30%; left: 40%; width: 8%; height: 18%;
+    }
+    .map-area[data-collection="Colección Roja Christmas Spirit"] {
+        background-color: var(--color-roja-christmas);
+        top: 40%; left: 60%; width: 10%; height: 10%;
+        border-radius: 50%;
+    }
+    .map-area[data-collection="Colección Genérica Christmas Spirit"] {
+        background-color: var(--color-generica-christmas);
+        top: 55%; left: 40%; width: 12%; height: 8%;
+    }
+    .map-area[data-collection="Colección Guinda Christmas Spirit"] {
+        background-color: var(--color-guinda-christmas);
+        top: 60%; left: 55%; width: 10%; height: 10%;
+    }
+    .map-area[data-collection="Colección Metallic Christmas Spirit"] {
+        background-color: var(--color-metallic-christmas);
+        top: 30%; left: 50%; width: 8%; height: 18%;
+    }
+    
+    /* BOLO - Azul */
+    .map-area[data-collection="Colección Bolo"] {
+        background-color: var(--color-bolo);
+        top: 35%; left: 70%; width: 8%; height: 15%;
+    }
+
+    /* DISNEY - Morado */
+    .map-area[data-collection="Colección Disney"] {
+        background-color: var(--color-disney);
+        top: 35%; left: 80%; width: 8%; height: 15%;
+    }
+
+    /* VILLAS - Gris */
+    .map-area[data-collection="Villas, Nacimientos, Acrílicos, Peluches, Esferas"] {
+        background-color: var(--color-villas);
+        top: 30%; left: 90%; width: 8%; height: 20%;
+    }
+    
+    /* OTROS - Adaptar según la imagen */
+    /* Asegúrate de que no haya solapamientos si no los hay en el plano */
+
+    /* === MODALES === */
+    .modal-layer { display: none; position: fixed; inset: 0; z-index: 1050; background: rgba(6,7,10,.65); animation: fadeIn .3s ease; }
+    .modal-box {
+      background: var(--card); border-radius: var(--radio); box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      width: clamp(320px, 92vw, 1100px); max-height: 90vh; overflow: auto;
+      margin: 40px auto; padding: 24px; position: relative;
+      animation: fadeIn .4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+    .modal-box.narrow { width: clamp(320px, 92vw, 640px); }
+    .modal-close { position: absolute; top: 10px; right: 14px; font-size: 24px; color: #9aa2af; cursor: pointer; transition: all .2s ease; }
+    .modal-close:hover { color: var(--rosa); transform: scale(1.1); }
+
+    /* Dashboard styling for summary modal */
+    .dashboard-card {
+      background: #fff;
+      border-radius: var(--radio);
+      box-shadow: 0 4px 10px rgba(0,0,0,.05);
+      padding: 1rem;
+      transition: all 0.3s ease;
+      border: 1px solid var(--borde);
+    }
+    .dashboard-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,.1);
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .kpi {
+      background-color: #f8f9fa;
+      border-radius: var(--radio);
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,.03);
+    }
+    .kpi .label { font-size: 0.9rem; color: #6c757d; }
+    .kpi .value { font-size: 2rem; font-weight: 700; color: var(--texto); line-height: 1; margin-top: 0.5rem; }
+    .kpi .delta { font-size: 0.8rem; color: #9aa2af; margin-top: 0.25rem; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: flex-end;
+    }
+    .toolbar .flex-grow-1 { flex-basis: 150px; flex-grow: 1; }
+    .badge-soft {
+      background-color: #e2e6ea;
+      color: #495057;
+      padding: .35em .65em;
+      border-radius: .375rem;
+      font-weight: 500;
+      font-size: .8em;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="app-header">
+    <button id="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-controls="menuLateral" aria-label="Abrir menú">
+      <span class="hamburger-icon"></span>
+    </button>
+    <h1 class="header-title">Inventario de Navidad</h1>
+    <button id="logout-btn"><i class="bi bi-power"></i></button>
+  </header>
+
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title fw-bold" id="menuLateralLabel">Menú Principal</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      <nav class="nav flex-column">
+        <a class="nav-link" id="navInventario" href="#"><i class="bi bi-upc-scan"></i>Inventario en Piso</a>
+        <a class="nav-link" id="navDashboard" href="#"><i class="bi bi-bar-chart-line-fill"></i>Dashboard de Inventario</a>
+        <a class="nav-link" id="navSustracciones" href="#"><i class="bi bi-journal-minus"></i>Registro de Sustracciones</a>
+        <a class="nav-link" id="sidebarLogoutLink" href="#"><i class="bi bi-power"></i>Cerrar sesión</a>
+      </nav>
+    </div>
+  </div>
+
+  <main class="container main-container">
+    <div id="app-container" class="row g-4" style="display:none;">
+      
+      <div id="inventario-panel" class="col-lg-5 animate__animated animate__fadeInLeft">
+        <div class="card">
+          <div class="card-header"><h2 class="card-title h5"><i class="bi bi-upc-scan me-2"></i>Escáner de Inventario</h2></div>
+          <div class="card-body p-4">
+            <form id="inventoryForm">
+              <div class="mb-3">
+                <label for="collectionSelect" class="form-label fw-semibold">1. Selecciona la Colección</label>
+                <select id="collectionSelect" class="form-select form-select-lg" required>
+                  <option value="" disabled selected>Elige una colección...</option>
+                  <option value="Colección Circo Haus">Colección Circo Haus</option>
+                  <option value="Colección Roja Haus">Colección Roja Haus</option>
+                  <option value="Colección Destellos Haus">Colección Destellos Haus</option>
+                  <option value="Colección Destellos Narrative">Colección Destellos Narrative</option>
+                  <option value="Colección Rosa Christmas Spirit">Colección Rosa Christmas Spirit</option>
+                  <option value="Colección Roja Christmas Spirit">Colección Roja Christmas Spirit</option>
+                  <option value="Colección Genérica Christmas Spirit">Colección Genérica Christmas Spirit</option>
+                  <option value="Colección Guinda Christmas Spirit">Colección Guinda Christmas Spirit</option>
+                  <option value="Colección Metallic Christmas Spirit">Colección Metallic Christmas Spirit</option>
+                  <option value="Colección Bolo">Colección Bolo</option>
+                  <option value="Colección Disney">Colección Disney</option>
+                  <option value="Bosque de Pinos">Bosque de Pinos</option>
+                  <option value="Villas, Nacimientos, Acrílicos, Peluches, Esferas">Villas, Nacimientos, Acrílicos, Peluches, Esferas</option>
+                  <option value="Inflables y elementos grandes">Inflables y elementos grandes</option>
+                  <option value="Bodega">Bodega</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label for="skuInput" class="form-label fw-semibold">2. Escanea el SKU</label>
+                <input id="skuInput" class="form-control form-control-lg text-center" placeholder="Ej. 12345678" required disabled/>
+              </div>
+              <div id="skuInfoBox" class="alert alert-info mt-3" style="display:none;"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div id="herramientas-panel" class="col-lg-7 animate__animated animate__fadeInRight">
+        <div class="card">
+          <div class="card-header"><h2 class="card-title h5"><i class="bi bi-map-fill me-2"></i>Plano Interactivo de la Tienda</h2></div>
+          <div class="card-body p-4">
+            <div class="floor-plan-container">
+              <div class="map-area servicio" style="top: 0%; left: 0%; width: 100%; height: 15%;">ÁREAS DE SERVICIO</div>
+              <div class="map-area servicio" style="top: 15%; left: 0%; width: 10%; height: 85%;">P-509-0</div>
+              <div class="map-area servicio" style="top: 15%; right: 0%; width: 10%; height: 85%;">P-504</div>
+              <div class="map-area servicio" style="top: 90%; left: 10%; width: 80%; height: 10%;">ENTRADA PRINCIPAL</div>
+              
+              <div class="map-area" data-collection="Bosque de Pinos" style="top: 20%; left: 15%; width: 25%; height: 25%; background-color: var(--color-bosque-pinos);">
+                Bosque de Pinos
+                <span class="count-label" data-collection-count="Bosque de Pinos">0</span>
+              </div>
+              <div class="map-area" data-collection="Inflables y elementos grandes" style="top: 50%; left: 10%; width: 15%; height: 15%; background-color: var(--color-inflables);">
+                Inflables
+                <span class="count-label" data-collection-count="Inflables y elementos grandes">0</span>
+              </div>
+
+              <div class="map-area" data-collection="Colección Circo Haus" style="top: 75%; left: 15%; width: 10%; height: 10%; background-color: var(--color-circo-haus); border-radius: 50%;">
+                Circo Haus
+                <span class="count-label" data-collection-count="Colección Circo Haus">0</span>
+              </div>
+              <div class="map-area" data-collection="Colección Roja Haus" style="top: 65%; left: 25%; width: 12%; height: 12%; background-color: var(--color-roja-haus); transform: rotate(15deg);">
+                Roja Haus
+                <span class="count-label" data-collection-count="Colección Roja Haus">0</span>
+              </div>
+              <div class="map-area" data-collection="Colección Destellos Haus" style="top: 70%; left: 5%; width: 8%; height: 8%; background-color: var(--color-destellos-haus); border-radius: 50%;">
+                Destellos Haus
+                <span class="count-label" data-collection-count="Colección Destellos Haus">0</span>
+              </div>
+              <div class="map-area" data-collection="Colección Destellos Narrative" style="top: 80%; left: 35%; width: 10%; height: 10%; background-color: var(--color-destellos-narrative); transform: skewX(-15deg);">
+                Destellos Narrative
+                <span class="count-label" data-collection-count="Colección Destellos Narrative">0</span>
+              </div>
+
+              <div class="map-area" data-collection="Colección Rosa Christmas Spirit" style="top: 25%; left: 45%; width: 10%; height: 15%; background-color: var(--color-rosa-christmas);">
+                Rosa Christ.
+                <span class="count-label" data-collection-count="Colección Rosa Christmas Spirit">0</span>
+              </div>
+              <div class="map-area" data-collection="Colección Roja Christmas Spirit" style="top: 45%; left: 50%; width: 10%; height: 10%; background-color: var(--color-roja-christmas); border-radius: 50%;">
+                Roja Christ.
+                <span class="count-label" data-collection-count="Colección Roja Christmas Spirit">0</span>
+              </div>
+              <div class="map-area" data-collection="Colección Genérica Christmas Spirit" style="top: 60%; left: 40%; width: 12%; height: 8%; background-color: var(--color-generica-christmas);">
+                Genérica Christ.
+                <span class="count-label" data-collection-count="Colección Genérica Christmas Spirit">0</span>
+              </div>
+              <div class="map-area" data-collection="Colección Guinda Christmas Spirit" style="top: 65%; left: 55%; width: 10%; height: 10%; background-color: var(--color-guinda-christmas);">
+                Guinda Christ.
+                <span class="count-label" data-collection-count="Colección Guinda Christmas Spirit">0</span>
+              </div>
+              <div class="map-area" data-collection="Colección Metallic Christmas Spirit" style="top: 25%; left: 60%; width: 10%; height: 15%; background-color: var(--color-metallic-christmas);">
+                Metallic Christ.
+                <span class="count-label" data-collection-count="Colección Metallic Christmas Spirit">0</span>
+              </div>
+              
+              <div class="map-area" data-collection="Colección Bolo" style="top: 30%; left: 75%; width: 10%; height: 15%; background-color: var(--color-bolo);">
+                Bolo
+                <span class="count-label" data-collection-count="Colección Bolo">0</span>
+              </div>
+              <div class="map-area" data-collection="Colección Disney" style="top: 30%; left: 85%; width: 10%; height: 15%; background-color: var(--color-disney);">
+                Disney
+                <span class="count-label" data-collection-count="Colección Disney">0</span>
+              </div>
+
+              <div class="map-area" data-collection="Villas, Nacimientos, Acrílicos, Peluches, Esferas" style="top: 50%; left: 75%; width: 20%; height: 15%; background-color: var(--color-villas);">
+                Villas, etc.
+                <span class="count-label" data-collection-count="Villas, Nacimientos, Acrílicos, Peluches, Esferas">0</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div class="card mt-4">
+          <div class="card-header"><h2 class="card-title h5"><i class="bi bi-tools me-2"></i>Herramientas</h2></div>
+          <div class="card-body p-4 d-grid gap-3">
+            <button id="summaryBtn" type="button" class="btn btn-success btn-lg">
+              <i class="bi bi-bar-chart-line-fill me-2"></i>Ver Dashboard de Inventario
+            </button>
+            <button id="sustraccionesBtn" type="button" class="btn btn-outline-danger btn-lg">
+                <i class="bi bi-journal-minus me-2"></i>Ver Registro de Sustracciones
+            </button>
+            <button id="bodega-btn" type="button" class="btn btn-dark btn-lg">
+                <i class="bi bi-truck-flatbed me-2"></i>Ver Contenido de Bodega
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-container" class="alert alert-danger text-center p-4 fs-6 fw-bold" style="display:none;">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>No has iniciado sesión o no tienes permisos. Por favor, inicia sesión.
+    </div>
+  </main>
+
+  <div id="summaryModal" class="modal-layer" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <span class="modal-close" data-modal-close>&times;</span>
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 id="summaryModalTitle" class="h5 m-0">Resumen de Inventario Escaneado</h2>
+        <div class="d-flex gap-2">
+          <button id="exportBtn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Exportar XLSX</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="flex-grow-1">
+          <label class="form-label" for="collectionFilter">Colección</label>
+          <select id="collectionFilter" class="form-select"></select>
+        </div>
+        <div class="flex-grow-1">
+          <label class="form-label" for="searchInput">Buscar</label>
+          <input id="searchInput" class="form-control search-input" placeholder="SKU o Descripción... (Enter)"/>
+        </div>
+        <div>
+          <label class="form-label">&nbsp;</label>
+          <div>
+            <button id="clearFiltersBtn" class="btn btn-outline-secondary"><i class="bi bi-eraser me-1"></i>Limpiar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="label">Total SKUs únicos</div>
+          <div id="kpiUniqueSkus" class="value">0</div>
+          <div class="delta text-muted">Artículos</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Total de Unidades</div>
+          <div id="kpiTotalUnits" class="value text-success">0</div>
+          <div class="delta text-success">En inventario</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Colecciones</div>
+          <div id="kpiCollections" class="value text-primary">0</div>
+          <div class="delta text-muted">Inventariadas</div>
+        </div>
+      </div>
+
+      <div id="dashboardContent" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-3"></div>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <h6 class="section-title mb-2"><i class="bi bi-check2-circle text-success me-1"></i>Inventario en Piso <span id="scannedCount" class="badge bg-success">0</span></h6>
+          <div class="card">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle mb-0">
+                  <thead class="border-bottom">
+                    <tr>
+                      <th>SKU</th>
+                      <th>Colección</th>
+                      <th>Piezas</th>
+                      <th>Última Fecha</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="scannedTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="sustraccionesModal" class="modal-layer" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <span class="modal-close" data-modal-close>&times;</span>
+      <h2 class="h5 mb-2"><i class="bi bi-journal-minus me-2"></i>Registro de Sustracciones</h2>
+      <p class="text-muted mb-3">Historial de artículos restados del inventario.</p>
+      
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0">
+          <thead class="border-bottom">
+            <tr>
+              <th>SKU</th>
+              <th>Colección</th>
+              <th>Motivo</th>
+              <th>Usuario</th>
+              <th>Fecha/Hora</th>
+            </tr>
+          </thead>
+          <tbody id="sustraccionesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div id="collectionDetailModal" class="modal-layer" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <span class="modal-close" data-modal-close>&times;</span>
+      <h2 id="collectionDetailTitle" class="h5 mb-2"></h2>
+      <p id="collectionDetailSummary" class="text-muted mb-3"></p>
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0">
+          <thead class="border-bottom">
+            <tr>
+              <th>SKU</th>
+              <th>Piezas</th>
+              <th>Última Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="collectionDetailTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js" type="module"></script>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, setDoc, serverTimestamp, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD1-ZhYGtJzJFY4WfSUS_lbnzLhzWfT1D8",
+      authDomain: "sistemaintegrall.firebaseapp.com",
+      projectId: "sistemaintegrall",
+      storageBucket: "sistemaintegrall.firebasestorage.app",
+      messagingSenderId: "302291844621",
+      appId: "1:302291844621:web:6ebf1845790bdeabfc1f44",
+      measurementId: "G-E5BT7GXRZN"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const collectionSelect = document.getElementById('collectionSelect');
+    const skuInput = document.getElementById('skuInput');
+    const summaryBtn = document.getElementById('summaryBtn');
+    const sustraccionesBtn = document.getElementById('sustraccionesBtn');
+    const bodegaBtn = document.getElementById('bodega-btn');
+    const appContainer = document.getElementById('app-container');
+    const errorContainer = document.getElementById('error-container');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const menuLateral = document.getElementById('menuLateral');
+    const navInventario = document.getElementById('navInventario');
+    const navDashboard = document.getElementById('navDashboard');
+    const navSustracciones = document.getElementById('navSustracciones');
+    const sidebarLogoutLink = document.getElementById('sidebarLogoutLink');
+    const inventarioPanel = document.getElementById('inventario-panel');
+    const herramientasPanel = document.getElementById('herramientas-panel');
+
+    const summaryModal = document.getElementById('summaryModal');
+    const sustraccionesModal = document.getElementById('sustraccionesModal');
+    const collectionDetailModal = document.getElementById('collectionDetailModal');
+    document.querySelectorAll('[data-modal-close]').forEach(btn => btn.addEventListener('click',()=>closeModal(btn.closest('.modal-layer'))));
+    document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') document.querySelectorAll('.modal-layer[aria-hidden="false"]').forEach(m => closeModal(m)); });
+
+    const collectionFilter = document.getElementById('collectionFilter');
+    const searchInput = document.getElementById('searchInput');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    
+    const kpiUniqueSkus = document.getElementById('kpiUniqueSkus');
+    const kpiTotalUnits = document.getElementById('kpiTotalUnits');
+    const kpiCollections = document.getElementById('kpiCollections');
+    const dashboardContent = document.getElementById('dashboardContent');
+    const scannedTableBody = document.getElementById('scannedTableBody');
+    const scannedCount = document.getElementById('scannedCount');
+    const sustraccionesTableBody = document.getElementById('sustraccionesTableBody');
+    const collectionDetailTitle = document.getElementById('collectionDetailTitle');
+    const collectionDetailSummary = document.getElementById('collectionDetailSummary');
+    const collectionDetailTableBody = document.getElementById('collectionDetailTableBody');
+
+    const mapAreas = document.querySelectorAll('.map-area');
+    
+    let currentUser = null;
+    let inventarioData = {};
+    
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        appContainer.style.display='flex';
+        errorContainer.style.display='none';
+        skuInput.disabled=true;
+        collectionSelect.disabled=false;
+        await loadSummary();
+      } else {
+        appContainer.style.display='none';
+        errorContainer.style.display='block';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (hamburgerBtn && menuLateral) {
+        menuLateral.addEventListener('show.bs.offcanvas', () => {
+          hamburgerBtn.classList.add('open');
+        });
+        menuLateral.addEventListener('hide.bs.offcanvas', () => {
+          hamburgerBtn.classList.remove('open');
+        });
+      }
+
+      summaryBtn.addEventListener('click', async () => {
+        await loadSummary();
+        openModal(summaryModal);
+      });
+
+      sustraccionesBtn.addEventListener('click', async () => {
+        await loadSustracciones();
+        openModal(sustraccionesModal);
+      });
+
+      bodegaBtn.addEventListener('click', async () => {
+        await loadSummary(); // Asegura que los datos estén actualizados
+        renderBodegaDetails(); // Llama a la nueva función para mostrar los detalles de la bodega
+        openModal(collectionDetailModal); // Abre el modal de detalles
+      });
+      
+      mapAreas.forEach(area => {
+        if (!area.classList.contains('servicio')) { // Solo áreas de colección son interactivas
+          area.addEventListener('click', async () => {
+            const collectionName = area.dataset.collection;
+            await loadSummary();
+            renderCollectionDetails(collectionName);
+            openModal(collectionDetailModal);
+          });
+        }
+      });
+    });
+
+    function showPanel(panel) {
+      if (panel === 'inventario') {
+        inventarioPanel.style.display = 'block';
+        herramientasPanel.style.display = 'block';
+        document.body.scrollTop = document.documentElement.scrollTop = 0;
+      }
+    }
+
+    async function registerScan() {
+      const sku = skuInput.value.trim().toUpperCase();
+      const collectionName = collectionSelect.value;
+      
+      if (!sku || !collectionName) {
+        await Swal.fire({
+            icon: 'warning', 
+            title: '¡Atención!', 
+            text: 'Por favor, selecciona una colección y escanea un SKU para continuar.',
+            customClass: {
+              confirmButton: 'swal2-confirm'
+            }
+        });
+        return;
+      }
+
+      skuInput.disabled = true;
+
+      try {
+        const docRef = doc(db, "inventarioNavidad", sku);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const currentCount = docSnap.data().unidades || 0;
+          await updateDoc(docRef, {
+            unidades: currentCount + 1,
+            coleccion: collectionName,
+            ultima_fecha_scan: serverTimestamp()
+          });
+        } else {
+          await setDoc(docRef, {
+            sku: sku,
+            unidades: 1,
+            coleccion: collectionName,
+            primera_fecha_scan: serverTimestamp(),
+            ultima_fecha_scan: serverTimestamp()
+          });
+        }
+        await Swal.fire({
+            toast:true, 
+            position:'top-end', 
+            icon:'success', 
+            title:'¡Artículo Registrado!', 
+            text: `SKU: ${sku} agregado a ${collectionName}.`,
+            timer:2000, 
+            showConfirmButton:false,
+            customClass: {
+              popup: 'animate__animated animate__fadeInRight'
+            }
+        });
+
+      } catch (e) {
+        await Swal.fire({
+            icon: 'error', 
+            title:'¡Error!', 
+            text:`Hubo un problema al registrar el artículo: ${e.message}`,
+            customClass: {
+              confirmButton: 'swal2-confirm'
+            }
+        });
+      } finally {
+        skuInput.value = '';
+        skuInput.disabled = false;
+        skuInput.focus();
+        await loadSummary();
+      }
+    }
+
+    async function loadSummary() {
+      Swal.fire({ 
+        title: 'Cargando Datos...', 
+        text: 'Obteniendo los registros de inventario.', 
+        icon: 'info', 
+        allowOutsideClick: false, 
+        showConfirmButton: false,
+        customClass: {
+            popup: 'animate__animated animate__fadeIn'
+        }
+      });
+      Swal.showLoading();
+      
+      inventarioData = {};
+      const snap = await getDocs(collection(db, "inventarioNavidad"));
+      snap.forEach(doc => {
+        const data = doc.data();
+        inventarioData[doc.id] = {
+          sku: data.sku,
+          unidades: data.unidades,
+          coleccion: data.coleccion,
+          ultima_fecha_scan: data.ultima_fecha_scan?.toDate()
+        };
+      });
+      Swal.close();
+      buildFilters();
+      renderDashboard();
+      renderCollectionCounts();
+    }
+
+    function buildFilters() {
+      const allSkus = Object.values(inventarioData);
+      const uniq = a => [...new Set(a)].filter(Boolean).sort((x, y) => x.localeCompare(y, 'es'));
+      const collections = uniq(allSkus.map(d => d.coleccion));
+      collectionFilter.innerHTML = ['<option value="__TODOS__">Todas las colecciones</option>', ...collections.map(c => `<option value="${c}">${c}</option>`)].join('');
+      collectionFilter.value = '__TODOS__';
+
+      kpiUniqueSkus.textContent = allSkus.length;
+      kpiTotalUnits.textContent = allSkus.reduce((sum, item) => sum + (item.unidades || 0), 0);
+      kpiCollections.textContent = collections.length;
+
+      collectionFilter.onchange = () => renderDashboard();
+      searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); renderDashboard(); } });
+      clearFiltersBtn.onclick = () => { collectionFilter.value = '__TODOS__'; searchInput.value = ''; renderDashboard(); };
+      exportBtn.onclick = () => exportCurrentView();
+    }
+
+    function getFilteredData() {
+      const selCollection = collectionFilter.value;
+      const term = searchInput.value.trim().toUpperCase();
+      let data = Object.values(inventarioData);
+      if (selCollection !== '__TODOS__') data = data.filter(d => d.coleccion === selCollection);
+      if (term) data = data.filter(d => (d.sku || '').toUpperCase().includes(term));
+      return data;
+    }
+
+    function renderDashboard() {
+      const data = getFilteredData();
+      scannedCount.textContent = data.length;
+      
+      const group = new Map();
+      data.forEach(d => { const k = d.coleccion || 'Sin Colección'; if (!group.has(k)) group.set(k, []); group.get(k).push(d); });
+      const collectionsInDashboard = [...group.keys()];
+
+      const allCollectionNames = new Set(Object.values(inventarioData).map(item => item.coleccion));
+      dashboardContent.innerHTML = '';
+      if (allCollectionNames.size === 0) {
+        dashboardContent.innerHTML = `<div class="col-12"><div class="alert alert-ghost text-center">No hay registros de inventario.</div></div>`;
+      } else {
+        collectionsInDashboard.forEach(collection => {
+          const rows = group.get(collection) || [];
+          const totalUnidades = rows.reduce((sum, item) => sum + (item.unidades || 0), 0);
+          const div = document.createElement('div');
+          div.className = 'col';
+          div.innerHTML = `
+            <div class="dashboard-card">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="m-0 text-primary"><i class="bi bi-box-seam me-1"></i>${collection}</h6>
+                <span class="badge rounded-pill text-bg-light">${totalUnidades} unidades</span>
+              </div>
+            </div>`;
+          dashboardContent.appendChild(div);
+        });
+      }
+
+      renderScannedTable(data);
+    }
+    
+    function renderScannedTable(items) {
+      scannedTableBody.innerHTML = '';
+      items.sort((a, b) => (b.ultima_fecha_scan?.getTime() || 0) - (a.ultima_fecha_scan?.getTime() || 0));
+      for (const r of items) {
+        const rowClass = (r.unidades || 0) === 0 ? 'table-danger' : '';
+        const tr = document.createElement('tr');
+        tr.className = rowClass;
+        tr.innerHTML = `
+          <td><span class="badge-soft">${r.sku || '-'}</span></td>
+          <td>${r.coleccion || '-'}</td>
+          <td>${r.unidades || 0}</td>
+          <td>${r.ultima_fecha_scan?.toLocaleString('es-MX') || '-'}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger" title="Restar artículo" onclick="subtractItem('${r.sku}')"><i class="bi bi-dash-lg"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" title="Eliminar artículo" onclick="deleteItem('${r.sku}')"><i class="bi bi-x-lg"></i></button>
+          </td>`;
+        scannedTableBody.appendChild(tr);
+      }
+    }
+    
+    function renderCollectionDetails(collectionName) {
+        collectionDetailTitle.textContent = `Detalles de la Colección: ${collectionName}`;
+        
+        const filteredData = Object.values(inventarioData).filter(item => item.coleccion === collectionName);
+        const totalItems = filteredData.length;
+        const totalUnits = filteredData.reduce((sum, item) => sum + (item.unidades || 0), 0);
+        collectionDetailSummary.innerHTML = `SKUs únicos: <b>${totalItems}</b> | Unidades en total: <b>${totalUnits}</b>`;
+
+        collectionDetailTableBody.innerHTML = '';
+        if (filteredData.length === 0) {
+            collectionDetailTableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No hay artículos en esta colección.</td></tr>';
+        } else {
+            filteredData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge-soft">${item.sku}</span></td>
+                    <td>${item.unidades}</td>
+                    <td>${item.ultima_fecha_scan?.toLocaleString('es-MX') || '-'}</td>
+                `;
+                collectionDetailTableBody.appendChild(tr);
+            });
+        }
+    }
+
+    function renderBodegaDetails() {
+        collectionDetailTitle.textContent = 'Contenido de Bodega';
+        const bodegaItems = Object.values(inventarioData).filter(item => item.coleccion === 'Bodega');
+        const totalItems = bodegaItems.length;
+        const totalUnits = bodegaItems.reduce((sum, item) => sum + (item.unidades || 0), 0);
+        collectionDetailSummary.innerHTML = `SKUs únicos: <b>${totalItems}</b> | Unidades en total: <b>${totalUnits}</b>`;
+
+        collectionDetailTableBody.innerHTML = '';
+        if (bodegaItems.length === 0) {
+            collectionDetailTableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No hay artículos en la bodega.</td></tr>';
+        } else {
+            bodegaItems.sort((a,b) => b.ultima_fecha_scan?.getTime() - a.ultima_fecha_scan?.getTime());
+            bodegaItems.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge-soft">${item.sku}</span></td>
+                    <td>${item.unidades}</td>
+                    <td>${item.ultima_fecha_scan?.toLocaleString('es-MX') || '-'}</td>
+                `;
+                collectionDetailTableBody.appendChild(tr);
+            });
+        }
+    }
+
+    function renderCollectionCounts() {
+      const countsByCollection = Object.values(inventarioData).reduce((acc, item) => {
+        acc[item.coleccion] = (acc[item.coleccion] || 0) + (item.unidades || 0);
+        return acc;
+      }, {});
+
+      mapAreas.forEach(area => {
+        const collectionName = area.dataset.collection;
+        if (collectionName) { // Solo si es un área de colección
+          const totalUnits = countsByCollection[collectionName] || 0;
+          
+          const countElement = area.querySelector('.count-label');
+          if (countElement) {
+            countElement.textContent = `${totalUnits}`; // Solo el número de unidades
+          }
+
+          area.classList.remove('low-stock', 'no-stock');
+          if (totalUnits === 0) {
+              area.classList.add('no-stock');
+          } else if (totalUnits > 0 && totalUnits < 5) {
+              area.classList.add('low-stock');
+          }
+        }
+      });
+    }
+
+    async function subtractItem(sku) {
+      const { value: reason } = await Swal.fire({
+        title: 'Restar Artículo',
+        text: `¿Por qué se va a restar 1 unidad del SKU ${sku}?`,
+        input: 'select',
+        inputOptions: {
+          'Venta': 'Venta',
+          'Merma': 'Merma',
+          'Daño': 'Daño',
+          'Perdida': 'Pérdida',
+          'Otro': 'Otro Motivo'
+        },
+        inputPlaceholder: 'Selecciona el motivo',
+        showCancelButton: true,
+        confirmButtonText: 'Restar',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+          confirmButton: 'swal2-confirm',
+          cancelButton: 'swal2-cancel'
+        }
+      });
+
+      if (reason) {
+        try {
+          const docRef = doc(db, "inventarioNavidad", sku);
+          const docSnap = await getDoc(docRef);
+          if (!docSnap.exists() || docSnap.data().unidades <= 0) {
+            await Swal.fire({
+                icon: 'error', 
+                title: 'Error', 
+                text: 'No hay unidades de este artículo para restar.',
+                customClass: {
+                    confirmButton: 'swal2-confirm'
+                }
+            });
+            return;
+          }
+          const newCount = docSnap.data().unidades - 1;
+          
+          await setDoc(doc(db, 'sustraccionesLog', `${sku}-${Date.now()}`), {
+            sku: sku,
+            coleccion: docSnap.data().coleccion,
+            motivo: reason,
+            usuario: currentUser.email,
+            fecha: serverTimestamp()
+          });
+
+          await updateDoc(docRef, { unidades: newCount });
+
+          await Swal.fire({ 
+              toast: true, 
+              position: 'top-end', 
+              icon: 'success', 
+              title: `¡${sku} Restado!`, 
+              text: `Unidad restada por motivo: ${reason}`, 
+              timer: 1500, 
+              showConfirmButton: false,
+              customClass: {
+                popup: 'animate__animated animate__fadeInRight'
+              }
+          });
+          await loadSummary();
+        } catch (e) {
+          await Swal.fire({
+              icon: 'error', 
+              title: 'Error', 
+              text: `Hubo un problema al restar el artículo: ${e.message}`,
+              customClass: {
+                confirmButton: 'swal2-confirm'
+              }
+          });
+        }
+      }
+    }
+
+    async function deleteItem(sku) {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: `Esto eliminará TODAS las unidades del SKU ${sku}. ¡No podrás revertirlo!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, ¡eliminarlo!',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+              confirmButton: 'swal2-confirm',
+              cancelButton: 'swal2-cancel'
+            }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await deleteDoc(doc(db, "inventarioNavidad", sku));
+                await Swal.fire({
+                    title: '¡Eliminado!',
+                    text: `El SKU ${sku} ha sido eliminado del inventario.`,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    customClass: {
+                      popup: 'animate__animated animate__zoomIn'
+                    }
+                });
+                await loadSummary();
+            } catch (e) {
+                await Swal.fire({
+                    icon: 'error', 
+                    title: 'Error', 
+                    text: `Hubo un problema al eliminar el artículo: ${e.message}`,
+                    customClass: {
+                        confirmButton: 'swal2-confirm'
+                    }
+                });
+            }
+        }
+    }
+    
+    async function loadSustracciones() {
+      Swal.fire({ 
+        title: 'Cargando...', 
+        text: 'Obteniendo historial de sustracciones.', 
+        icon: 'info', 
+        allowOutsideClick: false, 
+        showConfirmButton: false,
+        customClass: {
+            popup: 'animate__animated animate__fadeIn'
+        }
+      });
+      Swal.showLoading();
+      sustraccionesTableBody.innerHTML = '';
+      try {
+        const snap = await getDocs(collection(db, "sustraccionesLog"));
+        const sustracciones = [];
+        snap.forEach(doc => sustracciones.push({ id: doc.id, ...doc.data() }));
+
+        sustracciones.sort((a, b) => (b.fecha?.toDate()?.getTime() || 0) - (a.fecha?.toDate()?.getTime() || 0));
+
+        if (sustracciones.length === 0) {
+          sustraccionesTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No hay registros de sustracciones.</td></tr>';
+        } else {
+          sustracciones.forEach(s => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${s.sku || '-'}</td>
+              <td>${s.coleccion || '-'}</td>
+              <td>${s.motivo || '-'}</td>
+              <td>${s.usuario || '-'}</td>
+              <td>${s.fecha?.toDate()?.toLocaleString('es-MX') || '-'}</td>
+            `;
+            sustraccionesTableBody.appendChild(tr);
+          });
+        }
+      } catch (e) {
+        sustraccionesTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar el historial.</td></tr>';
+        console.error("Error loading subtractions log: ", e);
+      } finally {
+        Swal.close();
+      }
+    }
+    
+    window.subtractItem = subtractItem;
+    window.deleteItem = deleteItem;
+    window.exportCurrentView = exportCurrentView; 
+    
+    function exportCurrentView(){
+        const data = Object.values(inventarioData).map(item => ({
+            SKU: item.sku,
+            Coleccion: item.coleccion,
+            Unidades: item.unidades,
+            "Último Scan": item.ultima_fecha_scan.toLocaleString('es-MX')
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Inventario_Navidad");
+        const filename = `Inventario_Navidad_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, filename);
+    }
+    
+    function openModal(layer){ if(!layer) return; layer.style.display='block'; layer.setAttribute('aria-hidden','false'); }
+    function closeModal(layer){ if(!layer) return; layer.style.display='none'; layer.setAttribute('aria-hidden','true'); }
+  </script>
+</body>
+</html>

@@ -15,7 +15,7 @@
 
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-
+    
     <style>
         :root {
             --rosa-principal: #E6007E;
@@ -40,11 +40,11 @@
             background: linear-gradient(-45deg, #E6007E, #a3005a, #d11a9a, #1a1a1a);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
-            min-height: 100vh; /* Asegura que ocupe toda la altura */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            position: relative; /* Necesario para posicionar el canvas */
-            z-index: 0; /* Asegura que el canvas esté detrás del contenido */
+            position: relative;
+            z-index: 0;
         }
 
         @keyframes gradientBG {
@@ -68,8 +68,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1; /* Detrás del contenido principal, pero encima del fondo */
-            pointer-events: none; /* Permite hacer clic a través del canvas */
+            z-index: 1;
+            pointer-events: none;
         }
 
         .preloader {
@@ -152,9 +152,9 @@
             animation: fadeIn .8s ease-out;
             color: var(--texto-principal);
             margin-bottom: 2rem;
-            flex-grow: 1; /* Permite que el contenedor principal crezca y ocupe el espacio disponible */
-            z-index: 2; /* Asegura que el contenido esté encima del canvas */
-            position: relative; /* Necesario para z-index */
+            flex-grow: 1;
+            z-index: 2;
+            position: relative;
         }
 
         @keyframes fadeIn {
@@ -312,7 +312,7 @@
         .hero-content h1 {
             font-size: clamp(2.2rem, 5vw, 3rem);
             font-weight: 700;
-            animation: slideInLeft 1s ease-out; /* Animación para el título */
+            animation: slideInLeft 1s ease-out;
         }
 
         .hero-content h1 span {
@@ -323,7 +323,7 @@
             font-size: clamp(1.1rem, 3vw, 1.25rem);
             margin: 1rem 0;
             color: var(--gris-oscuro);
-            animation: fadeIn 1.2s ease-out; /* Animación para la descripción */
+            animation: fadeIn 1.2s ease-out;
         }
 
         .typewriter-text {
@@ -357,7 +357,7 @@
             color: white;
             transition: all .3s ease;
             letter-spacing: 0.5px;
-            animation: pulseButton 2s infinite; /* Animación para el botón */
+            animation: pulseButton 2s infinite;
         }
 
         #authButton:hover {
@@ -366,20 +366,28 @@
         }
 
         @keyframes pulseButton {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 0, 126, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(230, 0, 126, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(230, 0, 126, 0); }
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(230, 0, 126, 0.7);
+            }
+
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(230, 0, 126, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(230, 0, 126, 0);
+            }
         }
 
-        /* === Mini-Dashboard de KPIs === */
-        #dashboard-kpis {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
+        /* === Sección de Efemérides === */
+        #ephemeris-section {
             margin-top: 2.5rem;
         }
-
-        .kpi-card {
+        
+        #ephemeris-card {
             background: #fff;
             border-radius: 16px;
             padding: 1.5rem;
@@ -387,28 +395,34 @@
             text-align: center;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.8s ease-out;
         }
 
-        .kpi-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .kpi-card .kpi-icon {
+        #ephemeris-card .ephemeris-icon {
             font-size: 2.5rem;
             color: var(--rosa-principal);
+            margin-bottom: 0.5rem;
         }
-
-        .kpi-card .kpi-value {
-            font-size: 2rem;
+        
+        #ephemeris-card .ephemeris-title {
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--texto-principal);
             margin: 0.5rem 0;
         }
 
-        .kpi-card .kpi-label {
-            font-size: 0.85rem;
+        #ephemeris-card .ephemeris-text {
+            font-size: 1.1rem;
+            font-weight: 500;
             color: var(--gris-oscuro);
+            margin: 1rem 0;
+            line-height: 1.5;
+        }
+        
+        #ephemeris-card .ephemeris-link {
+            font-size: 0.9rem;
+            color: var(--rosa-principal);
+            text-decoration: none;
         }
 
         /* === Paneles de Leaderboard (ESTILO ORIGINAL RESTAURADO) === */
@@ -730,7 +744,7 @@
         /* Estilos para SweetAlert2 */
         .swal2-popup {
             border-radius: 1rem !important;
-            background: rgba(30, 30, 46, 0.9) !important; /* Fondo oscuro transparente */
+            background: rgba(30, 30, 46, 0.9) !important;
             backdrop-filter: blur(10px) !important;
             -webkit-backdrop-filter: blur(10px) !important;
             border: 1px solid var(--rosa-principal) !important;
@@ -787,6 +801,7 @@
             border-width: .3em;
             border-color: var(--rosa-principal) var(--rosa-principal) transparent transparent;
         }
+
         .swal2-loading .swal2-html-container {
             margin-top: 1.5rem;
             font-size: 1.1rem;
@@ -802,9 +817,11 @@
             0% {
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0px rgba(230, 0, 126, 0.2);
             }
+
             50% {
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(230, 0, 126, 0.4);
             }
+
             100% {
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0px rgba(230, 0, 126, 0.2);
             }
@@ -813,7 +830,6 @@
 </head>
 
 <body>
-    <!-- Canvas para el efecto de partículas -->
     <canvas id="particles-canvas"></canvas>
 
     <div class="preloader">
@@ -828,58 +844,118 @@
                 class="bi bi-power"></i></button>
     </header>
 
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title fw-bold">Menú Principal</h5>
-            <button type="button" class="btn-close btn-close-white" id="close-menu-btn" aria-label="Cerrar"></button>
-        </div>
-        <div class="offcanvas-body p-0">
-            <nav class="nav flex-column">
-                <a class="nav-link active" href="index.html"><i class="bi bi-house-heart-fill"></i>Inicio</a>
-                <a class="nav-link" href="Manifiestos/Manifiestos.html"><i
-                        class="bi bi-file-earmark-text-fill"></i>Manifiestos</a>
-                <a class="nav-link" href="Adminroles/admin.html"><i class="bi bi-person-fill-gear"></i>Administrar
-                    Roles</a>
+<div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold">Menú Principal</h5>
+        <button type="button" class="btn-close btn-close-white" id="close-menu-btn" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="index.html">
+                <i class="bi bi-house-door-fill"></i>Inicio
+            </a>
+            <a class="nav-link" href="Manifiestos/Manifiestos.html">
+                <i class="bi bi-file-earmark-check-fill"></i>Manifiestos
+            </a>
+            <a class="nav-link" href="Rechazos/index.html">
+                <i class="bi bi-x-circle-fill"></i>Rechazos
+            </a>
+            <a class="nav-link" href="Inventarios/index.html">
+                <i class="bi bi-box-seam-fill"></i>Inventarios
+            </a>
+            <a class="nav-link" href="Reportes/index.html">
+                <i class="bi bi-graph-up-arrow"></i>Reportes
+            </a>
+            <a class="nav-link" id="adminTab" href="Adminroles/admin.html" style="display: none;">
+                <i class="bi bi-person-fill-gear"></i>Administrar Roles
+            </a>
+        </nav>
+    </div>
+</div>
 
-            </nav>
+<main class="container main-container">
+    <div class="hero-content text-center" data-aos="fade-up">
+        <h1 id="welcomeMessage">Bienvenido al <span>Sistema Liverpool</span></h1>
+        <p class="lead" data-aos="fade-up" data-aos-delay="200">
+            Tu herramienta para <span class="typewriter-text"></span>
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+            <button class="btn btn-primary shadow-lg" data-aos="fade-up" data-aos-delay="400"
+                id="authButton">Acceder</button>
         </div>
     </div>
 
-    <main class="container main-container">
-        <div class="hero-content text-center" data-aos="fade-up">
-            <h1 id="welcomeMessage">Bienvenido al <span>Sistema Liverpool</span></h1>
-            <p class="lead" data-aos="fade-up" data-aos-delay="200">
-                Tu herramienta para <span class="typewriter-text"></span>
-            </p>
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
-                <button class="btn btn-primary shadow-lg" data-aos="fade-up" data-aos-delay="400"
-                    id="authButton">Acceder</button>
+    <div id="dashboard-kpis" style="display: none;"></div>
+    
+    <div id="ephemeris-section" style="display: none;">
+        <h2 class="text-center mb-5" data-aos="fade-up">Efeméride del Día</h2>
+        <div id="ephemeris-card" class="card" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-body">
+                <div class="ephemeris-icon"><i class="bi bi-calendar-event"></i></div>
+                <h5 id="ephemeris-title" class="ephemeris-title"></h5>
+                <p id="ephemeris-text" class="ephemeris-text"></p>
+                <a id="ephemeris-link" href="#" class="ephemeris-link" target="_blank" style="display:none;">Leer más</a>
             </div>
         </div>
+    </div>
 
-        <div id="dashboard-kpis" style="display: none;"></div>
+    <div id="leaderboard-container" class="leaderboard-grid"></div>
 
-        <div id="leaderboard-container" class="leaderboard-grid"></div>
+    <hr class="my-5">
 
-        <hr class="my-5">
+    <div class="quick-access-section" style="display: none;">
+        <h2 class="text-center mb-5" data-aos="fade-up">Acceso Rápido</h2>
+        <div class="quick-access-grid">
 
-        <div class="quick-access-section" style="display: none;">
-            <h2 class="text-center mb-5" data-aos="fade-up">Acceso Rápido</h2>
-            <div class="quick-access-grid">
+            <a href="Manifiestos/Manifiestos.html" class="action-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-content">
+                    <div class="card-icon"><i class="bi bi-file-earmark-check-fill"></i></div>
+                    <h3>Manifiestos</h3>
+                    <p>Genera, consulta y administra los manifiestos de mercancía.</p>
+                </div>
+                <div class="go-corner">
+                    <div class="go-arrow"></div>
+                </div>
+            </a>
 
-                <a href="Manifiestos/Manifiestos.html" class="action-card" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card-content">
-                        <div class="card-icon"><i class="bi bi-file-earmark-check-fill"></i></div>
-                        <h3>Manifiestos</h3>
-                        <p>Genera, consulta y administra los manifiestos de mercancía.</p>
-                    </div>
-                    <div class="go-corner">
-                        <div class="go-arrow"></div>
-                    </div>
-                </a>
+
+            
+            <a href="Rechazos/reportes.html" class="action-card" data-aos="fade-up" data-aos-delay="400">
+                <div class="card-content">
+                    <div class="card-icon"><i class="bi bi-x-circle-fill"></i></div>
+                    <h3>Rechazos</h3>
+                    <p>Administra y documenta las devoluciones y mercancía rechazada.</p>
+                </div>
+                <div class="go-corner">
+                    <div class="go-arrow"></div>
+                </div>
+            </a>
+
+            <a href="Inventarios/Inventarios.html" class="action-card" data-aos="fade-up" data-aos-delay="450">
+                <div class="card-content">
+                    <div class="card-icon"><i class="bi bi-box-seam-fill"></i></div>
+                    <h3>Inventarios</h3>
+                    <p>Consulta el stock y gestiona el inventario en tiempo real.</p>
+                </div>
+                <div class="go-corner">
+                    <div class="go-arrow"></div>
+                </div>
+            </a>
+
+            <a href="Reportes/index.html" class="action-card" data-aos="fade-up" data-aos-delay="500">
+                <div class="card-content">
+                    <div class="card-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                    <h3>Reportes</h3>
+                    <p>Genera reportes detallados de operaciones, inventario y más.</p>
+                </div>
+                <div class="go-corner">
+                    <div class="go-arrow"></div>
+                </div>
+            </a>
+            
             </div>
-        </div>
-    </main>
+    </div>
+</main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -900,7 +976,7 @@
                 apiKey: "AIzaSyD1-ZhYGtJzJFY4WfSUS_lbnzLhzWfT1D8",
                 authDomain: "sistemaintegrall.firebaseapp.com",
                 projectId: "sistemaintegrall",
-                storageBucket: "sistemaintegrall.firebasestorage.app",
+                storageBucket: "sistemaintegrall.appspot.com",
                 messagingSenderId: "302291844621",
                 appId: "1:302291844621:web:6ebf1845790bdeabfc1f44",
                 measurementId: "G-E5BT7GXRZN"
@@ -910,9 +986,9 @@
             }
             const db = firebase.firestore();
             const auth = firebase.auth();
-            const storage = firebase.storage(); // Usando la sintaxis de v8
+            const storage = firebase.storage();
 
-            const ADMIN_UIDS = ["wz4A81Vp8tQIjzVXMANmOHUlsNH2", "8NfEfPSyusZdNUFgXWPtvi3p6Ns1"]; // Tus UIDs de administrador
+            const ADMIN_UIDS = ["wz4A81Vp8tQIjzVXMANmOHUlsNH2", "8NfEfPSyusZdNUFgXWPtvi3p6Ns1"];
 
             const ui = {
                 authButton: document.getElementById("authButton"),
@@ -930,7 +1006,11 @@
                 quickAccessSection: document.querySelector(".quick-access-section"),
                 hamburgerBtn: document.getElementById('hamburger-btn'),
                 menuLateral: document.getElementById('menuLateral'),
-                closeMenuBtn: document.getElementById('close-menu-btn')
+                closeMenuBtn: document.getElementById('close-menu-btn'),
+                ephemerisSection: document.getElementById('ephemeris-section'),
+                ephemerisTitle: document.getElementById('ephemeris-title'),
+                ephemerisText: document.getElementById('ephemeris-text'),
+                ephemerisLink: document.getElementById('ephemeris-link')
             };
 
             const toggleMenu = () => {
@@ -952,17 +1032,31 @@
 
             const typewriter = {
                 texts: ["optimizar tu flujo de trabajo.", "gestionar tarimas con eficiencia.", "digitalizar tus manifiestos.", "simplificar el control de inventario.", "agilizar el escaneo de contenedores.", "mejorar la precisión de tus registros."],
-                speed: 80, textIndex: 0, charIndex: 0, isDeleting: false,
+                speed: 80,
+                textIndex: 0,
+                charIndex: 0,
+                isDeleting: false,
                 type() {
                     if (!ui.typewriterText) return;
                     const currentText = this.texts[this.textIndex];
                     let displayedText;
-                    if (this.isDeleting) { displayedText = currentText.substring(0, this.charIndex - 1); this.charIndex--; }
-                    else { displayedText = currentText.substring(0, this.charIndex + 1); this.charIndex++; }
+                    if (this.isDeleting) {
+                        displayedText = currentText.substring(0, this.charIndex - 1);
+                        this.charIndex--;
+                    } else {
+                        displayedText = currentText.substring(0, this.charIndex + 1);
+                        this.charIndex++;
+                    }
                     ui.typewriterText.innerHTML = displayedText;
                     let typeSpeed = this.isDeleting ? this.speed / 2 : this.speed;
-                    if (!this.isDeleting && this.charIndex === currentText.length) { typeSpeed = 2000; this.isDeleting = true; }
-                    else if (this.isDeleting && this.charIndex === 0) { this.isDeleting = false; this.textIndex = (this.textIndex + 1) % this.texts.length; typeSpeed = 500; }
+                    if (!this.isDeleting && this.charIndex === currentText.length) {
+                        typeSpeed = 2000;
+                        this.isDeleting = true;
+                    } else if (this.isDeleting && this.charIndex === 0) {
+                        this.isDeleting = false;
+                        this.textIndex = (this.textIndex + 1) % this.texts.length;
+                        typeSpeed = 500;
+                    }
                     setTimeout(() => this.type(), typeSpeed);
                 }
             };
@@ -976,11 +1070,13 @@
                 if (ui.kpisContainer) ui.kpisContainer.style.display = 'none';
                 if (ui.leaderboardContainer) ui.leaderboardContainer.innerHTML = '';
                 if (ui.quickAccessSection) ui.quickAccessSection.style.display = 'none';
-                [ui.adminTab, ui.segArtTab, ui.adminCard, ui.seguimientoCard].forEach(el => { if (el) el.style.display = "none"; });
+                if (ui.ephemerisSection) ui.ephemerisSection.style.display = 'none';
+                [ui.adminTab, ui.segArtTab, ui.adminCard, ui.seguimientoCard].forEach(el => {
+                    if (el) el.style.display = "none";
+                });
             };
 
             const updateUIForLoggedInUser = async (user) => {
-                // Alerta mejorada para manifiestos
                 if (!sessionStorage.getItem('manifestWarningShown')) {
                     Swal.fire({
                         icon: 'warning',
@@ -989,7 +1085,7 @@
                         confirmButtonText: 'Entendido',
                         confirmButtonColor: 'var(--rosa-principal)',
                         customClass: {
-                            popup: 'animate__animated animate__bounceIn' // Animación de entrada
+                            popup: 'animate__animated animate__bounceIn'
                         }
                     });
                     sessionStorage.setItem('manifestWarningShown', 'true');
@@ -1001,10 +1097,17 @@
                 const name = user.displayName || user.email.split('@')[0];
                 if (ui.welcomeMessage) ui.welcomeMessage.innerHTML = `${getGreeting()}, <span class="welcome-user-name">${name}</span>`;
                 if (ui.typewriterContainer) ui.typewriterContainer.style.display = 'none';
+                if (ui.kpisContainer) ui.kpisContainer.style.display = 'none';
+
+                // Mostrar la sección de efemérides
+                if (ui.ephemerisSection) {
+                    ui.ephemerisSection.style.display = 'block';
+                    fetchEphemeris();
+                }
 
                 try {
                     const userDoc = await db.collection("usuarios").doc(user.uid).get();
-                    if (!userDoc.exists || userDoc.data().status !== "aprobado") { 
+                    if (!userDoc.exists || userDoc.data().status !== "aprobado") {
                         Swal.fire({
                             icon: 'error',
                             title: 'Acceso Denegado',
@@ -1014,52 +1117,17 @@
                             customClass: {
                                 popup: 'animate__animated animate__shakeX'
                             }
-                        }).then(() => auth.signOut()); // Redirige al login después de la alerta
-                        return; // Detiene la ejecución si el acceso es denegado
+                        }).then(() => auth.signOut());
+                        return;
                     }
                     const data = userDoc.data();
                     const isAdmin = ADMIN_UIDS.includes(user.uid);
-                    const kpiData = await fetchDashboardData();
-
-                    if (ui.kpisContainer) {
-                        let kpisHTML = `<div class="kpi-card" data-aos="fade-up" data-aos-delay="100"><div class="kpi-icon"><i class="bi bi-journal-album"></i></div><div class="kpi-value">${kpiData.manifestsCount}</div><div class="kpi-label">Manifiestos en Tienda</div></div><div class="kpi-card" data-aos="fade-up" data-aos-delay="200"><div class="kpi-icon"><i class="bi bi-lock-fill"></i></div><div class="kpi-value">${kpiData.closedContainersCount.toLocaleString()}</div><div class="kpi-label">Contenedores Cerrados</div></div><div class="kpi-card" data-aos="fade-up" data-aos-delay="300"><div class="kpi-icon"><i class="bi bi-check-all"></i></div><div class="kpi-value">${kpiData.totalScanned.toLocaleString()}</div><div class="kpi-label">Piezas Escaneadas (Total)</div></div>`;
-                        if (kpiData.expiringManifests.length > 0) {
-                            kpisHTML += `<div id="expiring-manifests-trigger" class="kpi-card" data-aos="fade-up" data-aos-delay="400" style="cursor: pointer; border-color: var(--fuego-rojo);"><div class="kpi-icon" style="color: var(--fuego-rojo);"><i class="bi bi-alarm-fill"></i></div><div class="kpi-value" style="color: var(--fuego-rojo);">${kpiData.expiringManifests.length}</div><div class="kpi-label">Manifiestos por Vencer</div></div>`;
-                        }
-                        ui.kpisContainer.innerHTML = kpisHTML;
-                        ui.kpisContainer.style.display = 'grid';
-                        const expiringCardTrigger = document.getElementById('expiring-manifests-trigger');
-                        if (expiringCardTrigger) {
-                            expiringCardTrigger.addEventListener('click', () => {
-                                Swal.fire({
-                                    title: 'Manifiestos Próximos a Eliminar',
-                                    html: createExpiringManifestsHTML(kpiData.expiringManifests),
-                                    icon: 'warning',
-                                    confirmButtonText: 'Entendido',
-                                    confirmButtonColor: 'var(--rosa-principal)',
-                                    customClass: {
-                                        popup: 'animate__animated animate__bounceIn'
-                                    }
-                                });
-                            });
-                        }
-                    }
-
-                    if (ui.leaderboardContainer) {
-                        const nombreMesActual = new Date().toLocaleString('es-MX', { month: 'long' });
-                        const tituloMensual = `Top 3 de ${nombreMesActual.charAt(0).toUpperCase() + nombreMesActual.slice(1)}`;
-                        ui.leaderboardContainer.innerHTML = `
-                    ${kpiData.topScannersMensual.length > 0 ? createLeaderboardHTML(tituloMensual, kpiData.topScannersMensual, 'bi-calendar-month') : ''}
-                    ${kpiData.topScannersHistorico.length > 0 ? createLeaderboardHTML('Top 3 Histórico (MVP)', kpiData.topScannersHistorico, 'bi-trophy-fill') : ''}
-                `;
-                    }
 
                     if (ui.quickAccessSection) ui.quickAccessSection.style.display = 'block';
                     const isAdminDisplay = isAdmin ? "block" : "none";
                     if (ui.adminTab) ui.adminTab.style.display = isAdmin ? "list-item" : "none";
                     if (ui.segArtTab) ui.segArtTab.style.display = isAdmin ? "list-item" : "none";
-                    if (ui.adminCard) ui.adminCard.style.display = isAdminDisplay;
-                    if (ui.seguimientoCard) ui.seguimientoCard.style.display = isAdminDisplay;
+
                 } catch (error) {
                     console.error("Error al actualizar UI de usuario:", error);
                     Swal.fire({
@@ -1074,191 +1142,82 @@
                     }).then(() => auth.signOut());
                 }
             };
-
-            function createLeaderboardHTML(title, scanners, titleIcon) {
-                const trophies = [
-                    { icon: 'bi-trophy-fill', color: 'trophy-gold' },
-                    { icon: 'bi-award-fill', color: 'trophy-silver' },
-                    { icon: 'bi-star-fill', color: 'trophy-bronze' }
-                ];
-                const rankOneAnimation = `<div class="crown-container">👑</div><div class="fire-animation-container"><div class="fire">${Array.from({ length: 7 }).map(() => `<div class="particle"></div>`).join('')}</div></div>`;
-                return `<div class="leaderboard-panel" data-aos="fade-up"><h3 class="panel-title"><i class="bi ${titleIcon}"></i> ${title}</h3><ul class="leaderboard-list">${scanners.length > 0 ? scanners.map((scanner, index) => { const rankClasses = ['rank-1', 'rank-2', 'rank-3']; const detailIcons = { 1: '<span class="detail-icon">⚡️</span>', 2: '<span class="detail-icon">✨</span>' }; const rankClass = rankClasses[index] || ''; const detailIcon = detailIcons[index] || ''; return `<li class="${rankClass}">${index === 0 ? rankOneAnimation : ''}<span class="rank">${index + 1}.</span><i class="bi ${trophies[index]?.icon || 'person-fill'} trophy-icon ${trophies[index]?.color || ''}"></i><span class="user-name">${scanner.email}${detailIcon}</span><span class="scan-count">${scanner.count.toLocaleString()} pz.</span></li>`; }).join('') : '<li class="text-muted">Aún no hay datos para este período.</li>'}</ul></div>`;
-            }
-
-            function createExpiringManifestsHTML(manifests) {
-                return `<p class="text-start text-muted px-3 small">Estos manifiestos tienen 3 o más días de antigüedad y serán archivados y notificados pronto.</p><ul class="leaderboard-list text-start" style="max-height: 400px; overflow-y: auto; padding: 0.5rem;">${manifests.map(manifest => `<li style="border-left: 4px solid var(--fuego-naranja); background: #fffaf5; border-radius: 8px; margin-bottom: 0.5rem; padding-left: 1rem;"><i class="bi bi-file-earmark-excel-fill trophy-icon" style="color: var(--fuego-naranja);"></i><span class="user-name">${manifest.fileName}</span><span class="scan-count" style="background-color: #ffe8d6; color: #c25a33;">${manifest.daysOld} días</span></li>`).join('')}</ul>`;
-            }
-
-            async function fetchDashboardData() {
-                Swal.fire({
-                    title: 'Calculando Estadísticas...',
-                    html: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Consultando registros activos y archivados. Esto puede tardar un momento.</p>',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    didOpen: () => Swal.showLoading(),
-                    customClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    }
-                });
+            
+            async function fetchEphemeris() {
+                const today = new Date();
+                const day = today.getDate();
+                const month = today.getMonth() + 1;
 
                 try {
-                    // --- Contadores para la verificación ---
-                    let firestoreScanCount = 0;
-                    let archivedFileCount = 0;
-                    let archivedScanCount = 0;
+                    // 1. Obtener el evento en inglés de la API de efemérides
+                    const ephemerisResponse = await fetch(`https://byabbe.se/on-this-day/${month}/${day}/events.json`);
+                    if (!ephemerisResponse.ok) {
+                        throw new Error('No se pudo conectar a la API de efemérides.');
+                    }
+                    const ephemerisData = await ephemerisResponse.json();
 
-                    let totalScanned = 0;
-                    const allTimeScanCounts = {};
-                    const monthlyScanCounts = {};
-                    const nowForCalc = new Date();
-                    const startOfMonth = new Date(nowForCalc.getFullYear(), nowForCalc.getMonth(), 1);
-                    const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+                    if (ephemerisData.events && ephemerisData.events.length > 0) {
+                        // Seleccionar un evento aleatorio del día
+                        const event = ephemerisData.events[Math.floor(Math.random() * ephemerisData.events.length)];
+                        const englishDescription = event.description;
 
-                    // --- TAREA 1: DATOS ACTIVOS DE FIRESTORE ---
-                    const manifestsQuery = db.collection('manifiestos').where('store', '==', '0042');
-                    const manifestSnapshot = await manifestsQuery.get();
-                    const manifests = manifestSnapshot.docs;
-                    let closedContainersCount = 0;
-                    let expiringManifests = [];
-                    manifests.forEach(doc => {
-                        const data = doc.data();
-                        if (data.closedContainers) {
-                            closedContainersCount += Object.values(data.closedContainers).filter(Boolean).length;
+                        // 2. Traducir la descripción al español usando una API gratuita
+                        const translateResponse = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(englishDescription)}&langpair=en|es`);
+                        if (!translateResponse.ok) {
+                            throw new Error('No se pudo conectar a la API de traducción.');
                         }
-                        const createdAt = data.createdAt?.toDate();
-                        if (createdAt && (nowForCalc - createdAt > threeDaysInMs)) {
-                            const diffTime = Math.abs(nowForCalc - createdAt);
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            expiringManifests.push({ fileName: data.fileName, daysOld: diffDays });
+                        const translationData = await translateResponse.json();
+
+                        // 3. Mostrar la información traducida
+                        if (translationData.responseData && translationData.responseData.translatedText) {
+                            const emojis = ['🌟', '📅', '🚀', '🏛️', '💡', '⚖️', '🎨', '📜'];
+                            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                            
+                            // Obtener el nombre del mes en español
+                            const monthName = today.toLocaleString('es-ES', { month: 'long' });
+
+                            ui.ephemerisTitle.textContent = `${day} de ${monthName} (${event.year}) ${randomEmoji}`;
+                            ui.ephemerisText.textContent = translationData.responseData.translatedText;
+                            ui.ephemerisLink.href = event.wikipedia[0]?.wikipedia || "#";
+                            ui.ephemerisLink.style.display = "inline";
+                        } else {
+                            throw new Error('La traducción falló.');
                         }
-                    });
-                    expiringManifests.sort((a, b) => b.daysOld - a.daysOld);
-                    const scanPromises = manifests.map(doc => db.collection('manifiestos').doc(doc.id).collection('scans').get());
-                    const allScanSnapshots = await Promise.all(scanPromises);
-                    allScanSnapshots.forEach(scanSnapshot => {
-                        scanSnapshot.forEach(doc => {
-                            const scan = doc.data();
-                            const userEmail = scan.user;
-                            const scanCount = (scan.type !== 'subtract' && scan.type !== 'delete') ? (Number(scan.quantity) || 1) : 0;
-                            const scanDate = scan.scannedAt?.toDate();
-                            if (userEmail && scanCount > 0) {
-                                firestoreScanCount += scanCount;
-                                totalScanned += scanCount;
-                                allTimeScanCounts[userEmail] = (allTimeScanCounts[userEmail] || 0) + scanCount;
-                                if (scanDate && scanDate >= startOfMonth) {
-                                    monthlyScanCounts[userEmail] = (monthlyScanCounts[userEmail] || 0) + scanCount;
-                                }
-                            }
-                        });
-                    });
-
-                    // --- TAREA 2: DATOS ARCHIVADOS DE STORAGE ---
-                    const folderPaths = ['Archivados/0042', 'Archivados/ALL', 'Archivados/General'];
-                    const listPromises = folderPaths.map(path => storage.ref(path).listAll());
-                    const allResults = await Promise.all(listPromises);
-                    const allFileItems = allResults.flatMap(result => result.items);
-                    archivedFileCount = allFileItems.length;
-                    const filePromises = allFileItems.map(async (fileRef) => {
-                        const url = await fileRef.getDownloadURL();
-                        const response = await fetch(url);
-                        const data = await response.arrayBuffer();
-                        const workbook = XLSX.read(data, { type: 'buffer' });
-                        const sheetName = workbook.SheetNames[0];
-                        if (sheetName) {
-                            const worksheet = workbook.Sheets[sheetName];
-                            return XLSX.utils.sheet_to_json(worksheet);
-                        }
-                        return [];
-                    });
-                    const archivedScansArrays = await Promise.all(filePromises);
-                    archivedScansArrays.forEach(scansArray => {
-                        scansArray.forEach(scan => {
-                            const userEmail = scan.LAST_SCANNED_BY;
-                            const scanCount = (scan.type !== 'subtract' && scan.type !== 'delete') ? (Number(scan.SCANNER) || 1) : 0;
-                            if (userEmail && scanCount > 0) {
-                                archivedScanCount += scanCount;
-                                totalScanned += scanCount;
-                                allTimeScanCounts[userEmail] = (allTimeScanCounts[userEmail] || 0) + scanCount;
-                            }
-                        });
-                    });
-
-                    // --- TAREA 3: FINALIZAR Y MOSTRAR RESUMEN ---
-                    Swal.close();
-
-                    Swal.fire({
-                        title: 'Cálculo Completado',
-                        icon: 'success',
-                        html: `
-                            <div style="text-align: left; padding: 0 1rem;">
-                                <p>Se procesó la siguiente información:</p>
-                                <ul class="list-group">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Piezas de Manifiestos Activos:
-                                        <span class="badge bg-primary rounded-pill">${firestoreScanCount.toLocaleString()}</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Piezas de Archivos Históricos:
-                                        <span class="badge bg-info rounded-pill">${archivedScanCount.toLocaleString()}</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <strong>Total de Piezas Calculadas:</strong>
-                                        <span class="badge bg-success rounded-pill">${totalScanned.toLocaleString()}</span>
-                                    </li>
-                                </ul>
-                                <hr>
-                                <small class="text-muted">Se analizaron <strong>${archivedFileCount}</strong> archivos históricos.</small>
-                            </div>
-                        `,
-                        confirmButtonText: '¡Entendido!',
-                        confirmButtonColor: 'var(--rosa-principal)',
-                        customClass: {
-                            popup: 'animate__animated animate__bounceIn'
-                        }
-                    });
-
-                    const manifestsCount = manifests.length;
-                    const topScannersMensual = Object.entries(monthlyScanCounts).map(([email, count]) => ({ email: email.split('@')[0], count })).sort((a, b) => b.count - a.count).slice(0, 3);
-                    const topScannersHistorico = Object.entries(allTimeScanCounts).map(([email, count]) => ({ email: email.split('@')[0], count })).sort((a, b) => b.count - a.count).slice(0, 3);
-
-                    return {
-                        manifestsCount,
-                        closedContainersCount,
-                        totalScanned,
-                        topScannersMensual,
-                        topScannersHistorico,
-                        expiringManifests
-                    };
-
+                    } else {
+                        throw new Error('No se encontraron eventos para esta fecha.');
+                    }
                 } catch (error) {
-                    console.error("Error al calcular datos del dashboard:", error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'No se pudieron calcular las estadísticas. Revisa la consola para más detalles.',
-                        confirmButtonText: 'Entendido',
-                        confirmButtonColor: 'var(--rosa-principal)',
-                        customClass: {
-                            popup: 'animate__animated animate__shakeX'
-                        }
-                    });
-                    return {
-                        manifestsCount: 0,
-                        closedContainersCount: 0,
-                        totalScanned: 0,
-                        topScannersMensual: [],
-                        topScannersHistorico: [],
-                        expiringManifests: []
-                    };
+                    console.error("Error al obtener la efeméride:", error);
+                    displayDefaultEphemeris(); // Muestra un mensaje genérico si algo falla
                 }
             }
 
+            // Función auxiliar para mostrar un mensaje por defecto si la API falla
+            function displayDefaultEphemeris() {
+                const today = new Date();
+                const monthName = today.toLocaleString('es-ES', { month: 'long' });
+                const day = today.getDate();
+
+                ui.ephemerisTitle.textContent = `Efeméride del ${day} de ${monthName} 📅`;
+                ui.ephemerisText.textContent = "No se pudo cargar el evento histórico de hoy, ¡pero esperamos que tengas un excelente día de trabajo!";
+                ui.ephemerisLink.style.display = "none";
+            }
+
+
             if (ui.authButton) ui.authButton.addEventListener('click', () => window.location.href = "Login/login.html");
-            if (ui.logoutButton) ui.logoutButton.addEventListener('click', () => { auth.signOut(); });
+            if (ui.logoutButton) ui.logoutButton.addEventListener('click', () => {
+                auth.signOut();
+            });
 
             auth.onAuthStateChanged(async user => {
-                if (user) { await updateUIForLoggedInUser(user); }
-                else { updateUIForLoggedOutUser(); }
+                if (user) {
+                    await updateUIForLoggedInUser(user);
+                } else {
+                    updateUIForLoggedOutUser();
+                    if (ui.ephemerisSection) {
+                        ui.ephemerisSection.style.display = 'none';
+                    }
+                }
                 if (ui.preloader) ui.preloader.classList.add('hidden');
             });
 
@@ -1270,9 +1229,8 @@
             const canvas = document.getElementById('particles-canvas');
             const ctx = canvas.getContext('2d');
             let particles = [];
-            const particleCount = 100; // Número de partículas
+            const particleCount = 100;
 
-            // Clase para cada partícula
             class Particle {
                 constructor(x, y, size, speedX, speedY, color) {
                     this.x = x;
@@ -1286,13 +1244,11 @@
                 update() {
                     this.x += this.speedX;
                     this.y += this.speedY;
-
-                    // Si la partícula sale de la pantalla, reubicarla
                     if (this.x < 0 || this.x > canvas.width) {
-                        this.speedX *= -1; // Rebotar
+                        this.speedX *= -1;
                     }
                     if (this.y < 0 || this.y > canvas.height) {
-                        this.speedY *= -1; // Rebotar
+                        this.speedY *= -1;
                     }
                 }
 
@@ -1304,47 +1260,41 @@
                 }
             }
 
-            // Inicializar partículas
             function initParticles() {
                 particles = [];
                 for (let i = 0; i < particleCount; i++) {
-                    const size = Math.random() * 3 + 1; // Tamaño entre 1 y 4
+                    const size = Math.random() * 3 + 1;
                     const x = Math.random() * canvas.width;
                     const y = Math.random() * canvas.height;
-                    const speedX = Math.random() * 0.5 - 0.25; // Velocidad entre -0.25 y 0.25
+                    const speedX = Math.random() * 0.5 - 0.25;
                     const speedY = Math.random() * 0.5 - 0.25;
-                    const color = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`; // Blanco semitransparente
+                    const color = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
                     particles.push(new Particle(x, y, size, speedX, speedY, color));
                 }
             }
 
-            // Función de animación
             function animateParticles() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 for (let i = 0; i < particles.length; i++) {
                     particles[i].update();
                     particles[i].draw();
                 }
-                requestAnimationFrame(animateParticles); // Bucle de animación
+                requestAnimationFrame(animateParticles);
             }
 
-            // Ajustar tamaño del canvas al redimensionar la ventana
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
-                initParticles(); // Reinicializar partículas para que se adapten al nuevo tamaño
+                initParticles();
             }
 
-            // Event listeners para el canvas
             window.addEventListener('resize', resizeCanvas);
-            // Iniciar el canvas cuando la ventana carga
             window.onload = function() {
-                resizeCanvas(); // Establece el tamaño inicial
-                animateParticles(); // Inicia la animación
+                resizeCanvas();
+                animateParticles();
             };
         });
     </script>
-
 </body>
 
 </html>

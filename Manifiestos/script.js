@@ -528,10 +528,9 @@
                         case 'vendedor':
                             permissions.canScan = true;
                             break;
-                        case 'auxiliar':
+                        case 'bodeguero':
                             permissions.canScan = true;
                             permissions.canUpload = true;
-                            permissions.canGenerateReport = true;
                             break;
                         case 'jefe':
                             permissions.canScan = true;

@@ -332,7 +332,7 @@ const firebaseConfig = {
         `;
         UIElements.modal.roleSelect.innerHTML = `
             <option value="vendedor" ${user.role === 'vendedor' ? 'selected' : ''}>Vendedor</option>
-            <option value="auxiliar" ${user.role === 'auxiliar' ? 'selected' : ''}>Auxiliar</option>
+            <option value="bodeguero" ${user.role === 'bodeguero' ? 'selected' : ''}>Bodeguero</option>
             <option value="jefe" ${user.role === 'jefe' ? 'selected' : ''}>Jefe</option>
         `;
         UIElements.modal.bossSelect.innerHTML = '<option value="">-- Sin Asignar --</option>' + AppState.allBosses.map(boss => 
