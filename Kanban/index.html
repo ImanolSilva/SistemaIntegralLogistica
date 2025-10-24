@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Perfeccionado - Sistema Liverpool</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <button id="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral"
+            aria-controls="menuLateral" aria-label="Abrir menú">
+            <span class="hamburger-icon"></span>
+        </button>
+        <h1 class="header-title">Dashboard de Métricas</h1>
+        <button id="logout-btn"><i class="bi bi-power"></i></button>
+    </header>
+
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title fw-bold" id="menuLateralLabel"><i class="bi bi-grid-1x2-fill me-2"></i> Menú Principal</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="#"><i class="bi bi-house-fill me-2"></i>Inicio</a>
+                <a class="nav-link active" href="#"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                <a class="nav-link" href="#"><i class="bi bi-file-earmark-check-fill me-2"></i>Manifiestos</a>
+                <a class="nav-link" href="#"><i class="bi bi-box-seam-fill me-2"></i>Inventarios</a>
+                <a class="nav-link" href="#"><i class="bi bi-graph-up-arrow me-2"></i>Reportes</a>
+            </nav>
+        </div>
+    </div>
+
+    <main class="main-container">
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <div class="card-header">
+                    <div class="user-info">
+                        <img src="https://i.pravatar.cc/50?img=1" alt="Adriana Prieto">
+                        <div class="user-details">
+                            <h3>Adriana Prieto</h3>
+                            <span>Jefatura de Logística</span>
+                        </div>
+                    </div>
+                    <button class="btn-options" type="button"><i class="bi bi-three-dots-vertical"></i></button>
+                </div>
+                
+                <div class="card-body">
+                    <div class="card-column">
+                        <div class="kpi-module theme-manifiesto">
+                            <h5 class="module-title"><i class="bi bi-file-earmark-text-fill"></i> Manifiesto y SEPROS</h5>
+                            <div class="module-content grid-3">
+                                <div class="kpi-item"><span class="kpi-label">SEPROS CANT</span><span class="kpi-value">1,250</span></div>
+                                <div class="kpi-item"><span class="kpi-label">SEPROS %</span><span class="kpi-value">99.5%</span></div>
+                                <div class="kpi-item"><span class="kpi-label">Calificación</span><span class="kpi-value">85</span></div>
+                            </div>
+                        </div>
+                        <div class="kpi-module theme-procesos">
+                             <h5 class="module-title"><i class="bi bi-gear-wide-connected"></i> Procesos Clave</h5>
+                             <div class="module-content">
+                                 <div class="kpi-item-featured"><span class="kpi-label">Fillrate</span><span class="kpi-value-large status-good">98.2%</span></div>
+                                 <div class="kpi-sub-items">
+                                    <div class="kpi-item"><span class="kpi-label">T. Surtido XD</span><span class="kpi-value">24h</span></div>
+                                    <div class="kpi-item"><span class="kpi-label">T. Surtido C&C</span><span class="kpi-value">45m</span></div>
+                                 </div>
+                             </div>
+                        </div>
+                        <div class="kpi-module theme-inventario">
+                             <h5 class="module-title"><i class="bi bi-box-seam-fill"></i> Control de Inventario</h5>
+                             <div class="module-content grid-2">
+                                <div class="kpi-item"><span class="kpi-label">Negativos</span><span class="kpi-value">0</span></div>
+                                <div class="kpi-item"><span class="kpi-label">Ajustes Inc.</span><span class="kpi-value">2</span></div>
+                                <div class="kpi-item"><span class="kpi-label">PDIS en Tiempo</span><span class="kpi-value status-good">125</span></div>
+                                <div class="kpi-item"><span class="kpi-label">PDIS Fuera T.</span><span class="kpi-value status-warning">5</span></div>
+                             </div>
+                        </div>
+                    </div>
+                    <div class="card-column">
+                        <div class="kpi-module theme-procesos">
+                            <h5 class="module-title"><i class="bi bi-x-circle-fill"></i> Rechazos</h5>
+                            <div class="module-content">
+                                <div class="progress-bar-container"><span class="kpi-label">% AVANCE</span><div class="progress-bar" style="width: 92%;">92%</div></div>
+                                <div class="kpi-sub-items">
+                                    <div class="kpi-item"><span class="kpi-label">Únicos</span><span class="kpi-value">3</span></div>
+                                    <div class="kpi-item"><span class="kpi-label">Repetidos</span><span class="kpi-value status-bad">1</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-module theme-filtracion">
+                            <h5 class="module-title"><i class="bi bi-funnel-fill"></i> Filtración</h5>
+                            <div class="module-content grid-2">
+                                <div class="kpi-item"><span class="kpi-label">Monto</span><span class="kpi-value">$5,400</span></div>
+                                <div class="kpi-item"><span class="kpi-label">Porcentaje</span><span class="kpi-value">3.1%</span></div>
+                            </div>
+                        </div>
+                        <div class="kpi-module theme-auditoria">
+                            <h5 class="module-title"><i class="bi bi-patch-check-fill"></i> Auditoría</h5>
+                            <div class="module-content grid-2">
+                                <div class="kpi-item"><span class="kpi-label">95'S %</span><span class="kpi-value">95.2%</span></div>
+                                <div class="kpi-item"><span class="kpi-label">98'S %</span><span class="kpi-value">98.0%</span></div>
+                            </div>
+                        </div>
+                        <div class="kpi-module theme-orden">
+                            <h5 class="module-title"><i class="bi bi-clipboard2-data-fill"></i> Orden Bodega</h5>
+                            <div class="module-content">
+                                <div class="kpi-item-featured"><span class="kpi-label">Calificación</span><span class="kpi-value-large">9<span class="kpi-value-suffix">/10</span></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const menuLateral = document.getElementById('menuLateral');
+            if (hamburgerBtn && menuLateral) {
+                menuLateral.addEventListener('show.bs.offcanvas', () => hamburgerBtn.classList.add('open'));
+                menuLateral.addEventListener('hide.bs.offcanvas', () => hamburgerBtn.classList.remove('open'));
+            }
+        });
+    </script>
+</body>
+</html>
