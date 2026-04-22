@@ -2,8 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ========== CONFIGURACIÓN DE FIREBASE ==========
-    // Asegúrate de que esta configuración coincida con tu proyecto 'sistemaintegrall'
+    // ── Firebase ──────────────────────────────────────────────────────────────
     const firebaseConfig = {
         apiKey: "AIzaSyD1-ZhYGtJzJFY4WfSUS_lbnzLhzWfT1D8",
         authDomain: "sistemaintegrall.firebaseapp.com",
@@ -13,298 +12,277 @@ document.addEventListener('DOMContentLoaded', () => {
         appId: "1:302291844621:web:6ebf1845790bdeabfc1f44",
         measurementId: "G-E5BT7GXRZN"
     };
-
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
-    const auth = firebase.auth();
-    const db = firebase.firestore();
 
-    // Referencias a elementos del DOM
-    const UIElements = {
-        googleSignInBtn: document.getElementById('googleSignInBtn'),
-        forgotPasswordModal: new bootstrap.Modal(document.getElementById('forgotPasswordModal')),
-        forgotEmailInput: document.getElementById('forgotEmail'),
-        sendResetEmailBtn: document.getElementById('sendResetEmailBtn'),
-        registrationModal: new bootstrap.Modal(document.getElementById('registrationModal')),
-        roleSelect: document.getElementById('roleSelect'),
-        storeInput: document.getElementById('storeInput'),
-        bossSelectContainer: document.getElementById('bossSelectContainer'),
-        bossSelect: document.getElementById('bossSelect'),
-        saveRegistrationBtn: document.getElementById('saveRegistrationBtn')
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    // ── DOM refs ──────────────────────────────────────────────────────────────
+    const googleSignInBtn     = document.getElementById('googleSignInBtn');
+    const googleBtnText       = document.getElementById('googleBtnText');
+    const helpBtn             = document.getElementById('helpBtn');
+    const retryGoogleBtn      = document.getElementById('retryGoogleBtn');
+    const roleSelect          = document.getElementById('roleSelect');
+    const storeInput          = document.getElementById('storeInput');
+    const bossSelectContainer = document.getElementById('bossSelectContainer');
+    const bossSelect          = document.getElementById('bossSelect');
+    const saveRegistrationBtn = document.getElementById('saveRegistrationBtn');
+
+    const helpModal         = new bootstrap.Modal(document.getElementById('helpModal'));
+    const registrationModal = new bootstrap.Modal(document.getElementById('registrationModal'));
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let isSigningIn  = false;
+    let allBosses    = [];
+    let pendingUser  = null; // user object waiting for registration
+
+    // ── Swal defaults ─────────────────────────────────────────────────────────
+    const swalBase = {
+        background: 'rgba(18,18,40,0.97)',
+        color: '#fff',
+        confirmButtonColor: '#E6007E',
+        customClass: { popup: 'rounded-4' }
     };
 
-    let allBosses = []; // Para almacenar la lista de jefes disponibles
-
-    // ========== MANEJO DE AUTENTICACIÓN ==========
+    // ── Auth state ────────────────────────────────────────────────────────────
+    // Only redirect automatically if user is already signed in and approved.
+    // New users are held here to complete registration.
     auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            const userDocRef = db.collection('usuarios').doc(user.uid);
-            const userDoc = await userDocRef.get();
+        if (!user) return;
 
-            if (userDoc.exists) {
-                // Usuario ya registrado, redirigir a la página principal
+        try {
+            const userDoc = await db.collection('usuarios').doc(user.uid).get();
+
+            if (!userDoc.exists) {
+                // Brand new user — show registration modal
+                pendingUser = user;
+                await loadBosses();
+                registrationModal.show();
+                return;
+            }
+
+            const data = userDoc.data();
+
+            if (data.status === 'aprobado') {
+                // Already approved — go straight to app
                 window.location.href = '../index.html';
-            } else {
-                // Nuevo usuario, mostrar modal de registro
-                await loadBossesForRegistration(); // Cargar jefes antes de mostrar el modal
-                UIElements.registrationModal.show();
+                return;
             }
-        }
-    });
 
-    // ========== EVENT LISTENERS ==========
-    if (UIElements.googleSignInBtn) {
-        UIElements.googleSignInBtn.addEventListener('click', signInWithGoogle);
-    }
-
-    if (UIElements.sendResetEmailBtn) {
-        UIElements.sendResetEmailBtn.addEventListener('click', sendPasswordReset);
-    }
-
-    if (UIElements.saveRegistrationBtn) {
-        UIElements.saveRegistrationBtn.addEventListener('click', saveRegistrationData);
-    }
-
-    if (UIElements.roleSelect) {
-        UIElements.roleSelect.addEventListener('change', toggleBossSelectVisibility);
-    }
-
-    // ========== FUNCIONES DE AUTENTICACIÓN Y REGISTRO ==========
-
-    async function signInWithGoogle() {
-        Swal.fire({
-            title: 'Iniciando sesión...',
-            text: 'Conectando con Google.',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            customClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            }
-        });
-
-        const provider = new firebase.auth.GoogleAuthProvider();
-        try {
-            await auth.signInWithPopup(provider);
-            Swal.close(); // Cerrar el SweetAlert de "Iniciando sesión..."
-            // onAuthStateChanged manejará la redirección o el modal de registro
-        } catch (error) {
-            Swal.close(); // Asegurarse de cerrar si hay un error
-            console.error("Error al iniciar sesión con Google:", error);
-            Swal.fire({
-                icon: 'error',
-                title: '¡Error de Autenticación!',
-                html: 'No se pudo iniciar sesión con Google. <br>Por favor, verifica tu conexión a internet e inténtalo de nuevo.',
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: '#E6007E',
-                customClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
-            });
-        }
-    }
-
-    async function sendPasswordReset() {
-        const email = UIElements.forgotEmailInput.value.trim();
-        if (!email) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Correo Requerido',
-                text: 'Por favor, ingresa tu dirección de correo electrónico.',
-                confirmButtonColor: '#E6007E',
-                customClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
-            });
-            return;
-        }
-
-        Swal.fire({
-            title: 'Enviando correo...',
-            text: 'Un momento por favor.',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            customClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            }
-        });
-
-        try {
-            await auth.sendPasswordResetEmail(email);
-            UIElements.forgotPasswordModal.hide();
-            Swal.fire({
-                icon: 'success',
-                title: '¡Correo Enviado!',
-                html: 'Se ha enviado un enlace para restablecer tu contraseña a <strong>' + email + '</strong>.<br>Por favor, revisa tu bandeja de entrada y la carpeta de spam.',
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: '#E6007E',
-                customClass: {
-                    popup: 'animate__animated animate__bounceIn'
-                }
-            });
-        } catch (error) {
-            Swal.close();
-            console.error("Error al enviar correo de restablecimiento:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error al Enviar Correo',
-                text: 'No se pudo enviar el correo de restablecimiento. Asegúrate de que la dirección sea válida y exista.',
-                confirmButtonColor: '#E6007E',
-                customClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
-            });
-        }
-    }
-
-    async function loadBossesForRegistration() {
-        try {
-            const snapshot = await db.collection("usuarios").where("role", "==", "jefe").get();
-            allBosses = snapshot.docs.map(doc => {
-                const data = doc.data();
-                const bossName = data.displayName || data.name || data.nombre || data.email;
-                return { uid: doc.id, name: bossName };
-            });
-
-            UIElements.bossSelect.innerHTML = '<option value="">-- Selecciona a tu Jefe --</option>';
-            allBosses.forEach(boss => {
-                const option = document.createElement('option');
-                option.value = boss.uid;
-                option.textContent = boss.name;
-                UIElements.bossSelect.appendChild(option);
-            });
-        } catch (error) {
-            console.error("Error al cargar jefes para registro:", error);
-            UIElements.bossSelect.innerHTML = '<option value="">-- Error al cargar jefes --</option>';
-            Swal.fire({
-                icon: 'error',
-                title: 'Error de Carga',
-                html: 'No se pudo cargar la lista de jefes. <br>Por favor, inténtalo de nuevo más tarde o contacta a soporte.',
-                confirmButtonText: 'Reintentar',
-                confirmButtonColor: '#E6007E',
-                customClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    loadBossesForRegistration(); // Intentar cargar de nuevo
-                }
-            });
-        }
-    }
-
-    function toggleBossSelectVisibility() {
-        const selectedRole = UIElements.roleSelect.value;
-        if (selectedRole === 'vendedor' || selectedRole === 'bodeguero') {
-            UIElements.bossSelectContainer.style.display = 'block';
-        } else {
-            UIElements.bossSelectContainer.style.display = 'none';
-            UIElements.bossSelect.value = ''; // Limpiar selección si se oculta
-        }
-    }
-
-    async function saveRegistrationData() {
-        const user = auth.currentUser;
-        if (!user) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No hay usuario autenticado. Intenta iniciar sesión de nuevo.',
-                confirmButtonColor: '#E6007E',
-                customClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
-            });
-            return;
-        }
-
-        const role = UIElements.roleSelect.value;
-        const store = UIElements.storeInput.value.trim();
-        let jefeAsignado = null;
-
-        if (role === 'vendedor' || role === 'bodeguero') {
-            jefeAsignado = UIElements.bossSelect.value;
-            if (!jefeAsignado) {
+            if (data.status === 'pendiente') {
+                // Registered but not yet approved
+                await auth.signOut();
                 Swal.fire({
-                    icon: 'warning',
-                    title: 'Campo Requerido',
-                    text: 'Por favor, selecciona a tu jefe.',
-                    confirmButtonColor: '#E6007E',
-                    customClass: {
-                        popup: 'animate__animated animate__shakeX'
-                    }
+                    ...swalBase,
+                    icon: 'info',
+                    title: 'Acceso Pendiente',
+                    html: 'Tu solicitud está siendo revisada por un administrador.<br><br>Recibirás acceso cuando sea aprobada.',
+                    confirmButtonText: 'Entendido'
                 });
                 return;
             }
-        }
 
-        if (!role || !store) {
+            // Rejected or unknown status
+            await auth.signOut();
             Swal.fire({
-                icon: 'warning',
-                title: 'Campos Requeridos',
-                text: 'Por favor, selecciona tu rol e ingresa el número de tienda.',
-                confirmButtonColor: '#E6007E',
-                customClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
+                ...swalBase,
+                icon: 'error',
+                title: 'Acceso Denegado',
+                text: 'Tu cuenta no tiene acceso al sistema. Contacta a tu administrador.',
+                confirmButtonText: 'Entendido'
             });
-            return;
-        }
 
-        Swal.fire({
-            title: 'Guardando...',
-            html: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Estamos registrando tu información. Por favor, espera.</p>',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            customClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            }
-        });
+        } catch (err) {
+            console.error('onAuthStateChanged error:', err);
+            await auth.signOut();
+            Swal.fire({
+                ...swalBase,
+                icon: 'error',
+                title: 'Error de Conexión',
+                text: 'No se pudo verificar tu cuenta. Verifica tu conexión e inténtalo de nuevo.',
+                confirmButtonText: 'Reintentar'
+            });
+        }
+    });
+
+    // ── Google Sign-In ────────────────────────────────────────────────────────
+    async function signInWithGoogle() {
+        if (isSigningIn) return;
+        isSigningIn = true;
+        setGoogleBtnLoading(true);
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
 
         try {
-            await db.collection('usuarios').doc(user.uid).set({
-                email: user.email,
-                displayName: user.displayName,
-                role: role,
-                store: store,
-                jefeAsignado: jefeAsignado,
-                status: 'pendiente', // Estado inicial
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await auth.signInWithPopup(provider);
+            // onAuthStateChanged handles everything from here
+        } catch (err) {
+            isSigningIn = false;
+            setGoogleBtnLoading(false);
 
+            if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+                return; // User dismissed — no error needed
+            }
+            if (err.code === 'auth/popup-blocked') {
+                Swal.fire({
+                    ...swalBase,
+                    icon: 'warning',
+                    title: 'Pop-up Bloqueado',
+                    html: 'Tu navegador bloqueó la ventana de Google.<br>Permite pop-ups para este sitio en la barra de direcciones e inténtalo de nuevo.',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+            console.error('signInWithPopup error:', err);
             Swal.fire({
-                icon: 'success',
-                title: '¡Registro Completo!',
-                html: 'Tu perfil ha sido guardado. Un administrador revisará tu solicitud de acceso. <br>Serás redirigido a la página principal.',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                customClass: {
-                    popup: 'animate__animated animate__bounceIn'
-                }
-            }).then(() => {
-                window.location.href = '../index.html';
-            });
-
-        } catch (error) {
-            console.error("Error al guardar datos de registro:", error);
-            Swal.fire({
+                ...swalBase,
                 icon: 'error',
-                title: 'Error al Registrar',
-                text: 'No se pudo completar tu registro. Inténtalo de nuevo o contacta a soporte.',
-                confirmButtonColor: '#E6007E',
-                customClass: {
-                    popup: 'animate__animated animate__shakeX'
-                }
+                title: 'Error al Iniciar Sesión',
+                text: 'No se pudo conectar con Google. Verifica tu conexión e inténtalo de nuevo.',
+                confirmButtonText: 'Reintentar'
             });
         }
     }
+
+    function setGoogleBtnLoading(loading) {
+        if (loading) {
+            googleSignInBtn.disabled = true;
+            googleBtnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Conectando...';
+        } else {
+            googleSignInBtn.disabled = false;
+            googleBtnText.textContent = 'Continuar con Google';
+        }
+    }
+
+    // ── Load bosses for registration ──────────────────────────────────────────
+    async function loadBosses() {
+        bossSelect.innerHTML = '<option value="">— Cargando... —</option>';
+        try {
+            const snap = await db.collection('usuarios')
+                .where('role', '==', 'jefe')
+                .where('status', '==', 'aprobado')
+                .get();
+
+            allBosses = snap.docs.map(doc => {
+                const d = doc.data();
+                return { uid: doc.id, name: d.displayName || d.nombre || d.email };
+            });
+
+            if (allBosses.length === 0) {
+                bossSelect.innerHTML = '<option value="">— No hay jefes registrados —</option>';
+            } else {
+                bossSelect.innerHTML = '<option value="">— Selecciona tu Jefe —</option>';
+                allBosses.forEach(({ uid, name }) => {
+                    const opt = document.createElement('option');
+                    opt.value = uid;
+                    opt.textContent = name;
+                    bossSelect.appendChild(opt);
+                });
+            }
+        } catch (err) {
+            console.error('loadBosses error:', err);
+            bossSelect.innerHTML = '<option value="">— Error al cargar —</option>';
+        }
+    }
+
+    // ── Toggle boss selector ──────────────────────────────────────────────────
+    roleSelect.addEventListener('change', () => {
+        const needsBoss = ['vendedor', 'bodeguero'].includes(roleSelect.value);
+        bossSelectContainer.style.display = needsBoss ? 'block' : 'none';
+        if (!needsBoss) bossSelect.value = '';
+    });
+
+    // ── Save registration ─────────────────────────────────────────────────────
+    saveRegistrationBtn.addEventListener('click', async () => {
+        const user  = pendingUser || auth.currentUser;
+        const role  = roleSelect.value.trim();
+        const store = storeInput.value.trim();
+
+        if (!role || !store) {
+            Swal.fire({ ...swalBase, icon: 'warning', title: 'Campos Requeridos',
+                text: 'Por favor selecciona tu rol e ingresa el número de tienda.' });
+            return;
+        }
+
+        const needsBoss = ['vendedor', 'bodeguero'].includes(role);
+        const jefeAsignado = needsBoss ? bossSelect.value : null;
+
+        if (needsBoss && !jefeAsignado) {
+            Swal.fire({ ...swalBase, icon: 'warning', title: 'Selecciona tu Jefe',
+                text: 'Debes seleccionar al jefe de recibos que te supervisa.' });
+            return;
+        }
+
+        if (!user) {
+            Swal.fire({ ...swalBase, icon: 'error', title: 'Sesión Expirada',
+                text: 'Tu sesión expiró. Por favor inicia sesión de nuevo.' });
+            registrationModal.hide();
+            return;
+        }
+
+        saveRegistrationBtn.disabled = true;
+        saveRegistrationBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Enviando...';
+
+        const isLiverpoolEmail = user.email.toLowerCase().endsWith('@liverpool.com.mx');
+        const status = isLiverpoolEmail ? 'aprobado' : 'pendiente';
+
+        try {
+            await db.collection('usuarios').doc(user.uid).set({
+                email:        user.email,
+                displayName:  user.displayName || '',
+                photoURL:     user.photoURL || '',
+                role,
+                store,
+                jefeAsignado: jefeAsignado || null,
+                status,
+                createdAt:    firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            registrationModal.hide();
+
+            if (isLiverpoolEmail) {
+                // Correo corporativo — acceso inmediato
+                Swal.fire({
+                    ...swalBase,
+                    icon: 'success',
+                    title: '¡Bienvenido!',
+                    html: 'Tu cuenta fue verificada automáticamente.<br>Serás redirigido al sistema.',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => { window.location.href = '../index.html'; });
+                return;
+            }
+
+            // Correo externo — queda pendiente
+            await auth.signOut();
+
+            Swal.fire({
+                ...swalBase,
+                icon: 'info',
+                title: 'Solicitud Enviada',
+                html: 'Tu perfil fue registrado.<br><br>Un administrador revisará tu solicitud. Una vez aprobado podrás iniciar sesión.',
+                confirmButtonText: 'Entendido'
+            });
+
+        } catch (err) {
+            console.error('saveRegistration error:', err);
+            Swal.fire({ ...swalBase, icon: 'error', title: 'Error al Guardar',
+                text: 'No se pudo guardar tu información. Inténtalo de nuevo.' });
+        } finally {
+            saveRegistrationBtn.disabled = false;
+            saveRegistrationBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar Solicitud';
+        }
+    });
+
+    // ── Event listeners ───────────────────────────────────────────────────────
+    googleSignInBtn.addEventListener('click', signInWithGoogle);
+
+    helpBtn.addEventListener('click', () => helpModal.show());
+
+    retryGoogleBtn.addEventListener('click', () => {
+        helpModal.hide();
+        setTimeout(signInWithGoogle, 400);
+    });
 });

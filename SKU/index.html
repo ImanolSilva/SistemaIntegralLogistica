@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de SKUs - Sistema Liverpool</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../shared.css">
+    <link rel="stylesheet" href="../Dashboard/styles.css">
+
+    <style>
+        /* Alias para variables usadas en el JS/HTML heredado */
+        :root {
+            --rosa-principal: var(--rosa);
+            --rosa-principal-rgb: var(--rosa-rgb);
+            --azul-vision: var(--azul);
+            --border-radius-lg: var(--r-lg);
+            --border-radius-md: var(--r-md);
+            --border-radius-sm: var(--r-sm);
+            --border-card: var(--border);
+            --bg-card: var(--card);
+            --text-secondary: var(--txt2);
+            --text-muted: var(--txt3);
+        }
+        /* ── SEARCH HERO ── */
+        .search-hero {
+            text-align: center;
+            padding: 2.5rem 1rem 1.75rem;
+        }
+        .search-hero-title {
+            font-size: 1.7rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--rosa) 0%, #8b3aff 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 0.4rem; display: inline-block;
+            letter-spacing: -0.5px;
+        }
+        .search-hero p {
+            color: rgba(255,255,255,0.48); font-size: 0.88rem;
+            margin-bottom: 1.75rem; max-width: 520px; margin-inline: auto;
+            line-height: 1.6;
+        }
+
+        .search-type-pills {
+            display: flex; justify-content: center; gap: 0.5rem;
+            flex-wrap: wrap; margin-bottom: 1.35rem;
+        }
+        .pill-btn {
+            border: 1.5px solid rgba(255,255,255,0.13);
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.60); border-radius: 50px;
+            padding: 0.45rem 1.2rem; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; transition: all .2s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: inline-flex; align-items: center; gap: 0.38rem;
+        }
+        .pill-btn.active {
+            background: linear-gradient(135deg, var(--rosa), #a3005a);
+            border-color: var(--rosa); color: #fff;
+            box-shadow: 0 4px 16px rgba(var(--rosa-rgb),.38);
+        }
+        .pill-btn:hover:not(.active) {
+            border-color: var(--rosa); color: var(--rosa);
+            background: rgba(var(--rosa-rgb),.09);
+        }
+
+        .search-input-wrap {
+            display: flex; gap: 0.5rem; max-width: 680px; margin: 0 auto;
+        }
+        .search-input {
+            flex: 1;
+            background: rgba(255,255,255,0.07);
+            border: 1.5px solid rgba(255,255,255,0.13);
+            border-radius: 14px;
+            padding: 0.75rem 1.2rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.95rem; outline: none; transition: all .2s;
+            color: #fff; backdrop-filter: blur(6px);
+        }
+        .search-input::placeholder { color: rgba(255,255,255,0.32); }
+        .search-input:focus {
+            border-color: var(--rosa);
+            background: rgba(255,255,255,0.10);
+            box-shadow: 0 0 0 3px rgba(var(--rosa-rgb),.16);
+        }
+        .search-divider {
+            border: none; border-top: 1px solid rgba(255,255,255,0.07);
+            margin: 1.75rem 0;
+        }
+
+        /* ── RESULTS ── */
+        .results-area { min-height: 200px; }
+        .empty-search {
+            text-align: center; padding: 3.5rem 1rem;
+            color: rgba(255,255,255,0.35);
+        }
+        .empty-search i {
+            font-size: 4rem; color: rgba(255,255,255,0.10);
+            display: block; margin-bottom: 1.1rem;
+        }
+        .empty-search p { font-size: 0.88rem; line-height: 1.6; }
+
+        .result-count-bar {
+            display: flex; align-items: center; gap: 0.6rem;
+            margin-bottom: 1.1rem; font-size: 0.83rem; font-weight: 600;
+            color: rgba(255,255,255,0.65);
+            background: rgba(var(--rosa-rgb),.07);
+            border: 1px solid rgba(var(--rosa-rgb),.18);
+            border-radius: 10px; padding: 0.65rem 1rem;
+        }
+        .result-count-bar i { color: var(--rosa); font-size: 1rem; }
+
+        /* ── RESULT CARD ── */
+        .sku-result-card {
+            border-radius: var(--r-lg);
+            border: 1px solid rgba(255,255,255,0.09);
+            margin-bottom: 1.5rem; overflow: hidden;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            transition: border-color .25s, box-shadow .25s, transform .25s;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+        }
+        .sku-result-card:hover {
+            border-color: rgba(var(--rosa-rgb),.25);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 0 20px rgba(var(--rosa-rgb),.08);
+            transform: translateY(-4px);
+        }
+
+        /* Banner */
+        .card-banner {
+            background: linear-gradient(135deg, rgba(15,20,40,0.95) 0%, rgba(25,35,60,0.95) 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 1.15rem 1.5rem;
+            display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+        }
+        .banner-left { flex: 1; min-width: 0; }
+        .banner-cont {
+            font-family: 'Plus Jakarta Sans', monospace;
+            font-size: 1.25rem; font-weight: 800; color: #fff;
+            letter-spacing: 1px;
+        }
+        .banner-mani { font-size: 0.72rem; color: rgba(255,255,255,.48); margin-top: 3px; }
+
+        .banner-badge {
+            padding: 0.38rem 1rem; border-radius: 50px;
+            font-size: 0.78rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .bb-green  { background: rgba(32,201,151,.18); color: #4ecca3; border: 1.5px solid rgba(32,201,151,.35); }
+        .bb-red    { background: rgba(255,100,120,.18); color: #ff8a9a; border: 1.5px solid rgba(255,100,120,.35); }
+        .bb-purple { background: rgba(180,100,255,.18); color: #c8a0e8; border: 1.5px solid rgba(160,80,230,.35); }
+        .bb-yellow { background: rgba(255,210,0,.18);   color: #ffe066; border: 1.5px solid rgba(255,200,0,.35); }
+        .bb-gray   { background: rgba(255,255,255,.07); color: rgba(255,255,255,.42); border: 1.5px solid rgba(255,255,255,.13); }
+
+        /* Meta grid */
+        .card-meta {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .meta-cell {
+            padding: 0.95rem 1.15rem;
+            border-right: 1px solid rgba(255,255,255,0.07);
+        }
+        .meta-cell:last-child { border-right: none; }
+        .mc-label {
+            font-size: 0.60rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1.2px; color: rgba(255,255,255,0.32);
+            display: flex; align-items: center; gap: 0.3rem; margin-bottom: 5px;
+        }
+        .mc-value { font-size: 0.87rem; font-weight: 700; color: #fff; }
+        .mc-empty { color: rgba(255,255,255,0.30); font-weight: 400; font-style: italic; }
+
+        /* Stats chips */
+        .card-stats {
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            padding: 0.9rem 1.3rem;
+            display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;
+        }
+        .kpi-chip {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 12px; padding: 0.5rem 1rem;
+            text-align: center; min-width: 66px;
+            transition: background .2s;
+        }
+        .kpi-chip:hover { background: rgba(255,255,255,0.08); }
+        .kpi-chip-num { font-size: 1.25rem; font-weight: 800; line-height: 1.1; display: block; }
+        .kpi-chip-lbl {
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: rgba(255,255,255,0.38);
+            display: block; margin-top: 2px;
+        }
+        .kc-sku .kpi-chip-num  { color: var(--rosa); }
+        .kc-uds .kpi-chip-num  { color: #60a5fa; }
+        .kc-ok .kpi-chip-num   { color: #34d399; }
+        .kc-falt .kpi-chip-num { color: #f87171; }
+        .kc-sob .kpi-chip-num  { color: #c084fc; }
+
+        /* Cross-ref strip */
+        .dash-crossref {
+            padding: 0.85rem 1.3rem;
+            display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;
+            font-size: 0.83rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.68);
+        }
+        .dcr-match   { background: rgba(0,117,255,0.07); }
+        .dcr-nomatch { background: rgba(255,255,255,0.015); }
+        .dcr-icon { font-size: 1.15rem; flex-shrink: 0; }
+        .dcr-match .dcr-icon   { color: #60a5fa; }
+        .dcr-nomatch .dcr-icon { color: rgba(255,255,255,0.28); }
+        .dcr-text  { flex: 1; line-height: 1.6; }
+        .dcr-falt  { color: #f87171; font-weight: 700; }
+        .dcr-sob   { color: #c084fc; font-weight: 700; }
+        .dcr-nomatch-text { color: rgba(255,255,255,0.33); font-style: italic; font-size: 0.79rem; }
+
+        /* SKU Table */
+        .sku-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+        .sku-table thead th {
+            background: rgba(255,255,255,0.025); padding: 0.7rem 1rem;
+            font-size: 0.63rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; color: rgba(255,255,255,0.35);
+            border-bottom: 1px solid rgba(255,255,255,0.08); white-space: nowrap;
+        }
+        .sku-table tbody td {
+            padding: 0.62rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            vertical-align: middle; color: rgba(255,255,255,0.80);
+        }
+        .sku-table tbody tr:last-child td { border-bottom: none; }
+        .sku-table tbody tr:hover { background: rgba(var(--rosa-rgb),0.045); }
+        .sku-code {
+            font-family: monospace; font-weight: 700;
+            font-size: 0.88rem; letter-spacing: 0.5px; color: var(--rosa);
+        }
+
+        /* Estatus badges */
+        .estatus-badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 0.73rem; font-weight: 700; white-space: nowrap;
+        }
+        .est-green  { background: rgba(52,211,153,.14); color: #34d399; border: 1px solid rgba(52,211,153,.28); }
+        .est-red    { background: rgba(248,113,113,.14); color: #f87171; border: 1px solid rgba(248,113,113,.28); }
+        .est-purple { background: rgba(192,132,252,.14); color: #c084fc; border: 1px solid rgba(192,132,252,.28); }
+        .est-yellow { background: rgba(251,191,36,.14);  color: #fbbf24; border: 1px solid rgba(251,191,36,.28); }
+        .est-orange { background: rgba(251,146,60,.14);  color: #fb923c; border: 1px solid rgba(251,146,60,.28); }
+        .est-gray   { background: rgba(255,255,255,.06); color: rgba(255,255,255,.42); border: 1px solid rgba(255,255,255,.11); }
+
+        mark { background: rgba(var(--rosa-rgb),.16); color: var(--rosa); border-radius: 3px; padding: 0 2px; }
+
+        /* ── DELIVERY TIMELINE ── */
+        .delivery-timeline {
+            padding: 1rem 1.3rem 0.7rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            background: rgba(0,0,0,0.12);
+        }
+        .timeline-title {
+            font-size: 0.63rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1.2px; color: rgba(255,255,255,0.32);
+            margin-bottom: 0.9rem; display: flex; align-items: center; gap: 0.4rem;
+        }
+        .timeline-steps {
+            display: flex; align-items: flex-start; gap: 0;
+            overflow-x: auto; padding-bottom: 0.5rem;
+        }
+        .timeline-steps::-webkit-scrollbar { height: 3px; }
+        .timeline-steps::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 2px; }
+        .tl-step {
+            display: flex; flex-direction: column; align-items: center;
+            flex: 1; min-width: 90px; position: relative;
+        }
+        .tl-step:not(:last-child)::after {
+            content: ''; position: absolute;
+            top: 17px; left: calc(50% + 17px); right: calc(-50% + 17px);
+            height: 2px; background: rgba(255,255,255,0.11); z-index: 0;
+        }
+        .tl-step.done:not(:last-child)::after    { background: rgba(1,181,116,0.42); }
+        .tl-step.current:not(:last-child)::after { background: rgba(255,185,0,0.32); }
+        .tl-icon-wrap {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; position: relative; z-index: 1;
+            border: 2px solid rgba(255,255,255,0.11);
+            background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.28);
+            transition: all .3s;
+        }
+        .tl-step.done .tl-icon-wrap {
+            border-color: rgba(1,181,116,.55); background: rgba(1,181,116,.14); color: #34d399;
+        }
+        .tl-step.current .tl-icon-wrap {
+            border-color: rgba(255,185,0,.55); background: rgba(255,185,0,.11); color: #fbbf24;
+            box-shadow: 0 0 12px rgba(255,185,0,.28);
+            animation: tl-pulse 2s ease-in-out infinite;
+        }
+        .tl-step.pending .tl-icon-wrap { opacity: 0.42; }
+        @keyframes tl-pulse { 0%,100%{box-shadow:0 0 8px rgba(255,185,0,0.22)} 50%{box-shadow:0 0 18px rgba(255,185,0,0.48)} }
+        .tl-label {
+            font-size: 0.62rem; font-weight: 700; margin-top: 0.45rem;
+            text-align: center; line-height: 1.3;
+            color: rgba(255,255,255,0.32); max-width: 80px;
+        }
+        .tl-step.done .tl-label    { color: rgba(52,211,153,0.88); }
+        .tl-step.current .tl-label { color: rgba(251,191,36,0.88); }
+        .tl-sub {
+            font-size: 0.57rem; color: rgba(255,255,255,0.26);
+            text-align: center; margin-top: 2px; max-width: 80px; line-height: 1.3;
+        }
+        .tl-step.done .tl-sub    { color: rgba(52,211,153,0.52); }
+        .tl-step.current .tl-sub { color: rgba(251,191,36,0.52); }
+        .tl-entregado-detail {
+            margin: 0.6rem 0 0.2rem; padding: 0.6rem 0.9rem;
+            background: rgba(1,181,116,0.07); border: 1px solid rgba(1,181,116,0.20);
+            border-radius: 10px; font-size: 0.78rem;
+            display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+        }
+        .tl-entregado-detail .tl-ed-item { display: flex; align-items: center; gap: 0.35rem; color: rgba(255,255,255,0.68); }
+        .tl-entregado-detail .tl-ed-item i { color: #34d399; font-size: 0.85rem; }
+
+        @media (max-width: 576px) {
+            .card-banner { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .card-meta { grid-template-columns: 1fr 1fr; }
+            .banner-cont { font-size: 1.1rem; }
+            .tl-step { min-width: 72px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="globalLoading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<!-- Header -->
+<header class="app-header">
+    <button id="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-label="Abrir menú">
+        <span class="hamburger-icon"></span>
+    </button>
+    <h1 class="header-title"><i class="bi bi-upc-scan me-2"></i>Buscador de SKUs</h1>
+    <button id="logout-btn" title="Cerrar sesión"><i class="bi bi-power"></i></button>
+</header>
+
+<!-- Offcanvas menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold" id="menuLateralLabel">Menú Principal</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <nav class="nav flex-column">
+            <a class="nav-link" href="../index.html"><i class="bi bi-house-fill me-2"></i>Inicio</a>
+            <a class="nav-link" href="../Dashboard/index.html"><i class="bi bi-bar-chart-fill me-2"></i>Dashboard</a>
+            <a class="nav-link active" href="index.html"><i class="bi bi-upc-scan me-2"></i>Buscador SKU</a>
+            <a class="nav-link" href="../Recibos/index.html"><i class="bi bi-box-arrow-in-down-right me-2"></i>Área de Recibos</a>
+            <a class="nav-link" id="adminTab" href="../Adminroles/admin.html" style="display:none;"><i class="bi bi-person-fill-gear me-2"></i>Administrar Roles</a>
+        </nav>
+    </div>
+</div>
+
+<!-- Main -->
+<main class="main-container">
+
+    <!-- Auth guard -->
+    <div id="auth-guard" style="display:none" class="empty-state">
+        <i class="bi bi-lock-fill"></i>
+        <p>Debes iniciar sesión para ver este módulo.</p>
+        <a href="../Login/login.html" class="btn-primary-rosa mt-2" style="text-decoration:none">Ir al Login</a>
+    </div>
+
+    <div id="page-content" style="display:none">
+
+        <!-- Admin Panel — se inyecta dinámicamente solo si el usuario es admin -->
+        <div id="admin-panel-placeholder"></div>
+
+        <!-- Search Hero -->
+        <div class="search-hero">
+            <div class="search-hero-title"><i class="bi bi-upc-scan me-2"></i>Buscador de artículos</div>
+            <p>Encuentra cualquier artículo por su código de contenedor, número de pieza (SKU) o número de reporte. Verás cantidades, faltantes y el estado actual.</p>
+
+            <div class="search-type-pills">
+                <button class="pill-btn active" data-type="contenedor"><i class="bi bi-box-seam"></i>Por Contenedor</button>
+                <button class="pill-btn" data-type="sku"><i class="bi bi-upc"></i>Por Código de pieza (SKU)</button>
+                <button class="pill-btn" data-type="manifiesto"><i class="bi bi-file-earmark-text"></i>Por Número de reporte</button>
+            </div>
+
+            <div class="search-input-wrap">
+                <input type="text" id="search-input" class="search-input" placeholder="Escribe el número a buscar..." autocomplete="off" spellcheck="false">
+                <button class="btn-primary-rosa" id="btn-search">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </div>
+
+        <hr class="search-divider">
+
+        <!-- Results -->
+        <div class="results-area">
+            <div class="empty-search" id="empty-search">
+                <i class="bi bi-search"></i>
+                <p>Escribe arriba para buscar.<br>Puedes buscar por contenedor, código de pieza (SKU) o número de reporte.</p>
+            </div>
+            <div id="results-content" style="display:none"></div>
+        </div>
+
+    </div><!-- /page-content -->
+</main>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-cloud-upload-fill me-2" style="color:var(--rosa-principal)"></i>Subir Archivo SKU
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3" style="font-size:0.83rem;color:var(--texto-secundario)">
+                    El archivo debe contener las columnas:
+                    <strong>Fecha de Manifiesto, Numero Manifiesto, Seccion, SKU, Numero de contenedor, Cant, Estatus</strong>.
+                    El campo Manifiesto debe tener <strong>10 dígitos</strong>.
+                    <strong>Jefatura y Gerencia</strong> se auto-rellenan desde Datos Maestros por Sección.
+                    Se detectará automáticamente si el archivo contiene uno o varios manifiestos.
+                </p>
+
+                <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <i class="bi bi-file-earmark-excel"></i>
+                    <strong>Haz clic o arrastra tu archivo aquí</strong>
+                    <span class="d-block mt-1" style="font-size:0.78rem">Formato: .xlsx o .xls</span>
+                </div>
+                <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
+
+                <div id="filePreview" class="mt-3">
+                    <div class="preview-row">
+                        <span class="preview-label">Manifiesto(s)</span>
+                        <span class="preview-value" id="prev-manifest-id">—</span>
+                        <span id="prev-multi-tag" class="multi-tag" style="display:none"><i class="bi bi-files me-1"></i>VARIOS</span>
+                    </div>
+                    <div class="preview-row" id="prev-manifests-row" style="display:none">
+                        <span class="preview-label" style="flex-shrink:0">IDs detectados</span>
+                        <span class="preview-value" id="prev-manifests-list" style="font-size:0.78rem;word-break:break-all">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Archivo</span>
+                        <span class="preview-value" id="prev-filename">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Total de filas</span>
+                        <span class="preview-value" id="prev-rows">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">SKUs distintos</span>
+                        <span class="preview-value" id="prev-skus">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Contenedores</span>
+                        <span class="preview-value" id="prev-contenedores">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Jefaturas (auto)</span>
+                        <span class="preview-value" id="prev-jefaturas">—</span>
+                    </div>
+                    <div class="preview-row" style="border-bottom:none">
+                        <span class="preview-label">Nombre que se guardará</span>
+                        <span class="preview-value" id="prev-savedname" style="color:var(--rosa-principal)">—</span>
+                    </div>
+                </div>
+
+                <div id="upload-error" class="mt-2" style="display:none">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <span id="upload-error-msg"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-outline" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn-primary-rosa" id="btn-confirm-upload" disabled>
+                    <i class="bi bi-cloud-upload-fill"></i> Subir Archivo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script src="app.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const menuLateral  = document.getElementById('menuLateral');
+        if (hamburgerBtn && menuLateral) {
+            menuLateral.addEventListener('show.bs.offcanvas', () => hamburgerBtn.classList.add('open'));
+            menuLateral.addEventListener('hide.bs.offcanvas', () => hamburgerBtn.classList.remove('open'));
+        }
+    });
+</script>
+</body>
+</html>

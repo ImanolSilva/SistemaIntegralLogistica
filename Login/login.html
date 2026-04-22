@@ -8,28 +8,24 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared.css">
+
     <style>
         :root {
             --rosa-principal: #E6007E;
             --rosa-glow: #ff00a9;
-            --fondo-oscuro: #1a021d;
-            --fondo-gradiente: #4c004d;
-            --texto-blanco: #ffffff;
-            --texto-secundario: #c0c0e0;
-            --blanco-transparente: rgba(255, 255, 255, 0.1);
-            --sombra-rosa-intensa: 0 0 15px rgba(230, 0, 126, 0.7), 0 0 30px rgba(230, 0, 126, 0.5);
+            --bg-dark: #0F0F23;
+            --border-glass: rgba(255,255,255,0.09);
+            --text-muted-glass: rgba(255,255,255,0.5);
         }
 
+        *, *::before, *::after { box-sizing: border-box; }
+
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--fondo-oscuro);
-            background: linear-gradient(320deg, var(--fondo-oscuro), var(--rosa-principal), var(--fondo-gradiente));
-            background-size: 400% 400%;
-            animation: gradient-flow 15s ease infinite;
-            color: var(--texto-blanco);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -38,108 +34,301 @@
             position: relative;
         }
 
-        @keyframes gradient-flow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* === Fondo con radial gradients igual al resto del sistema === */
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(121,40,202,0.18) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(230,0,126,0.14) 0%, transparent 55%),
+                radial-gradient(ellipse at 60% 80%, rgba(0,80,200,0.10) 0%, transparent 50%);
         }
 
+        /* === Iconos flotantes === */
         .background-icons {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden;
+            position: fixed; inset: 0; z-index: 0;
+            overflow: hidden; list-style: none; margin: 0; padding: 0;
         }
-
         .floating-icon {
-            position: absolute; list-style: none; display: block;
-            color: var(--blanco-transparente);
-            animation: rise-fade 25s infinite linear;
+            position: absolute; display: block;
+            color: rgba(255,255,255,0.06);
+            animation: rise-fade 28s infinite linear;
             bottom: -200px; opacity: 0;
-            text-shadow: 0 0 10px var(--blanco-transparente), 0 0 20px var(--blanco-transparente), 0 0 30px var(--rosa-glow);
         }
-        .floating-icon:nth-child(1) { left: 25%; font-size: 80px; animation-delay: 0s; }
-        .floating-icon:nth-child(2) { left: 10%; font-size: 20px; animation-delay: 2s; animation-duration: 12s; }
-        .floating-icon:nth-child(3) { left: 70%; font-size: 25px; animation-delay: 4s; }
-        .floating-icon:nth-child(4) { left: 40%; font-size: 60px; animation-delay: 0s; animation-duration: 18s; }
-        .floating-icon:nth-child(5) { left: 65%; font-size: 20px; animation-delay: 1s; }
-        .floating-icon:nth-child(6) { left: 85%; font-size: 120px; animation-delay: 3s; }
-        .floating-icon:nth-child(7) { left: 50%; font-size: 40px; animation-delay: 7s; animation-duration: 15s; }
-        .floating-icon:nth-child(8) { left: 15%; font-size: 35px; animation-delay: 9s; animation-duration: 20s; }
-        .floating-icon:nth-child(9) { left: 90%; font-size: 50px; animation-delay: 5s; animation-duration: 16s; }
-        .floating-icon:nth-child(10) { left: 5%; font-size: 70px; animation-delay: 12s; }
-
-
+        .floating-icon:nth-child(1)  { left: 25%; font-size: 80px;  animation-delay: 0s; }
+        .floating-icon:nth-child(2)  { left: 10%; font-size: 22px;  animation-delay: 2s;  animation-duration: 14s; }
+        .floating-icon:nth-child(3)  { left: 70%; font-size: 28px;  animation-delay: 4s; }
+        .floating-icon:nth-child(4)  { left: 40%; font-size: 60px;  animation-delay: 0s;  animation-duration: 20s; }
+        .floating-icon:nth-child(5)  { left: 65%; font-size: 22px;  animation-delay: 1s; }
+        .floating-icon:nth-child(6)  { left: 85%; font-size: 110px; animation-delay: 3s; }
+        .floating-icon:nth-child(7)  { left: 50%; font-size: 40px;  animation-delay: 7s;  animation-duration: 17s; }
+        .floating-icon:nth-child(8)  { left: 15%; font-size: 35px;  animation-delay: 9s;  animation-duration: 22s; }
+        .floating-icon:nth-child(9)  { left: 90%; font-size: 50px;  animation-delay: 5s;  animation-duration: 18s; }
+        .floating-icon:nth-child(10) { left: 5%;  font-size: 70px;  animation-delay: 12s; }
         @keyframes rise-fade {
-            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0.5; }
+            0%   { transform: translateY(0)      rotate(0deg)   scale(0.8); opacity: 0.4; }
             100% { transform: translateY(-120vh) rotate(720deg) scale(1.2); opacity: 0; }
         }
 
+        /* === Layout === */
         .login-layout {
-            display: grid; grid-template-columns: 1fr; width: 100%; max-width: 450px; padding: 1rem; z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            width: 100%; max-width: 460px;
+            padding: 1.5rem;
+            z-index: 1;
+            position: relative;
         }
-        @media (min-width: 992px) { .login-layout { grid-template-columns: 1.1fr 1fr; max-width: 1000px; gap: 4rem; } }
+        @media (min-width: 992px) {
+            .login-layout {
+                grid-template-columns: 1.15fr 1fr;
+                max-width: 1020px;
+                gap: 5rem;
+            }
+        }
 
+        /* === Sección de bienvenida (desktop) === */
         .welcome-section { display: none; }
-        @media (min-width: 992px) { .welcome-section { display: flex; flex-direction: column; justify-content: center; } }
-        
+        @media (min-width: 992px) {
+            .welcome-section {
+                display: flex; flex-direction: column; justify-content: center;
+            }
+        }
         .welcome-section h1 {
-            font-weight: 700; font-size: clamp(3rem, 5vw, 4.5rem); line-height: 1.1; color: var(--texto-blanco);
-            text-shadow: 0 0 10px var(--rosa-glow), 0 0 25px var(--rosa-glow), 0 0 50px var(--rosa-principal), 0 4px 10px rgba(0,0,0,0.5);
+            font-weight: 800;
+            font-size: clamp(3rem, 5vw, 4.5rem);
+            line-height: 1.1;
+            color: #fff;
+            text-shadow: 0 0 40px rgba(230,0,126,0.5), 0 4px 10px rgba(0,0,0,0.4);
             animation: glow-pulse 4s ease-in-out infinite;
         }
-        
         @keyframes glow-pulse {
-            0%, 100% { text-shadow: 0 0 10px var(--rosa-glow), 0 0 25px var(--rosa-glow), 0 0 50px var(--rosa-principal), 0 4px 10px rgba(0,0,0,0.5); }
-            50% { text-shadow: 0 0 15px var(--rosa-glow), 0 0 35px var(--rosa-glow), 0 0 65px var(--rosa-principal), 0 4px 15px rgba(0,0,0,0.6); }
+            0%,100% { text-shadow: 0 0 20px rgba(230,0,126,0.4), 0 0 50px rgba(230,0,126,0.2); }
+            50%      { text-shadow: 0 0 30px rgba(230,0,126,0.6), 0 0 70px rgba(230,0,126,0.3); }
         }
-
         .welcome-section .lead {
-            font-size: 1.2rem; color: var(--texto-secundario); margin-top: 2rem;
-            border-left: 4px solid var(--rosa-principal); padding-left: 1.5rem;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.60);
+            margin-top: 2rem;
+            border-left: 4px solid var(--rosa-principal);
+            padding-left: 1.5rem;
+            line-height: 1.7;
         }
+        .welcome-badges {
+            display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem;
+        }
+        .welcome-badge {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: rgba(230,0,126,0.1);
+            border: 1px solid rgba(230,0,126,0.25);
+            border-radius: 50px;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.82rem; font-weight: 600;
+            color: rgba(255,255,255,0.75);
+        }
+        .welcome-badge i { color: var(--rosa-principal); }
 
+        /* === Card de login === */
         .login-card {
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px; padding: 2.5rem; text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transition: all 0.4s ease-in-out;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 24px;
+            padding: 2.8rem 2.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            transition: box-shadow 0.4s ease, border-color 0.4s ease;
         }
         .login-card:hover {
-            transform: translateY(-10px) scale(1.03);
-            box-shadow: 0 0 50px rgba(230, 0, 126, 0.6), 0 25px 60px rgba(0,0,0,0.6);
-            border-color: var(--rosa-glow);
+            box-shadow: 0 0 60px rgba(230,0,126,0.2), 0 30px 60px rgba(0,0,0,0.5);
+            border-color: rgba(230,0,126,0.3);
         }
-        .login-card h2 { font-weight: 700; margin-bottom: 1rem; color: var(--texto-blanco); text-shadow: var(--sombra-rosa-intensa); }
-        .login-card .subtitle { color: var(--texto-secundario); margin-bottom: 2.5rem; }
 
+        .login-logo {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, var(--rosa-principal), #7928CA);
+            border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.8rem; color: #fff;
+            box-shadow: 0 8px 24px rgba(230,0,126,0.4);
+        }
+        .login-card h2 {
+            font-weight: 700; font-size: 1.7rem;
+            margin-bottom: 0.4rem; color: #fff;
+        }
+        .login-card .subtitle {
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 2.2rem;
+            font-size: 0.95rem;
+        }
+
+        /* === Botón Google === */
         .btn-google {
-            background: var(--blanco-transparente); color: var(--texto-blanco); border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px; padding: 0.8rem 1rem; font-weight: 600; width: 100%;
-            transition: all 0.3s ease; backdrop-filter: blur(5px); text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 12px;
+            padding: 0.9rem 1.2rem;
+            font-weight: 600; font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-google::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(230,0,126,0.15), rgba(121,40,202,0.15));
+            opacity: 0; transition: opacity 0.3s ease;
         }
         .btn-google:hover {
-            transform: translateY(-5px) scale(1.05); background: var(--rosa-principal);
-            box-shadow: 0 10px 30px rgba(230, 0, 126, 0.6); border-color: var(--rosa-glow); color: var(--texto-blanco);
+            transform: translateY(-3px);
+            border-color: rgba(230,0,126,0.5);
+            box-shadow: 0 12px 30px rgba(230,0,126,0.25);
+            color: #fff;
         }
-        
-        .modal-content { 
-            background: rgba(30, 30, 46, 0.85); backdrop-filter: blur(10px);
-            border: 1px solid var(--rosa-glow); border-radius: 1rem; color: var(--texto-blanco);
-            box-shadow: 0 0 40px rgba(230, 0, 126, 0.5);
+        .btn-google:hover::before { opacity: 1; }
+        .btn-google:active { transform: translateY(0); }
+        .btn-google:disabled {
+            opacity: 0.6; cursor: not-allowed; transform: none;
         }
-        .modal-header, .modal-footer { background-color: transparent; border-color: rgba(255, 255, 255, 0.1); }
-        .modal-title .text-primary { color: var(--rosa-glow) !important; text-shadow: 0 0 10px var(--rosa-glow); }
-        .btn-primary { background-color: var(--rosa-principal); border-color: var(--rosa-principal); transition: all 0.3s ease; }
-        .btn-primary:hover { background-color: var(--rosa-glow); border-color: var(--rosa-glow); box-shadow: 0 0 20px var(--rosa-glow); transform: scale(1.05); }
+        .btn-google .google-icon {
+            width: 20px; height: 20px; flex-shrink: 0; position: relative; z-index: 1;
+        }
+        .btn-google span { position: relative; z-index: 1; }
+        .btn-google .spinner-border {
+            width: 1.1rem; height: 1.1rem;
+            border-width: 2px;
+            position: relative; z-index: 1;
+        }
+
+        /* === Divisor y enlace de ayuda === */
+        .divider {
+            display: flex; align-items: center; gap: 1rem;
+            margin: 1.6rem 0 1.2rem;
+            color: rgba(255,255,255,0.25); font-size: 0.8rem;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1;
+            height: 1px; background: rgba(255,255,255,0.1);
+        }
+
+        .help-link {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.88rem; font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s ease;
+            cursor: pointer; border: none; background: none; padding: 0;
+        }
+        .help-link:hover { color: var(--rosa-principal); }
+
+        /* === Modales === */
+        .modal-content {
+            background: rgba(18,18,40,0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(230,0,126,0.25);
+            border-radius: 20px;
+            color: #fff;
+            box-shadow: 0 0 50px rgba(230,0,126,0.15);
+        }
+        .modal-header {
+            border-color: rgba(255,255,255,0.08);
+            padding: 1.4rem 1.6rem 1rem;
+        }
+        .modal-footer {
+            border-color: rgba(255,255,255,0.08);
+            padding: 1rem 1.6rem 1.4rem;
+        }
+        .modal-body { padding: 1.2rem 1.6rem; }
+        .modal-title { font-weight: 700; font-size: 1.1rem; }
+        .modal-title i { color: var(--rosa-principal); }
+
+        .form-label { color: rgba(255,255,255,0.7); font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem; }
         .form-control, .form-select {
-            background-color: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: var(--texto-blanco);
+            background: rgba(255,255,255,0.06) !important;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            color: #fff !important;
+            border-radius: 10px;
+            padding: 0.65rem 0.9rem;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .form-control:focus, .form-select:focus {
-            background-color: rgba(0,0,0,0.4); color: var(--texto-blanco); border-color: var(--rosa-glow);
-            box-shadow: 0 0 15px rgba(230, 0, 126, 0.7);
+            background: rgba(255,255,255,0.09) !important;
+            border-color: rgba(230,0,126,0.6) !important;
+            box-shadow: 0 0 0 3px rgba(230,0,126,0.15) !important;
+            color: #fff !important;
         }
-        .form-control::placeholder { color: var(--texto-secundario); }
-        option { background-color: var(--fondo-oscuro); }
+        .form-control::placeholder { color: rgba(255,255,255,0.3); }
+        .form-select option { background-color: #1a1a35; color: #fff; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--rosa-principal), #a0005a);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.7rem 1.4rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(230,0,126,0.3);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ff00a9, var(--rosa-principal));
+            box-shadow: 0 8px 25px rgba(230,0,126,0.45);
+            transform: translateY(-2px);
+        }
+        .btn-primary:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7);
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+        }
+
+        /* === Texto de estado del modal de registro === */
+        #registrationModal .modal-body p {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.9rem;
+        }
+
+        /* === Alerta de cuenta pendiente === */
+        .pending-notice {
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            background: rgba(255,174,66,0.1);
+            border: 1px solid rgba(255,174,66,0.25);
+            border-radius: 12px;
+            padding: 1rem 1.1rem;
+            margin-top: 1rem;
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.7);
+            text-align: left;
+        }
+        .pending-notice i { color: #ffae42; flex-shrink: 0; margin-top: 2px; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 576px) {
+            .login-layout { max-width: 100%; padding: 1rem; }
+            .login-card { padding: clamp(1.5rem, 5vw, 2.8rem) clamp(1.25rem, 4vw, 2.5rem); border-radius: 18px; }
+            .login-card h2 { font-size: clamp(1.25rem, 5vw, 1.7rem); }
+            .login-logo { width: 52px; height: 52px; font-size: 1.4rem; border-radius: 14px; }
+            .modal-dialog { margin: 0.5rem !important; }
+            .btn-google { font-size: 0.92rem; padding: 0.8rem 1rem; }
+            /* Inputs no hacen zoom en iOS */
+            .form-control, .form-select { font-size: 16px !important; }
+        }
     </style>
 </head>
 <body>
@@ -157,92 +346,129 @@
     </ul>
 
     <main class="login-layout">
-        <section class="welcome-section animate__animated animate__fadeInLeft animate__slow">
-            <h1>Sistema <br>Integral de Gestión</h1>
-            <p class="lead">La plataforma inteligente para el control de manifiestos, inventarios y precios.</p>
+        <section class="welcome-section">
+            <h1>Sistema<br>Integral de<br>Gestión</h1>
+            <p class="lead">La plataforma para el control de manifiestos, inventarios y análisis de tu tienda.</p>
+            <div class="welcome-badges">
+                <span class="welcome-badge"><i class="fas fa-file-invoice"></i> Manifiestos</span>
+                <span class="welcome-badge"><i class="fas fa-boxes"></i> Inventarios</span>
+                <span class="welcome-badge"><i class="fas fa-chart-bar"></i> Dashboard</span>
+                <span class="welcome-badge"><i class="fas fa-upc-scan bi"></i> Buscador SKU</span>
+            </div>
         </section>
 
         <section class="form-section">
-            <div class="login-card animate__animated animate__fadeInUp animate__delay-1s">
+            <div class="login-card">
+                <div class="login-logo">
+                    <i class="fas fa-store"></i>
+                </div>
                 <h2>Bienvenido</h2>
-                <p class="subtitle">Accede con tu cuenta de Google.</p>
+                <p class="subtitle">Inicia sesión con tu cuenta corporativa de Google.</p>
+
                 <button id="googleSignInBtn" class="btn btn-google">
-                    <i class="fab fa-google me-2"></i> Iniciar sesión con Google
+                    <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    <span id="googleBtnText">Continuar con Google</span>
                 </button>
-                <a href="#" id="forgotPasswordLink" class="d-block mt-3 text-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+
+                <div class="divider">o</div>
+
+                <button class="help-link" id="helpBtn">
+                    <i class="fas fa-question-circle"></i>
                     ¿Problemas para acceder?
-                </a>
+                </button>
             </div>
         </section>
     </main>
 
-    <!-- Modals -->
-    <div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+    <!-- Modal: Ayuda / Problemas de acceso -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-unlock-alt me-2 text-primary"></i> Restablecer Contraseña</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="helpModalLabel">
+                        <i class="fas fa-life-ring me-2"></i> Problemas de Acceso
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Ingresa tu correo para recibir un enlace de restablecimiento.</p>
-                    <input type="email" class="form-control" id="forgotEmail" placeholder="tu.correo@ejemplo.com">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="sendResetEmailBtn">Enviar Correo</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="registrationModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fa-solid fa-user-plus me-2 text-primary"></i> ¡Bienvenido! Completa tu perfil</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-center mb-4">Para empezar, por favor selecciona tu rol y la tienda a la que perteneces.</p>
-                    
-                    <div class="mb-3">
-                        <label for="roleSelect" class="form-label fw-bold">Rol</label>
-                        <select id="roleSelect" class="form-select">
-                            <option value="">-- Selecciona tu Rol --</option>
-                            <option value="vendedor">Vendedor</option>
-                            <option value="bodeguero">Bodeguero</option>
-                            <option value="jefe">Jefe</option>
-                            <option value="gerente">Gerente</option>
-                            <option value="prevencion">Prevención</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="storeInput" class="form-label fw-bold">Número de Tienda</label>
-                        <input type="text" id="storeInput" class="form-control" placeholder="Ej. 0042">
-                    </div>
-                    <div class="mb-3" id="bossSelectContainer" style="display: none;">
-                        <label for="bossSelect" class="form-label fw-bold">Selecciona a tu Jefe</label>
-                        <select id="bossSelect" class="form-select">
-                            <option value="">-- Cargando jefes... --</option>
-                        </select>
+                    <p class="mb-3">Este sistema utiliza exclusivamente <strong>Google Sign-In</strong>. Si no puedes acceder, puede ser por alguna de estas razones:</p>
+                    <ul style="color: rgba(255,255,255,0.65); font-size:0.92rem; line-height:1.9; padding-left:1.2rem;">
+                        <li>Estás usando un correo <strong>que no es @liverpool.com.mx</strong> — solo correos corporativos tienen acceso automático.</li>
+                        <li>Tu cuenta está <strong>pendiente de aprobación</strong> (correo externo).</li>
+                        <li>Tu cuenta fue <strong>rechazada o suspendida</strong>.</li>
+                        <li>Bloqueaste el pop-up del navegador — verifica la barra de direcciones.</li>
+                    </ul>
+                    <div class="pending-notice">
+                        <i class="fas fa-info-circle mt-1"></i>
+                        <span>Usa tu cuenta <strong>@liverpool.com.mx</strong> para acceso inmediato. Si usas otro correo, contacta a tu administrador.</span>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" id="saveRegistrationBtn" class="btn btn-primary w-100">
-                        <i class="fas fa-save me-2"></i> Guardar y Continuar
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="retryGoogleBtn">
+                        <i class="fas fa-redo me-2"></i>Intentar de nuevo
                     </button>
                 </div>
             </div>
         </div>
     </div>
-    
+
+    <!-- Modal: Registro de nuevo usuario -->
+    <div class="modal fade" id="registrationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="registrationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registrationModalLabel">
+                        <i class="fas fa-user-plus me-2"></i> Completa tu Perfil
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center mb-4">Es tu primera vez aquí. Completa estos datos para solicitar acceso al sistema.</p>
+
+                    <div class="mb-3">
+                        <label for="roleSelect" class="form-label">Rol en la tienda</label>
+                        <select id="roleSelect" class="form-select">
+                            <option value="">— Selecciona tu rol —</option>
+                            <option value="vendedor">Vendedor</option>
+                            <option value="bodeguero">Bodeguero</option>
+                            <option value="jefe">Jefe de Recibos</option>
+                            <option value="gerente">Gerente</option>
+                            <option value="prevencion">Prevención</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="storeInput" class="form-label">Número de Tienda</label>
+                        <input type="text" id="storeInput" class="form-control" placeholder="Ej. 0042" maxlength="6" inputmode="numeric">
+                    </div>
+
+                    <div class="mb-3" id="bossSelectContainer" style="display: none;">
+                        <label for="bossSelect" class="form-label">Jefe de Recibos asignado</label>
+                        <select id="bossSelect" class="form-select">
+                            <option value="">— Cargando... —</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="saveRegistrationBtn" class="btn btn-primary w-100">
+                        <i class="fas fa-paper-plane me-2"></i> Enviar Solicitud
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <script src="./login.js"></script>
 </body>
 </html>

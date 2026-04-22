@@ -513,7 +513,10 @@
             currentUser = user;
             try {
                 const docSnap = await db.collection("usuarios").doc(user.uid).get();
-                const isAdmin = user.uid === ADMIN_UID;
+                const ADMIN_UIDS_ALL = ["wz4A81Vp8tQIjzVXMANmOHUlsNH2", "8NfEfPSyusZdNUFgXWPtvi3p6Ns1"];
+                const isAdmin = ADMIN_UIDS_ALL.includes(user.uid);
+                const adminTabNav = document.getElementById('adminTab');
+                if (adminTabNav && isAdmin) adminTabNav.style.display = 'flex';
 
                 if (isAdmin || (docSnap.exists && docSnap.data().status === "aprobado")) {
                     const data = docSnap.data() || {};

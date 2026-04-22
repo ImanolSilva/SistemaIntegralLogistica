@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard · Sistema Liverpool</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../shared.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="globalLoading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<!-- Header -->
+<header class="app-header">
+    <button id="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-label="Abrir menú">
+        <span class="hamburger-icon"></span>
+    </button>
+    <h1 class="header-title"><i class="bi bi-bar-chart-fill me-2"></i>Dashboard</h1>
+    <div class="header-right">
+        <div class="header-user" id="header-user" style="display:none">
+            <div class="user-avatar" id="user-avatar">U</div>
+            <span class="user-email" id="user-email-label">—</span>
+        </div>
+        <button id="logout-btn" title="Cerrar sesión"><i class="bi bi-power"></i></button>
+    </div>
+</header>
+
+<!-- Offcanvas menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title fw-bold" id="menuLateralLabel">Menú Principal</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <nav class="nav flex-column">
+            <a class="nav-link" href="../index.html"><i class="bi bi-house-fill me-2"></i>Inicio</a>
+            <a class="nav-link active" href="../Dashboard/index.html"><i class="bi bi-bar-chart-fill me-2"></i>Dashboard</a>
+            <a class="nav-link" href="../SKU/index.html"><i class="bi bi-upc-scan me-2"></i>Buscador SKU</a>
+            <a class="nav-link" href="../Recibos/index.html"><i class="bi bi-box-arrow-in-down-right me-2"></i>Área de Recibos</a>
+            <a class="nav-link" id="adminTab" href="../Adminroles/admin.html" style="display:none;"><i class="bi bi-person-fill-gear me-2"></i>Administrar Roles</a>
+        </nav>
+    </div>
+</div>
+
+<!-- Main -->
+<main class="main-container">
+
+    <div id="auth-guard" style="display:none" class="empty-state">
+        <i class="bi bi-lock-fill"></i>
+        <p>Debes iniciar sesión para ver este módulo.</p>
+        <a href="../Login/login.html" class="btn-primary-rosa mt-2" style="text-decoration:none">Ir al Login</a>
+    </div>
+
+    <div id="dashboard-content" style="display:none">
+
+        <!-- Welcome Banner -->
+        <div class="welcome-banner" id="welcome-banner">
+            <div class="welcome-content">
+                <div class="welcome-greeting" id="welcome-greeting">Bienvenido</div>
+                <div class="welcome-subtitle">Panel de operaciones · Liverpool</div>
+                <div class="welcome-stats">
+                    <div class="welcome-stat">
+                        <span class="welcome-stat-value" id="wb-manifiestos">—</span>
+                        <span class="welcome-stat-label">Reportes</span>
+                    </div>
+                    <div class="welcome-stat-sep"></div>
+                    <div class="welcome-stat">
+                        <span class="welcome-stat-value" id="wb-jefaturas">—</span>
+                        <span class="welcome-stat-label">Áreas</span>
+                    </div>
+                    <div class="welcome-stat-sep"></div>
+                    <div class="welcome-stat">
+                        <span class="welcome-stat-value" id="wb-cerrados">—</span>
+                        <span class="welcome-stat-label">Cerrados</span>
+                    </div>
+                    <div class="welcome-stat-sep"></div>
+                    <div class="welcome-stat">
+                        <span class="welcome-stat-value" id="wb-fecha">—</span>
+                        <span class="welcome-stat-label">Actualizado</span>
+                    </div>
+                </div>
+            </div>
+            <div class="welcome-illustration"><i class="bi bi-graph-up-arrow"></i></div>
+        </div>
+
+        <!-- Admin Panel (solo admins — se muestra desde JS) -->
+        <div id="admin-panel" class="admin-panel">
+
+            <!-- Header colapsable -->
+            <div class="admin-panel-header" id="admin-panel-toggle">
+                <div class="admin-panel-title">
+                    <i class="bi bi-shield-lock-fill" style="color:var(--rosa)"></i>
+                    <span>Panel de Administración</span>
+                    <span class="admin-badge">Admin</span>
+                </div>
+                <i class="bi bi-chevron-up admin-chevron" id="admin-chevron"></i>
+            </div>
+
+            <!-- Cuerpo colapsable -->
+            <div id="admin-panel-body">
+
+                <!-- Datos Maestros strip -->
+                <div class="datos-maestros-row" style="margin-top:0.85rem">
+                    <div class="datos-info">
+                        <i class="bi bi-database-fill-gear" style="color:var(--rosa);font-size:1rem"></i>
+                        <div>
+                            <div class="datos-title">Datos Maestros</div>
+                            <div class="datos-status" id="datos-status">Sin cargar</div>
+                        </div>
+                    </div>
+                    <button class="btn-datos" id="btn-datos-upload">
+                        <i class="bi bi-arrow-repeat"></i> Actualizar
+                    </button>
+                </div>
+
+                <div class="admin-divider"></div>
+
+                <!-- Tabs -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="avance">
+                        <i class="bi bi-cloud-upload-fill"></i> Reportes de Avance
+                        <span class="tab-count" id="tab-count-avance">0</span>
+                    </button>
+                    <button class="admin-tab" data-tab="cerrado">
+                        <i class="bi bi-archive-fill"></i> Manifiestos Cerrados
+                        <span class="tab-count" id="tab-count-cerrado">0</span>
+                    </button>
+                </div>
+
+                <!-- Tab: Avance -->
+                <div class="admin-tab-panel" id="tab-panel-avance">
+                    <div class="panel-header mt-2">
+                        <h2 style="color:var(--txt2);font-size:0.8rem"><i class="bi bi-cloud-upload-fill" style="color:var(--rosa)"></i> Reportes cargados</h2>
+                        <button class="btn-primary-rosa" id="btn-upload-open">
+                            <i class="bi bi-plus-circle-fill"></i> Subir Avance
+                        </button>
+                    </div>
+                    <div id="manifests-admin-list" class="manifests-list mt-2">
+                        <div class="no-manifests">No hay reportes cargados aún.</div>
+                    </div>
+                </div>
+
+                <!-- Tab: Cerrado -->
+                <div class="admin-tab-panel" id="tab-panel-cerrado" style="display:none">
+                    <div class="panel-header mt-2">
+                        <h2 style="color:var(--txt2);font-size:0.8rem"><i class="bi bi-archive-fill" style="color:var(--verde)"></i> Manifiestos cerrados</h2>
+                        <button class="btn-cerrado" id="btn-cerrado-open">
+                            <i class="bi bi-plus-circle-fill"></i> Subir Cerrado
+                        </button>
+                    </div>
+                    <div id="cerrados-admin-list" class="manifests-list mt-2">
+                        <div class="no-manifests">No hay manifiestos cerrados cargados aún.</div>
+                    </div>
+                </div>
+
+            </div><!-- /admin-panel-body -->
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label><i class="bi bi-file-earmark-text"></i> Reporte</label>
+                <select id="filter-manifiesto"><option value="">Todos los reportes</option></select>
+            </div>
+            <div class="filter-group">
+                <label><i class="bi bi-person-badge"></i> Área</label>
+                <select id="filter-jefatura"><option value="">Todas las áreas</option></select>
+            </div>
+            <div class="filter-group">
+                <label><i class="bi bi-grid-3x3-gap"></i> Sección</label>
+                <select id="filter-seccion"><option value="">Todas las secciones</option></select>
+            </div>
+            <button class="btn-reset-filters" id="btn-reset-filters">
+                <i class="bi bi-arrow-counterclockwise"></i> Limpiar
+            </button>
+        </div>
+
+        <!-- No data -->
+        <div id="no-data-state" class="empty-state" style="display:none">
+            <i class="bi bi-cloud-upload"></i>
+            <p>No hay reportes cargados.<br>Un administrador debe subir el primer archivo Excel.</p>
+        </div>
+
+        <!-- Data content -->
+        <div id="data-content" style="display:none">
+
+            <!-- KPIs — 4 cards estilo innap con gradiente sólido -->
+            <div class="kpi-grid mb-4">
+                <div class="kpi-card rosa">
+                    <div>
+                        <div class="kpi-value" id="kpi-piezas">—</div>
+                        <div class="kpi-label">Piezas recibidas</div>
+                    </div>
+                    <div class="kpi-trend" id="kpi-trend-piezas"></div>
+                    <i class="bi bi-box-seam kpi-icon"></i>
+                </div>
+                <div class="kpi-card rojo">
+                    <div>
+                        <div class="kpi-value" id="kpi-faltantes">—</div>
+                        <div class="kpi-label">Piezas faltantes</div>
+                    </div>
+                    <div class="kpi-trend" id="kpi-trend-faltantes"></div>
+                    <i class="bi bi-dash-circle kpi-icon"></i>
+                </div>
+                <div class="kpi-card amarillo">
+                    <div>
+                        <div class="kpi-value" id="kpi-sobrantes">—</div>
+                        <div class="kpi-label">Piezas sobrantes</div>
+                    </div>
+                    <div class="kpi-trend" id="kpi-trend-sobrantes"></div>
+                    <i class="bi bi-plus-circle kpi-icon"></i>
+                </div>
+                <div class="kpi-card verde">
+                    <div>
+                        <div class="kpi-value" id="kpi-cumplimiento">—</div>
+                        <div class="kpi-label">Exactitud de recepción</div>
+                    </div>
+                    <div class="kpi-progress-wrap"><div class="kpi-progress-bar" id="kpi-progress-bar"></div></div>
+                    <i class="bi bi-patch-check kpi-icon"></i>
+                </div>
+            </div>
+
+            <!-- Segunda fila: columna izquierda estrecha + columna derecha ancha -->
+            <div class="analytics-grid mb-4">
+
+                <!-- IZQUIERDA: Donut + Progress bars -->
+                <div class="left-col">
+
+                    <!-- Donut: exactitud global -->
+                    <div class="donut-card">
+                        <div class="chart-card-title mb-2" style="justify-content:center">
+                            <i class="bi bi-pie-chart-fill" style="color:var(--rosa)"></i>
+                            Distribución por sección
+                        </div>
+                        <div class="donut-wrapper">
+                            <canvas id="chart-seccion"></canvas>
+                            <div class="donut-center-label">
+                                <span class="donut-center-value" id="donut-pct">—</span>
+                                <span class="donut-center-sub">Exactitud</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress bars: áreas top -->
+                    <div class="progress-card">
+                        <div class="progress-card-title">Contenedores por estado</div>
+                        <div class="progress-row">
+                            <div class="progress-row-header">
+                                <span class="progress-row-label">Sin diferencias</span>
+                                <span class="progress-row-value" id="prog-val-ok">—</span>
+                            </div>
+                            <div class="progress-track"><div class="progress-fill verde" id="prog-ok"></div></div>
+                        </div>
+                        <div class="progress-row">
+                            <div class="progress-row-header">
+                                <span class="progress-row-label">Con faltantes</span>
+                                <span class="progress-row-value" id="prog-val-falt">—</span>
+                            </div>
+                            <div class="progress-track"><div class="progress-fill rosa" id="prog-falt"></div></div>
+                        </div>
+                        <div class="progress-row">
+                            <div class="progress-row-header">
+                                <span class="progress-row-label">Con sobrantes</span>
+                                <span class="progress-row-value" id="prog-val-sobr">—</span>
+                            </div>
+                            <div class="progress-track"><div class="progress-fill amarillo" id="prog-sobr"></div></div>
+                        </div>
+                        <div class="progress-legend">
+                            <div class="legend-item"><div class="legend-dot" style="background:var(--verde)"></div><span id="prog-count-ok">—</span></div>
+                            <div class="legend-item"><div class="legend-dot" style="background:var(--rosa)"></div><span id="prog-count-falt">—</span></div>
+                            <div class="legend-item"><div class="legend-dot" style="background:var(--amarillo)"></div><span id="prog-count-sobr">—</span></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- DERECHA: Área chart grande + ranking -->
+                <div class="charts-right-col">
+
+                    <!-- Área chart: tendencia por reporte -->
+                    <div class="chart-card">
+                        <div class="chart-card-title" style="justify-content:space-between">
+                            <span style="display:flex;align-items:center;gap:0.4rem">
+                                <i class="bi bi-activity" style="color:var(--azul)"></i>
+                                Estadística de recepción
+                            </span>
+                            <span style="display:flex;gap:1rem;font-size:0.7rem;font-weight:500">
+                                <span><span id="stat-piezas-total" style="font-size:1.1rem;font-weight:800;color:var(--txt)">—</span> <span style="color:var(--txt3)">Piezas</span></span>
+                                <span><span id="stat-faltantes-total" style="font-size:1.1rem;font-weight:800;color:var(--rosa)">—</span> <span style="color:var(--txt3)">Faltantes</span></span>
+                            </span>
+                        </div>
+                        <p class="chart-subtitle">Piezas recibidas vs. faltantes por reporte — evolución histórica.</p>
+                        <div class="chart-wrapper" style="height:260px"><canvas id="chart-tendencia"></canvas></div>
+                    </div>
+
+                    <!-- Ranking de áreas -->
+                    <div class="chart-card ranking-card">
+                        <div class="chart-card-title">
+                            <i class="bi bi-trophy-fill" style="color:#F59E0B"></i>
+                            Rendimiento por área
+                            <span style="margin-left:auto;display:flex;gap:0.5rem">
+                                <span class="badge-pct good">≥ 95%</span>
+                                <span class="badge-pct warn">≥ 85%</span>
+                                <span class="badge-pct bad">&lt; 85%</span>
+                            </span>
+                        </div>
+                        <div id="ranking-jefatura" class="ranking-grid mt-2"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Gráfica barras por área -->
+            <div class="chart-card mb-4">
+                <div class="chart-card-title">
+                    <i class="bi bi-bar-chart-horizontal-fill" style="color:var(--rosa)"></i>
+                    Exactitud por área
+                    <span class="chart-subtitle" style="margin:0;margin-left:0.5rem">— % del total esperado recibido</span>
+                </div>
+                <div class="chart-wrapper" style="height:280px"><canvas id="chart-jefatura"></canvas></div>
+            </div>
+
+            <!-- Tabla por área -->
+            <div class="sec-label mb-2"><span>Detalle por área</span></div>
+            <div class="table-card mb-3">
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Área / Jefatura</th>
+                                <th style="text-align:right">Piezas</th>
+                                <th style="text-align:right">Faltantes</th>
+                                <th style="text-align:right">Sobrantes</th>
+                                <th style="text-align:right">Exactitud</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-jefatura"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabla por contenedor (colapsable) -->
+            <div class="table-card mb-3">
+                <div class="table-card-header" id="toggle-contenedor">
+                    <h3><i class="bi bi-boxes" style="color:var(--azul)"></i> Detalle por contenedor</h3>
+                    <i class="bi bi-chevron-down collapse-icon" id="icon-contenedor"></i>
+                </div>
+                <div id="panel-contenedor">
+                    <div class="table-responsive">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Contenedor</th>
+                                    <th>Reporte</th>
+                                    <th>Sección</th>
+                                    <th>Área</th>
+                                    <th style="text-align:right">Piezas</th>
+                                    <th style="text-align:right">Faltantes</th>
+                                    <th style="text-align:right">Sobrantes</th>
+                                    <th style="text-align:right">Exactitud</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-contenedor"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla Manifiesto Cerrado (colapsable) -->
+            <div class="sec-label mb-2"><span>Manifiestos cerrados</span></div>
+            <div class="table-card mb-3">
+                <div class="table-card-header" id="toggle-cerrado">
+                    <h3><i class="bi bi-archive-fill" style="color:var(--verde)"></i> Detalle de manifiestos cerrados</h3>
+                    <i class="bi bi-chevron-down collapse-icon" id="icon-cerrado"></i>
+                </div>
+                <div id="panel-cerrado" style="display:none">
+                    <div id="no-cerrado-state" class="empty-state" style="padding:2rem">
+                        <i class="bi bi-archive" style="font-size:1.8rem"></i>
+                        <p>No hay manifiestos cerrados cargados aún.</p>
+                    </div>
+                    <div id="cerrado-content" style="display:none">
+
+                        <!-- Explicación para usuarios no técnicos -->
+                        <div class="cerrado-explain" id="cerrado-explain-panel">
+                            <button class="cerrado-explain-toggle" id="cerrado-explain-toggle">
+                                <i class="bi bi-info-circle-fill"></i>
+                                ¿Cómo interpretar esta tabla?
+                                <i class="bi bi-chevron-down cex-chevron"></i>
+                            </button>
+                            <div class="cerrado-explain-body" id="cerrado-explain-body">
+                                <p>Un <strong>Manifiesto Cerrado</strong> es el registro oficial que confirma qué artículos debieron llegar en cada contenedor y cuántos se recibieron realmente.</p>
+                                <p>Esta tabla compara tres fuentes de información:</p>
+                                <ul>
+                                    <li><strong>Datos Maestros</strong> — define a qué Jefatura pertenece cada Sección.</li>
+                                    <li><strong>Reporte de Avance</strong> — dice cuántas piezas se escanearon y cuántas faltan en bodega.</li>
+                                    <li><strong>Manifiesto Cerrado</strong> — dice cuántas piezas venían en el manifiesto original vs. las registradas.</li>
+                                </ul>
+                                <p style="margin-top:0.5rem"><strong>Encabezados por manifiesto:</strong></p>
+                                <ul>
+                                    <li><span class="cex-pill cex-green">Avance 3/3 (100%)</span> — todos los contenedores tienen registro en el Reporte de Avance.</li>
+                                    <li><span class="cex-pill cex-amber">Avance 1/3 (33%)</span> — solo algunos contenedores aparecen en el Reporte de Avance; los demás aún no se han escaneado.</li>
+                                    <li><span class="cex-pill cex-red">Avance 0/3 (0%)</span> — ningún contenedor de este manifiesto aparece en el Reporte de Avance.</li>
+                                    <li><span class="cex-pill cex-green">Jefatura 100%</span> — todas las secciones tienen jefatura asignada en Datos Maestros.</li>
+                                </ul>
+                                <p style="margin-top:0.5rem"><strong>Columna "Match Avance":</strong> muestra el total de piezas y faltantes del Reporte de Avance para ese contenedor. Si dice <em>Sin avance</em>, el contenedor no está registrado en el reporte de bodega todavía.</p>
+                                <p style="margin-top:0.5rem"><strong>Columna "Diferencia":</strong> si es negativa <span style="color:#F87171">(−)</span> hay faltantes; si es positiva <span style="color:#FCD34D">(+)</span> hay sobrantes; si es cero, el conteo es exacto.</p>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="dash-table">
+                                <thead>
+                                    <tr>
+                                        <th>Contenedor</th>
+                                        <th>Manifiesto</th>
+                                        <th>Sección</th>
+                                        <th>Área</th>
+                                        <th>Artículo</th>
+                                        <th>Cód. UPC</th>
+                                        <th style="text-align:right">Cant. Manif.</th>
+                                        <th style="text-align:right">Cant. Registr.</th>
+                                        <th style="text-align:right">Diferencia</th>
+                                        <th>Estatus</th>
+                                        <th>Match Avance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-cerrado"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /data-content -->
+    </div><!-- /dashboard-content -->
+</main>
+
+<!-- Modal: Datos Maestros -->
+<div class="modal fade" id="datosModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-database-fill me-2" style="color:var(--rosa)"></i>Actualizar Datos Maestros</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.8rem;color:var(--txt2);margin-bottom:0.85rem">
+                    Archivo <strong>Datos.xlsx</strong> con columnas: <strong>Sección, Descripcion, Jefatura, Gerente, Bodega</strong>.
+                </p>
+                <div class="drop-zone" id="datos-drop-zone" onclick="document.getElementById('datos-file-input').click()">
+                    <i class="bi bi-file-earmark-excel"></i>
+                    <strong>Haz clic o arrastra aquí</strong>
+                    <span style="font-size:0.76rem">.xlsx / .xls</span>
+                </div>
+                <input type="file" id="datos-file-input" accept=".xlsx,.xls" style="display:none">
+                <div id="datos-preview" class="mt-3" style="display:none">
+                    <div class="preview-row">
+                        <span class="preview-label">Secciones</span>
+                        <span class="preview-value" id="datos-prev-count">—</span>
+                    </div>
+                    <div class="preview-row" style="border-bottom:none">
+                        <span class="preview-label">Archivo</span>
+                        <span class="preview-value" id="datos-prev-file">—</span>
+                    </div>
+                </div>
+                <div id="datos-error" style="display:none">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <span id="datos-error-msg"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-outline" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn-primary-rosa" id="btn-datos-confirm" disabled>
+                    <i class="bi bi-database-fill-up"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Subir Reporte de Avance -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cloud-upload-fill me-2" style="color:var(--rosa)"></i>Subir Reporte de Avance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.8rem;color:var(--txt2);margin-bottom:0.85rem">
+                    Columnas requeridas: <strong>Contenedor, Piezas, Faltantes, Sobrante, Seccion, Manifiesto</strong>.
+                    Manifiesto: código de <strong>10 dígitos</strong>.
+                </p>
+                <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <i class="bi bi-file-earmark-excel"></i>
+                    <strong>Haz clic o arrastra aquí</strong>
+                    <span style="font-size:0.76rem">.xlsx / .xls</span>
+                </div>
+                <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
+                <div id="filePreview" class="mt-3" style="display:none">
+                    <div class="preview-row">
+                        <span class="preview-label">Manifiesto(s)</span>
+                        <span class="preview-value" id="prev-manifest-id">—</span>
+                        <span id="prev-multi-tag" class="multi-tag" style="display:none"><i class="bi bi-files me-1"></i>VARIOS</span>
+                    </div>
+                    <div class="preview-row" id="prev-manifests-row" style="display:none">
+                        <span class="preview-label">IDs</span>
+                        <span class="preview-value" id="prev-manifests-list" style="font-size:0.76rem;word-break:break-all">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Archivo</span>
+                        <span class="preview-value" id="prev-filename">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Filas</span>
+                        <span class="preview-value" id="prev-rows">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Jefaturas</span>
+                        <span class="preview-value" id="prev-jefaturas">—</span>
+                    </div>
+                    <div class="preview-row" style="border-bottom:none">
+                        <span class="preview-label">Secciones</span>
+                        <span class="preview-value" id="prev-secciones">—</span>
+                    </div>
+                </div>
+                <div id="upload-error" style="display:none">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <span id="upload-error-msg"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-outline" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn-primary-rosa" id="btn-confirm-upload" disabled>
+                    <i class="bi bi-cloud-upload-fill"></i> Subir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Subir Manifiesto Cerrado -->
+<div class="modal fade" id="cerradoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-archive-fill me-2" style="color:var(--verde)"></i>Subir Manifiesto Cerrado</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.8rem;color:var(--txt2);margin-bottom:0.85rem">
+                    Columnas requeridas: <strong>No. Tienda, Manifiesto, Sección, Artículo, Código UPC, Desc. Artículo, Contenedor, Cant. Manf., Cant. Registr., Diferencia, Status, Fecha Man., No. Origen</strong>.
+                </p>
+                <div class="drop-zone" id="cerrado-drop-zone" onclick="document.getElementById('cerrado-file-input').click()">
+                    <i class="bi bi-file-earmark-excel"></i>
+                    <strong>Haz clic o arrastra aquí</strong>
+                    <span style="font-size:0.76rem">.xlsx / .xls</span>
+                </div>
+                <input type="file" id="cerrado-file-input" accept=".xlsx,.xls" style="display:none">
+                <div id="cerradoPreview" class="mt-3" style="display:none">
+                    <div class="preview-row">
+                        <span class="preview-label">Manifiesto(s)</span>
+                        <span class="preview-value" id="cerrado-prev-manifest">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Archivo</span>
+                        <span class="preview-value" id="cerrado-prev-filename">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Filas</span>
+                        <span class="preview-value" id="cerrado-prev-rows">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-label">Contenedores</span>
+                        <span class="preview-value" id="cerrado-prev-contenedores">—</span>
+                    </div>
+                    <div class="preview-row" style="border-bottom:none">
+                        <span class="preview-label">Completos / Faltantes / Sobrantes</span>
+                        <span class="preview-value" id="cerrado-prev-estatus">—</span>
+                    </div>
+                </div>
+                <div id="cerrado-error" style="display:none">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <span id="cerrado-error-msg"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-outline" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn-cerrado" id="btn-confirm-cerrado" disabled>
+                    <i class="bi bi-archive-fill"></i> Subir Cerrado
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script src="app.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const menuLateral  = document.getElementById('menuLateral');
+        if (hamburgerBtn && menuLateral) {
+            menuLateral.addEventListener('show.bs.offcanvas', () => hamburgerBtn.classList.add('open'));
+            menuLateral.addEventListener('hide.bs.offcanvas', () => hamburgerBtn.classList.remove('open'));
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python)",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)",
+      "Bash(python3 -c \"import xlrd; print\\('xlrd ok'\\)\")",
+      "Bash(python -c \"import xlrd; print\\('xlrd ok'\\)\")",
+      "WebFetch(domain:innap.vercel.app)",
+      "Bash(mv Bodegas _archivado/)",
+      "Bash(mv Configuraciones _archivado/)",
+      "Bash(mv Inventarios _archivado/)",
+      "Bash(mv Kanban _archivado/)",
+      "Bash(mv Manifiestos _archivado/)",
+      "Bash(mkdir -p _archivado/ExcelReferencia)",
+      "Bash(mv ArchivosExcel _archivado/ExcelReferencia/)",
+      "Bash(mv ExcelManifiestos _archivado/ExcelReferencia/)",
+      "Bash(mv \"Escaneo boegas.xlsx\" _archivado/ExcelReferencia/)",
+      "Bash(mkdir -p _archivado/InfraConfig)",
+      "Bash(mv cors.json _archivado/InfraConfig/)",
+      "Bash(mv gcloud *)",
+      "Bash(mv images *)",
+      "Bash(mv libs *)"
+    ]
+  }
+}

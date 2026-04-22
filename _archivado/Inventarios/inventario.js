@@ -115,6 +115,8 @@ function handleAuthChange(user) {
             adminDeleteColumnsSection.style.display = isAdmin ? "block" : "none";
             console.log(`Visibilidad de sección de eliminar columnas para UID ${user.uid}: ${adminDeleteColumnsSection.style.display === 'block' ? 'Visible' : 'Oculta'}`);
         }
+        const adminTabNav = document.getElementById('adminTab');
+        if (adminTabNav && isAdmin) adminTabNav.style.display = 'flex';
     }
 }
 

@@ -244,6 +244,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (user) {
             document.getElementById("correoUsuario").innerHTML = `<i class="bi bi-person-circle me-2"></i>${user.email}`;
             AppState.isAdmin = ADMIN_UIDS.includes(user.uid);
+            const adminTabNav = document.getElementById('adminTab');
+            if (adminTabNav && AppState.isAdmin) adminTabNav.style.display = 'flex';
             loadPendingChanges();
             setUIForRole(AppState.isAdmin);
             await loadStaticExcelFiles();
