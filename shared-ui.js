@@ -19,6 +19,18 @@
                 return `<a class="nav-link${active ? ' active' : ''}" href="${target}"><i class="bi ${icon} me-2"></i>${label}</a>`;
             }).join('');
         }
+        const quick = document.querySelector('.quick-access-grid');
+        if (quick) {
+            quick.innerHTML = `
+                <a href="${href('Dashboard/index.html')}" class="action-card">
+                    <div class="card-content"><div class="card-icon"><i class="bi bi-grid-1x2-fill"></i></div><h3>Dashboard</h3><p>Consulta indicadores y el estado general de la operación.</p></div>
+                    <div class="go-corner"><div class="go-arrow"></div></div>
+                </a>
+                <a href="${href('_archivado/Rechazos/reportes.html')}" class="action-card">
+                    <div class="card-content"><div class="card-icon"><i class="bi bi-file-earmark-medical-fill"></i></div><h3>Rechazos</h3><p>Gestiona y da seguimiento a los artículos rechazados.</p></div>
+                    <div class="go-corner"><div class="go-arrow"></div></div>
+                </a>`;
+        }
         document.body.classList.add('ui-unificado');
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', normalize);
