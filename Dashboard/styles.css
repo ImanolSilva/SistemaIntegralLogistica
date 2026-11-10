@@ -69,6 +69,11 @@ body > * { position: relative; z-index: 1; }
     color: var(--txt); font-weight: 600; margin: 0;
     font-size: 0.92rem; letter-spacing: -0.2px;
 }
+.dashboard-purpose{display:inline-flex;align-items:center;gap:.45rem;margin-top:.45rem;color:#FFF;font-size:.72rem;font-weight:800;letter-spacing:.2px}.dashboard-purpose i{color:#FFD1E8}
+.welcome-banner{overflow:hidden;position:relative}.welcome-banner::after{content:'RESULTADOS';position:absolute;right:2rem;bottom:.7rem;color:rgba(255,255,255,.12);font-size:3.6rem;font-weight:900;letter-spacing:.12em;pointer-events:none}.welcome-stats{position:relative;z-index:1}
+.admin-panel{border:1px solid rgba(230,0,126,.18);box-shadow:0 10px 28px rgba(91,35,69,.08)}
+.filters-bar{box-shadow:0 8px 22px rgba(91,35,69,.06)}
+.kpi-card{box-shadow:0 10px 26px rgba(91,35,69,.10);transition:transform .2s ease,box-shadow .2s ease}.kpi-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(91,35,69,.16)}
 .header-title .bi { color: var(--rosa); }
 .header-right { display: flex; align-items: center; gap: 0.6rem; }
 .header-user  { display: flex; align-items: center; gap: 0.5rem; }
