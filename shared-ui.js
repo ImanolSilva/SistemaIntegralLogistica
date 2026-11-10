@@ -13,11 +13,11 @@
         const nav = document.querySelector('.offcanvas .nav, .offcanvas-body .nav');
         if (nav) {
             const current = window.location.pathname.toLowerCase();
-            nav.innerHTML = links.map(([icon, label, path]) => {
+            nav.innerHTML = `<div class="menu-brand-block"><div class="menu-brand-mark"><i class="bi bi-shop"></i></div><div><strong>Sistema Liverpool</strong><small>Centro de operaciones</small></div></div><div class="menu-section-label">Operación</div>` + links.map(([icon, label, path]) => {
                 const target = href(path);
                 const active = current.endsWith(path.toLowerCase().replace(/\\/g, '/')) || (label === 'Inicio' && (current.endsWith('/') || current.endsWith('/index.html')));
                 return `<a class="nav-link${active ? ' active' : ''}" href="${target}"><i class="bi ${icon} me-2"></i>${label}</a>`;
-            }).join('');
+            }).join('') + `<div class="menu-status-card"><span class="menu-status-dot"></span><div><strong>Sistema activo</strong><small>Sesión operativa disponible</small></div></div><div class="menu-footer">Liverpool · Logística</div>`;
         }
         const quick = document.querySelector('.quick-access-grid');
         if (quick) {

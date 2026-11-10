@@ -145,6 +145,50 @@ body > * { position: relative; z-index: 1; }
 .ui-unificado .offcanvas .nav-link[href*="Configuraciones"],
 .ui-unificado .offcanvas .nav-link[href*="Adminroles"] { display: none !important; }
 .ui-unificado .offcanvas .nav-link { height: 52px !important; }
+.ui-unificado .menu-brand-block {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 1rem 1rem .85rem;
+    padding: .85rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #FFF0F7, #FFFFFF);
+    border: 1px solid rgba(230,0,126,.14);
+}
+.ui-unificado .menu-brand-mark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    color: #FFFFFF;
+    background: #E6007E;
+    font-size: 1.1rem;
+}
+.ui-unificado .menu-brand-block strong,
+.ui-unificado .menu-status-card strong { display: block; color: #2B2027; font-size: .82rem; }
+.ui-unificado .menu-brand-block small,
+.ui-unificado .menu-status-card small { display: block; color: #8A7480; font-size: .68rem; margin-top: 2px; }
+.ui-unificado .menu-section-label {
+    padding: .5rem 1.25rem .35rem;
+    color: #A18D98;
+    font-size: .66rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+.ui-unificado .menu-status-card {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin: 1.25rem 1rem .75rem;
+    padding: .8rem .9rem;
+    border-radius: 12px;
+    background: #FAF7F9;
+    border: 1px solid rgba(91,35,69,.10);
+}
+.ui-unificado .menu-status-dot { width: 9px; height: 9px; border-radius: 50%; background: #20A36A; box-shadow: 0 0 0 4px rgba(32,163,106,.12); }
+.ui-unificado .menu-footer { padding: .75rem 1.25rem 1rem; color: #B09DA8; font-size: .67rem; text-align: center; }
 .ui-unificado .main-container,
 .ui-unificado main.container,
 .ui-unificado main.container-xl {
