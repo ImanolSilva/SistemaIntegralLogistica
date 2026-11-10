@@ -69,6 +69,18 @@ body.ui-unificado.rechazos-page {
     font-weight: 800;
 }
 .rechazos-page section.fade-in-section > h4 i { color: var(--rechazos-pink); }
+.rechazos-page .rejection-step-intro { display:flex; align-items:center; gap:.85rem; margin:-.25rem 0 1rem; color:var(--rechazos-ink); }
+.rechazos-page .step-number { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; background:#FFF0F7; color:var(--rechazos-pink); font-size:.72rem; font-weight:900; }
+.rechazos-page .rejection-step-intro strong, .rechazos-page .rejection-step-intro small { display:block; }
+.rechazos-page .rejection-step-intro strong { font-size:.9rem; }
+.rechazos-page .rejection-step-intro small { margin-top:2px; color:var(--rechazos-muted); font-size:.76rem; }
+.rechazos-page .sample-file-card { display:flex; align-items:center; gap:.8rem; margin-bottom:1rem; padding:.8rem 1rem; border:1px solid #F0D5E3; border-radius:14px; background:#FFFAFC; }
+.rechazos-page .sample-file-icon { color:#20A36A; font-size:1.65rem; }
+.rechazos-page .sample-file-copy { flex:1; min-width:0; }
+.rechazos-page .sample-file-copy strong, .rechazos-page .sample-file-copy span { display:block; }
+.rechazos-page .sample-file-copy strong { color:var(--rechazos-ink); font-size:.82rem; }
+.rechazos-page .sample-file-copy span { color:var(--rechazos-muted); font-size:.72rem; margin-top:2px; }
+.rechazos-page .sample-file-link { color:var(--rechazos-pink); font-size:.76rem; font-weight:800; white-space:nowrap; text-decoration:none; }
 .rechazos-page #dropzone {
     min-height: 190px;
     display: grid !important;
@@ -123,6 +135,18 @@ body.ui-unificado.rechazos-page {
 .rechazos-page .details-list-container,
 .rechazos-page .evidence-section { border-color: var(--rechazos-line) !important; background: #fff !important; border-radius: 14px !important; }
 .rechazos-page .tools-panel { padding: 1rem !important; background: #FFF9FC !important; border: 1px solid var(--rechazos-line); border-radius: 14px; }
+.rechazos-page #tools-section > h4 { margin-bottom:1rem; }
+.rechazos-page #tools-section .accordion-button { font-size:.98rem; }
+.rechazos-page #tools-section .accordion-button .bi { color:var(--rechazos-pink); }
+.rechazos-page .dashboard-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; align-items:end; padding:1rem !important; background:#fff !important; border:1px solid var(--rechazos-line); border-radius:14px !important; }
+.rechazos-page .dashboard-controls h6 { grid-column:1/-1; text-align:left; margin:0; color:var(--rechazos-ink) !important; }
+.rechazos-page .dashboard-controls > .btn, .rechazos-page .dashboard-controls > .row { margin:0 !important; }
+.rechazos-page #filesManagementContainer, .rechazos-page #bossFilterContainer { margin-bottom:1rem !important; }
+.rechazos-page #filesManagementContainer .card { border:1px solid var(--rechazos-line) !important; box-shadow:none !important; }
+.rechazos-page #bossFilterContainer h5 { font-size:.84rem; color:var(--rechazos-ink); }
+.rechazos-page #content-section > h4 { margin-bottom:1rem; }
+.rechazos-page #rechazosContainer { min-height:120px; }
+.rechazos-page #rechazosContainer:empty::before { content:'Los reportes aparecerán aquí después de seleccionar un archivo.'; display:block; padding:2rem; text-align:center; color:var(--rechazos-muted); background:#FFF; border:1px dashed #E6BBD2; border-radius:14px; }
 .rechazos-page #tools-section .accordion-item { box-shadow: none !important; }
 .rechazos-page .form-control:focus,
 .rechazos-page .form-select:focus { border-color: var(--rechazos-pink) !important; box-shadow: 0 0 0 3px rgba(230,0,126,.13) !important; }
@@ -133,5 +157,9 @@ body.ui-unificado.rechazos-page {
     .rechazos-page main > .text-center { display: block; padding: 1rem; }
     .rechazos-page #correoUsuario { margin-top: .5rem; }
     .rechazos-page section.fade-in-section { padding: .9rem; border-radius: 14px; }
+    .rechazos-page .sample-file-card { align-items:flex-start; flex-wrap:wrap; }
+    .rechazos-page .sample-file-link { margin-left:2.45rem; }
+    .rechazos-page .dashboard-controls { grid-template-columns:1fr; }
+    .rechazos-page .dashboard-controls h6 { grid-column:auto; }
     .rechazos-page .accordion-button { align-items: flex-start; }
 }
