@@ -30,7 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORAGE_CERRADO   = "ManifiestosCerrados/";
 
     // Columnas requeridas avance
-    const REQUIRED_AVANCE   = ["contenedor","piezas","faltantes","sobrante","seccion","manifiesto"];
+    const REQUIRED_AVANCE   = [];
+    const RESULT_ALIASES = {
+        contenedor: ['contenedor','container','caja','folio'], piezas: ['piezas','articulos','artículos','cantidad','unidades','manifestados','cantmanf','cant_manf'],
+        faltantes: ['faltantes','faltante','faltan','diferenciafaltante','faltanpiezas'], sobrante: ['sobrante','sobrantes','exceso','mercanciademas','mercancia de mas','demas'],
+        seccion: ['seccion','sección','secciones','area','área'], jefatura: ['jefatura','jefe','jefes','responsable','gerente'], manifiesto: ['manifiesto','manifesto','folio manifiesto','reporte']
+    };
     // Columnas requeridas cerrado (normalizadas sin espacios/acentos)
     const REQUIRED_CERRADO  = ["manifiesto","seccion","articulo","codigoupc","descripcionarticulo","contenedor","cantmanf","cantregistr","diferencia","status"];
 
@@ -251,6 +256,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 Bodega:         master?.Bodega       || '—',
             };
         });
+    }
+
+    function pickColumn(row, aliases) {
+        const keys = Object.keys(row);
+        const key = keys.find(k => aliases.some(a => normSeccion(k).replace(/\s+/g,'') === normSeccion(a).replace(/\s+/g,'')));
+        return key ? row[key] : '';
+    }
+    function normalizeResultRow(row) {
+        const get = key => pickColumn(row, RESULT_ALIASES[key]);
+        const piezas = toNum(get('piezas')), faltantes = toNum(get('faltantes')), sobrante = toNum(get('sobrante'));
+        return { Contenedor:String(get('contenedor')||'General').trim(), Piezas:piezas, Faltantes:faltantes, Sobrante:sobrante, Seccion:String(get('seccion')||'Sin sección').trim(), Jefatura:String(get('jefatura')||'Sin jefatura').trim(), Manifiesto:String(get('manifiesto')||'GENERAL').trim() };
     }
 
     // Datos upload
@@ -1012,28 +1028,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
                 if (json.length === 0) { showUploadError('El archivo está vacío.'); return; }
 
-                const normalized = json.map(row => { const o={}; Object.keys(row).forEach(k=>{o[k.trim().toLowerCase()]=row[k];}); return o; });
-                const missing = REQUIRED_AVANCE.filter(c => !(c in normalized[0]));
-                if (missing.length > 0) { showUploadError(`Columnas faltantes: ${missing.join(', ')}`); return; }
-
-                let rows = normalized.map(r => ({
-                    Contenedor: String(r.contenedor||'').trim(),
-                    Piezas:     toNum(r.piezas),
-                    Faltantes:  toNum(r.faltantes),
-                    Sobrante:   toNum(r.sobrante),
-                    Seccion:    String(r.seccion||'').trim(),
-                    Jefatura:   String(r.jefatura||'').trim(),
-                    Manifiesto: String(r.manifiesto||'').trim(),
-                }));
+                let rows = json.map(normalizeResultRow);
                 rows = enrichWithMasterData(rows);
 
                 const manifiestos = [...new Set(rows.map(r => r.Manifiesto))];
                 const isMultiple  = manifiestos.length > 1;
-                const invalidM    = manifiestos.find(m => !/^\d{10}$/.test(m));
+                const invalidM    = manifiestos.find(m => m !== 'GENERAL' && !/^\d{10}$/.test(m));
                 if (invalidM) { showUploadError(`"Manifiesto" debe tener 10 dígitos. Se encontró: "${invalidM}"`); return; }
 
                 const today    = new Date().toISOString().split('T')[0];
-                const savedName = isMultiple ? `varios_${today}.xlsx` : `${manifiestos[0]}_${today}.xlsx`;
+                const savedName = isMultiple ? `resultados_${today}.xlsx` : `${manifiestos[0]}_${today}.xlsx`;
                 const jefaturas = [...new Set(rows.map(r=>r.Jefatura).filter(j=>j&&j!=='—'))];
                 const secciones = [...new Set(rows.map(r=>r.Seccion))];
 
