@@ -11,6 +11,13 @@
     ];
 
     function normalize() {
+        if (!document.querySelector('link[rel="icon"]')) {
+            const favicon = document.createElement('link');
+            favicon.rel = 'icon';
+            favicon.type = 'image/svg+xml';
+            favicon.href = href('assets/favicon.svg');
+            document.head.appendChild(favicon);
+        }
         const nav = document.querySelector('.offcanvas .nav, .offcanvas-body .nav');
         if (nav) {
             const current = window.location.pathname.toLowerCase();
