@@ -104,13 +104,14 @@ body > * { position: relative; z-index: 1; }
 .ui-unificado .hamburger-icon::before,
 .ui-unificado .hamburger-icon::after { background: #E6007E !important; }
 .ui-unificado .offcanvas {
-    width: min(320px, 88vw) !important;
+    width: 320px !important;
+    max-width: 88vw;
     background: #FFFFFF !important;
     color: #2B2027 !important;
     border-right: 4px solid #E6007E !important;
 }
 .ui-unificado .offcanvas-header {
-    min-height: 64px;
+    height: 64px;
     background: #E6007E !important;
     color: #FFFFFF !important;
     border: 0 !important;
@@ -133,6 +134,17 @@ body > * { position: relative; z-index: 1; }
     border-left-color: #E6007E !important;
 }
 .ui-unificado .offcanvas .nav-link .bi { color: #E6007E !important; }
+.ui-unificado .offcanvas .nav-link[href*="SKU"],
+.ui-unificado .offcanvas .nav-link[href*="Recibos"],
+.ui-unificado .offcanvas .nav-link[href*="Manifiestos"],
+.ui-unificado .offcanvas .nav-link[href*="Inventarios"],
+.ui-unificado .offcanvas .nav-link[href*="Bodegas"],
+.ui-unificado .offcanvas .nav-link[href*="Reportes"],
+.ui-unificado .offcanvas .nav-link[href*="Pendientes"],
+.ui-unificado .offcanvas .nav-link[href*="Kanban"],
+.ui-unificado .offcanvas .nav-link[href*="Configuraciones"],
+.ui-unificado .offcanvas .nav-link[href*="Adminroles"] { display: none !important; }
+.ui-unificado .offcanvas .nav-link { height: 52px !important; }
 .ui-unificado .main-container,
 .ui-unificado main.container,
 .ui-unificado main.container-xl {
