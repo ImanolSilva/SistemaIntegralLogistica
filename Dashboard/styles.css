@@ -74,6 +74,15 @@ body > * { position: relative; z-index: 1; }
 .admin-panel{border:1px solid rgba(230,0,126,.18);box-shadow:0 10px 28px rgba(91,35,69,.08)}
 .filters-bar{box-shadow:0 8px 22px rgba(91,35,69,.06)}
 .kpi-card{box-shadow:0 10px 26px rgba(91,35,69,.10);transition:transform .2s ease,box-shadow .2s ease}.kpi-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(91,35,69,.16)}
+
+/* El Dashboard ejecutivo trabaja únicamente con resultados manifestados. */
+#tab-panel-cerrado,
+[data-tab="cerrado"],
+#cerradoModal,
+#cerrados-admin-list,
+.welcome-stat:has(#wb-cerrados),
+#toggle-cerrado,
+#panel-cerrado { display:none !important; }
 .header-title .bi { color: var(--rosa); }
 .header-right { display: flex; align-items: center; gap: 0.6rem; }
 .header-user  { display: flex; align-items: center; gap: 0.5rem; }
