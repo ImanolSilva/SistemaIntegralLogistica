@@ -344,6 +344,13 @@ function setupEventListeners() {
         if (e.target.classList.contains("status-select")) {
             const rowIndex = e.target.dataset.rowIndex;
             const newStatus = e.target.value;
+            const existingRow = AppState.rechazosGlobal[rowIndex];
+            const currentUser = auth.currentUser;
+            if (existingRow && existingRow.Status && existingRow.Status !== 'Sin Estado' && existingRow.Auditor && currentUser && existingRow.Auditor !== (currentUser.displayName || currentUser.email) && !AppState.isAdmin) {
+                e.target.value = existingRow.Status;
+                showAlert('warning', 'Registro protegido', `Este PDIS ya fue capturado por ${existingRow.Auditor}. Solo esa persona o un administrador puede modificarlo.`);
+                return;
+            }
 
             if (AppState.rechazosGlobal[rowIndex]) {
                 const remision = AppState.rechazosGlobal[rowIndex].Remisión;
