@@ -8,16 +8,16 @@
     --rosa-principal:     #E6007E;
     --rosa-principal-rgb: 230, 0, 126;
     --rosa-oscuro:        #a3005a;
-    --rosa-gradiente:     #ff4081;
-    --azul-vision:        #0075FF;
-    --violeta:            #7928CA;
-    --violeta-rgb:        121, 40, 202;
-    --cyan:               #00B5D8;
+    --rosa-gradiente:     #F04A9B;
+    --azul-vision:        #C21875;
+    --violeta:            #8E1A5B;
+    --violeta-rgb:        142, 26, 91;
+    --cyan:               #E66AAB;
     --verde-ok:           #01B574;
     --amarillo-ok:        #FFB547;
     --rojo-alerta:        #E31A1A;
 
-    --bg-primary:         #0F0F23;
+    --bg-primary:         #171317;
     --bg-card:            rgba(255,255,255,0.05);
     --bg-card-hover:      rgba(255,255,255,0.09);
     --border-card:        rgba(255,255,255,0.09);
@@ -35,10 +35,10 @@
 
     --shadow-card:     0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
     --shadow-pink:     0 0 20px rgba(230,0,126,0.28), 0 0 60px rgba(230,0,126,0.10);
-    --shadow-blue:     0 0 20px rgba(0,117,255,0.25), 0 0 60px rgba(0,117,255,0.08);
+    --shadow-blue:     0 0 20px rgba(194,24,117,0.22), 0 0 60px rgba(194,24,117,0.08);
 
     /* legacy compat */
-    --negro-fondo:        #0F0F23;
+    --negro-fondo:        #171317;
     --blanco:             #FFFFFF;
     --gris-claro:         rgba(255,255,255,0.06);
     --gris-medio:         rgba(255,255,255,0.12);
@@ -47,7 +47,7 @@
     --texto-secundario:   rgba(255,255,255,0.60);
     --verde-exito:        #01B574;
     --rojo-peligro:       #E31A1A;
-    --azul-info:          #0075FF;
+    --azul-info:          #C21875;
     --naranja-advertencia:#FFB547;
 }
 
@@ -68,9 +68,9 @@ body::before {
     content: '';
     position: fixed; inset: 0;
     background:
-        radial-gradient(ellipse 80% 50% at 10% -10%,  rgba(121,40,202,0.40) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 50% at 10% -10%,  rgba(142,26,91,0.26) 0%, transparent 60%),
         radial-gradient(ellipse 60% 40% at 90% 110%,  rgba(230,0,126,0.28) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 60% at 50%  50%,  rgba(0,117,255,0.09) 0%, transparent 70%);
+        radial-gradient(ellipse 50% 60% at 50%  50%,  rgba(240,74,155,0.06) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
 }

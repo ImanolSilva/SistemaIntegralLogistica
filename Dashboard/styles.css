@@ -3,17 +3,17 @@
 :root {
     --rosa:      #E6007E;
     --rosa-rgb:  230, 0, 126;
-    --azul:      #2563EB;
-    --azul-rgb:  37, 99, 235;
-    --violeta:   #7C3AED;
-    --cyan:      #06B6D4;
+    --azul:      #C21875;
+    --azul-rgb:  194, 24, 117;
+    --violeta:   #8E1A5B;
+    --cyan:      #E66AAB;
     --verde:     #10B981;
     --amarillo:  #F59E0B;
     --rojo:      #EF4444;
 
-    --bg:        #0A0A0F;
-    --bg2:       #111118;
-    --bg3:       #16161F;
+    --bg:        #171317;
+    --bg2:       #211A20;
+    --bg3:       #2A2027;
     --card:      rgba(255,255,255,0.035);
     --card-h:    rgba(255,255,255,0.055);
     --border:    rgba(255,255,255,0.07);
@@ -75,7 +75,7 @@ body > * { position: relative; z-index: 1; }
 
 .user-avatar {
     width: 30px; height: 30px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--rosa), var(--violeta));
+    background: linear-gradient(135deg, var(--rosa), #F04A9B);
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: 0.72rem; color: #fff;
     text-transform: uppercase;
@@ -412,7 +412,7 @@ body > * { position: relative; z-index: 1; }
 
 /* Gradientes sólidos al estilo innap */
 .kpi-card.rosa {
-    background: linear-gradient(135deg, #E6007E 0%, #ff6ab5 100%);
+    background: linear-gradient(135deg, #E6007E 0%, #F04A9B 100%);
     box-shadow: 0 8px 28px rgba(230,0,126,.40);
 }
 .kpi-card.rojo {
@@ -424,7 +424,7 @@ body > * { position: relative; z-index: 1; }
     box-shadow: 0 8px 28px rgba(245,158,11,.40);
 }
 .kpi-card.verde {
-    background: linear-gradient(135deg, #7C3AED 0%, #a78bfa 100%);
+    background: linear-gradient(135deg, #8E1A5B 0%, #E66AAB 100%);
     box-shadow: 0 8px 28px rgba(124,58,237,.40);
 }
 
@@ -530,9 +530,9 @@ body > * { position: relative; z-index: 1; }
     height: 100%; border-radius: 20px;
     transition: width 1.1s cubic-bezier(.4,0,.2,1); width: 0%;
 }
-.progress-fill.rosa     { background: linear-gradient(90deg, var(--rosa), #ff6ab5); }
+.progress-fill.rosa     { background: linear-gradient(90deg, var(--rosa), #F04A9B); }
 .progress-fill.verde    { background: linear-gradient(90deg, var(--verde), var(--cyan)); }
-.progress-fill.violeta  { background: linear-gradient(90deg, var(--violeta), #a78bfa); }
+.progress-fill.violeta  { background: linear-gradient(90deg, var(--violeta), #E66AAB); }
 .progress-fill.amarillo { background: linear-gradient(90deg, var(--amarillo), #fcd34d); }
 .progress-legend {
     display: flex; gap: 1rem; margin-top: 0.85rem; flex-wrap: wrap;

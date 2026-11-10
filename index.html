@@ -19,25 +19,25 @@
     <style>
         :root {
             --rosa-principal: #E6007E;
-            --rosa-gradiente-luz: #ff4081;
-            --negro-fondo: #0F0F23;
+            --rosa-gradiente-luz: #F04A9B;
+            --negro-fondo: #171317;
             --blanco: #ffffff;
             --gris-claro: rgba(255,255,255,0.06);
             --gris-medio: rgba(255,255,255,0.09);
             --gris-oscuro: rgba(255,255,255,0.45);
             --texto-principal: #ffffff;
-            --oro: #FFD700;
-            --plata: #C0C0C0;
-            --bronce: #CD7F32;
-            --fuego-naranja: #ffae42;
-            --fuego-rojo: #e25822;
+            --oro: #F04A9B;
+            --plata: #D7C9D2;
+            --bronce: #A86B8D;
+            --fuego-naranja: #E66AAB;
+            --fuego-rojo: #C21875;
         }
 
         /* === Fondo y Estilos Base === */
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             color: #fff;
-            background-color: #0F0F23;
+            background-color: #171317;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -737,7 +737,7 @@
         /* === Logo hero === */
         .hero-logo-wrap {
             width: 76px; height: 76px;
-            background: linear-gradient(135deg, var(--rosa-principal), #7928CA);
+            background: linear-gradient(135deg, var(--rosa-principal), var(--rosa-gradiente-luz));
             border-radius: 22px;
             display: flex; align-items: center; justify-content: center;
             font-size: 2rem; color: #fff;
@@ -819,7 +819,7 @@
         }
         .btn-cta-secondary {
             display: inline-flex; align-items: center;
-            background: linear-gradient(135deg, var(--rosa-principal), #7928CA);
+            background: linear-gradient(135deg, var(--rosa-principal), var(--rosa-gradiente-luz));
             color: #fff; border: none; border-radius: 10px;
             padding: 0.65rem 1.4rem;
             font-weight: 600; font-size: 0.92rem;
@@ -1023,7 +1023,7 @@
                 <p>Registra, sube y da seguimiento a los manifiestos de mercancía de tu tienda en tiempo real.</p>
             </div>
             <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                <div class="feature-icon-wrap" style="background: linear-gradient(135deg,#7928CA,#4a00b4);">
+                <div class="feature-icon-wrap" style="background: linear-gradient(135deg,var(--rosa-principal),var(--rosa-gradiente-luz));">
                     <i class="bi bi-boxes"></i>
                 </div>
                 <h4>Inventarios</h4>
