@@ -17,11 +17,17 @@ body.ui-unificado.rechazos-page {
     position: sticky;
     top: 0;
     z-index: 1030;
-    min-height: 68px;
+    min-height: 64px !important;
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr !important;
     background: #fff !important;
     border-bottom: 3px solid var(--rechazos-pink) !important;
     box-shadow: 0 4px 18px rgba(66, 24, 49, .09);
 }
+.rechazos-page .app-header .header-title { grid-column: 2; justify-self: center; white-space: nowrap; }
+.rechazos-page .app-header > #hamburger-btn { grid-column: 1; justify-self: start; }
+.rechazos-page .app-header > #logout-btn { grid-column: 3; justify-self: end; }
+.rechazos-page .app-header #logout-btn { width: 40px !important; height: 40px !important; border-radius: 10px !important; border: 1px solid var(--rechazos-line) !important; background: #fff !important; color: var(--rechazos-ink) !important; }
 .rechazos-page .header-title { color: var(--rechazos-ink) !important; }
 .rechazos-page .main-container {
     max-width: 1180px !important;
