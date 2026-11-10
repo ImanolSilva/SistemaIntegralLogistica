@@ -192,17 +192,6 @@ async function syncPendingChanges(isAutoSave = false) {
 /*****************************************************
  * ========== FUNCIONES AUXILIARES Y DE LÓGICA ==========
  *****************************************************/
-const NOT_FOUND_GIFS = [
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHRjZjM3aWR1eGFyNTBhY3ptcDdhZTJwMTAzamptMjNyZGhudzExNCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/IpKxfPy33hMRy/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHRjZjM3aWR1eGFyNTBhY3ptcDdhZTJwMTAzamptMjNyZGhudzExNCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/ViZylgfPSfJFm/giphy.gif',
-    'https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3Z3hkajZkemQ5ZTJoa2g1YXp6bWYycWlpbzFoMjdhanh5MDA0cjkyNSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/dSeTdOmmA1u8e0LBsx/giphy.gif'
-];
-
-function getRandomNotFoundGif() {
-    const randomIndex = Math.floor(Math.random() * NOT_FOUND_GIFS.length);
-    return NOT_FOUND_GIFS[randomIndex];
-}
-
 function showAlert(icon, title, text = '', config = {}) { const defaultConfig = { toast: true, position: "top-end", showConfirmButton: false, timer: 3000, timerProgressBar: true, didOpen: (toast) => { toast.addEventListener('mouseenter', Swal.stopTimer); toast.addEventListener('mouseleave', Swal.resumeTimer); } }; return Swal.fire({ icon, title, text, ...defaultConfig, ...config }); }
 function setUIForRole(isAdmin) { document.getElementById("dropzone").classList.toggle("hidden", !isAdmin); }
 function fixEncoding(str) { if (!str) return ""; try { return decodeURIComponent(escape(str)); } catch { return str; } }
@@ -218,10 +207,12 @@ function loadDynamicImage(sku, seccion, containerId) {
 
     const imageUrl = `https://ss${seccion}.liverpool.com.mx/lg/${sku}.jpg`;
 
-    const fallbackImageHTML = `<img src="${getRandomNotFoundGif()}" alt="Imagen de producto no encontrada" class="img-fluid rounded" style="max-height: 150px; width: 100%; object-fit: cover;">`;
+    const fallbackImageHTML = `<div class="product-image-empty"><i class="bi bi-image"></i><strong>Imagen no disponible</strong><span>No encontramos una imagen para este SKU</span><a href="https://www.liverpool.com.mx/tienda/busca?busqueda=${encodeURIComponent(sku || '')}" target="_blank" rel="noopener"><i class="bi bi-search"></i> Buscar en Liverpool</a></div>`;
 
+    const imageCandidates = [imageUrl].filter(Boolean);
     const img = new Image();
-    img.src = imageUrl;
+    let imageIndex = 0;
+    img.src = imageCandidates[imageIndex];
     img.className = "img-fluid rounded";
     img.style.maxHeight = "200px";
 
@@ -231,6 +222,8 @@ function loadDynamicImage(sku, seccion, containerId) {
     };
 
     img.onerror = () => {
+        imageIndex += 1;
+        if (imageIndex < imageCandidates.length) { img.src = imageCandidates[imageIndex]; return; }
         container.innerHTML = fallbackImageHTML;
     };
 }
@@ -359,6 +352,10 @@ function setupEventListeners() {
                     const statusColors = { "Sí encontrada": "var(--verde-exito)", "No encontrada": "var(--rojo-peligro)", "Encontrada en exhibición": "var(--azul-info)", "Encontrada Merma": "#ff9800", "Sin Estado": "var(--gris-oscuro)" };
                     headerBadge.style.backgroundColor = statusColors[newStatus] || 'var(--gris-oscuro)';
                     headerBadge.textContent = newStatus;
+                }
+                const picker = document.querySelector(`#status-${rowIndex}`)?.closest('.status-picker');
+                if (picker) {
+                    picker.className = `status-picker status-${newStatus.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`;
                 }
 
                 if (autoSaveTimers[rowIndex]) clearTimeout(autoSaveTimers[rowIndex]);
@@ -832,9 +829,12 @@ function renderRechazoItem(rechazo, i) {
                             <label for="status-${_rowIndex}" class="form-label fw-bold text-dark">
                                 <i class="bi bi-check-circle-fill"></i> Estado del Rechazo:
                             </label>
-                            <select id="status-${_rowIndex}" class="form-select status-select rounded-3 shadow-sm" data-row-index="${_rowIndex}">
+                            <div class="status-picker status-${estadoActual.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}">
+                                <span class="status-picker-icon"><i class="bi bi-circle-fill"></i></span>
+                                <select id="status-${_rowIndex}" class="form-select status-select rounded-3 shadow-sm" data-row-index="${_rowIndex}">
                                 ${opcionesHTML}
-                            </select>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-12 col-lg-5">

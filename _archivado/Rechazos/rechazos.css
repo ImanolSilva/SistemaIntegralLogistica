@@ -151,6 +151,22 @@ body.ui-unificado.rechazos-page {
 .rechazos-page .form-control:focus,
 .rechazos-page .form-select:focus { border-color: var(--rechazos-pink) !important; box-shadow: 0 0 0 3px rgba(230,0,126,.13) !important; }
 .rechazos-page .badge-reporte { background: var(--rechazos-pink) !important; }
+.rechazos-page .product-image-container { min-height: 150px; display:grid !important; place-items:center; padding: .6rem; border:1px solid var(--rechazos-line); border-radius:14px; background:#FCF9FB; }
+.rechazos-page .product-image-container img { max-width:100%; border-radius:10px; object-fit:contain; }
+.rechazos-page .product-image-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.3rem; min-height:140px; width:100%; text-align:center; color:var(--rechazos-muted); }
+.rechazos-page .product-image-empty > i { font-size:2.4rem; color:#D8B4C7; }
+.rechazos-page .product-image-empty strong { color:var(--rechazos-ink); font-size:.84rem; }
+.rechazos-page .product-image-empty span { font-size:.72rem; }
+.rechazos-page .product-image-empty a { margin-top:.45rem; color:var(--rechazos-pink); font-size:.74rem; font-weight:800; text-decoration:none; }
+.rechazos-page .status-picker { position:relative; display:flex; align-items:center; }
+.rechazos-page .status-picker-icon { position:absolute; left:.8rem; z-index:2; color:var(--rechazos-pink); pointer-events:none; }
+.rechazos-page .status-picker .status-select { padding-left:2.25rem !important; min-height:46px; border:2px solid #E7B7D0 !important; color:var(--rechazos-ink); font-weight:700; background:#fff; }
+.rechazos-page .status-picker .status-select:hover,
+.rechazos-page .status-picker .status-select:focus { border-color:var(--rechazos-pink) !important; }
+.rechazos-page .status-sencontrada .status-picker-icon { color:#20A36A; }
+.rechazos-page .status-noencontrada .status-picker-icon { color:#D83A5B; }
+.rechazos-page .status-encontradaenexhibicin .status-picker-icon { color:#C21875; }
+.rechazos-page .status-encontradamerma .status-picker-icon { color:#A66A2C; }
 .rechazos-page .preloader { background: var(--rechazos-bg) !important; }
 @media (max-width: 700px) {
     .rechazos-page .main-container { width: calc(100% - 1rem); margin: .75rem auto !important; padding: .5rem !important; }
