@@ -51,6 +51,11 @@ function queueChange(remision, field, value) {
     updateSyncStatus('pending');
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const pdisList = document.getElementById('rechazosContainer');
+    if (pdisList) new MutationObserver(enforcePdiStatuses).observe(pdisList, { childList: true, subtree: true });
+});
+
 function loadPendingChanges() {
     const savedChanges = localStorage.getItem('pendingChanges');
     if (savedChanges) {
@@ -93,6 +98,11 @@ async function syncPendingChanges(isAutoSave = false) {
         return;
     }
     AppState.isSyncing = true;
+    if (!navigator.onLine) {
+        AppState.isSyncing = false;
+        updateSyncStatus('pending');
+        return;
+    }
     if (isAutoSave) {
         updateSyncStatus('syncing');
     } else {
@@ -260,6 +270,9 @@ document.addEventListener("DOMContentLoaded", () => {
 function setupEventListeners() {
     // Listener para el botón de logout (Cerrar Sesión)
     document.getElementById("logout-btn").addEventListener("click", () => auth.signOut());
+    window.addEventListener('online', () => {
+        if (Object.keys(AppState.pendingChanges).length) syncPendingChanges(true);
+    });
     
     // Listener para el botón de confirmar selección de archivo
     document.getElementById("confirmFileSelection").addEventListener("click", () => {
@@ -603,6 +616,26 @@ async function sendFileByEmail() { if (!AppState.selectedFileData?.ref) { return
 /*****************************************************
  * ========== MANEJO DE FOTOS (VERSIÓN MEJORADA) ==========
  *****************************************************/
+function saveEvidenceDraft(remision, file) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('pdisEvidenceDrafts', 1);
+        request.onupgradeneeded = () => request.result.createObjectStore('drafts', { keyPath: 'id' });
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+            const tx = request.result.transaction('drafts', 'readwrite');
+            tx.objectStore('drafts').put({ id: String(remision), remision: String(remision), name: file.name, type: file.type, blob: file, savedAt: Date.now() });
+            tx.oncomplete = resolve;
+            tx.onerror = () => reject(tx.error);
+        };
+    });
+}
+function deleteEvidenceDraft(remision) {
+    return new Promise(resolve => {
+        const request = indexedDB.open('pdisEvidenceDrafts', 1);
+        request.onsuccess = () => { const tx = request.result.transaction('drafts', 'readwrite'); tx.objectStore('drafts').delete(String(remision)); tx.oncomplete = resolve; };
+        request.onerror = resolve;
+    });
+}
 function choosePhoto(rowIndex) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -633,12 +666,14 @@ function choosePhoto(rowIndex) {
             }
         });
 
-        const uploadTask = storageRef.put(file);
+        saveEvidenceDraft(remision, file).catch(() => {});
+        const uploadTask = storageRef.put(file, { contentType: file.type, customMetadata: { remision: String(remision), uploadedBy: auth.currentUser?.email || '' } });
 
         uploadTask.on('state_changed',
             null,
             (error) => {
                 console.error("Error al subir foto:", error);
+                updateSyncStatus('pending');
                 Swal.close();
                 showAlert("error", "Error al subir", `No se pudo guardar la evidencia. Código: ${error.code}`);
             },
@@ -647,6 +682,7 @@ function choosePhoto(rowIndex) {
                     AppState.rechazosGlobal[rowIndex].Fotos = downloadURL;
                     updatePhotoPreview(rowIndex, downloadURL);
                     queueChange(remision, 'Fotos', downloadURL);
+                    deleteEvidenceDraft(remision);
                     if (autoSaveTimers[rowIndex]) clearTimeout(autoSaveTimers[rowIndex]);
                     autoSaveTimers[rowIndex] = setTimeout(() => syncPendingChanges(true), 500);
 
@@ -685,6 +721,18 @@ function updatePhotoPreview(rowIndex, url) {
                 </button>
             </div>`;
     }
+}
+
+// PDIS usa únicamente tres resultados operativos. Se normalizan también los
+// registros antiguos para que no vuelvan a aparecer estados obsoletos.
+function enforcePdiStatuses() {
+    document.querySelectorAll('.status-select').forEach(select => {
+        if (select.options.length === 3 && [...select.options].every((option, index) => option.value === ['Encontrada buen estado', 'Encontrada mal estado', 'No encontrada'][index])) return;
+        const current = select.value;
+        const normalized = current === 'Sí encontrada' || current === 'Encontrada en exhibición' ? 'Encontrada buen estado' : current === 'Encontrada Merma' ? 'Encontrada mal estado' : current;
+        select.innerHTML = ['Encontrada buen estado', 'Encontrada mal estado', 'No encontrada'].map(value => `<option value="${value}">${value}</option>`).join('');
+        select.value = ['Encontrada buen estado', 'Encontrada mal estado', 'No encontrada'].includes(normalized) ? normalized : 'No encontrada';
+    });
 }
 
 
