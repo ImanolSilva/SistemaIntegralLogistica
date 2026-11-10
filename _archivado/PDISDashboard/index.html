@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard PDIS - Liverpool</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="../../shared.css"><link rel="stylesheet" href="pdis-dashboard.css">
+  <script src="../../shared-ui.js" defer></script>
+</head>
+<body class="pdis-dashboard-page">
+  <header class="app-header"><button id="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-label="Abrir menú"><span class="hamburger-icon"></span></button><h1 class="header-title"><i class="bi bi-speedometer2 me-2"></i>Dashboard PDIS</h1><button id="logout-btn" type="button" aria-label="Cerrar sesión"><i class="bi bi-power"></i></button></header>
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral"><div class="offcanvas-header"><h5 class="offcanvas-title">Menú Principal</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button></div><div class="offcanvas-body p-0"><nav class="nav flex-column"></nav></div></div>
+  <main class="pdis-dashboard-shell">
+    <section class="pdis-dashboard-hero"><div><span class="eyebrow"><i class="bi bi-bar-chart-line-fill"></i> Centro de análisis</span><h2>Control de archivos PDIS</h2><p>Consulta las versiones cargadas y abre el análisis histórico cuando lo necesites.</p></div><a class="btn-pdis-outline" href="../Rechazos/reportes.html"><i class="bi bi-file-earmark-medical"></i> Ir al Gestor PDIS</a></section>
+    <section id="pdis-kpis" class="pdis-kpis"><div class="pdis-kpi skeleton"></div><div class="pdis-kpi skeleton"></div><div class="pdis-kpi skeleton"></div></section>
+    <section class="pdis-files-card"><div class="pdis-section-head"><div><span class="eyebrow">Repositorio</span><h3>Archivos subidos</h3></div><button id="refresh-pdis" class="btn-pdis-outline"><i class="bi bi-arrow-clockwise"></i> Actualizar</button></div><div id="pdis-files" class="pdis-files"><div class="pdis-empty"><i class="bi bi-cloud-arrow-down"></i><strong>Cargando archivos...</strong></div></div></section>
+    <section class="pdis-actions"><div><i class="bi bi-lightbulb"></i><div><strong>¿Necesitas analizar el histórico?</strong><span>Abre el Gestor PDIS para generar comparativas y rangos.</span></div></div><a href="../Rechazos/reportes.html" class="btn-pdis-primary">Abrir análisis <i class="bi bi-arrow-right"></i></a></section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script><script src="pdis-dashboard.js"></script>
+</body></html>

@@ -6,6 +6,7 @@
     const links = [
         ['bi-house-fill', 'Inicio', 'index.html'],
         ['bi-grid-1x2-fill', 'Dashboard', 'Dashboard/index.html'],
+        ['bi-speedometer2', 'Dashboard PDIS', '_archivado/PDISDashboard/index.html'],
         ['bi-file-earmark-medical-fill', 'PDIS', '_archivado/Rechazos/reportes.html']
     ];
 

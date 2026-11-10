@@ -157,6 +157,7 @@ body.ui-unificado.rechazos-page {
 .rechazos-page #rechazosContainer { min-height:120px; }
 .rechazos-page #rechazosContainer:empty::before { content:'Los reportes aparecerán aquí después de seleccionar un archivo.'; display:block; padding:2rem; text-align:center; color:var(--rechazos-muted); background:#FFF; border:1px dashed #E6BBD2; border-radius:14px; }
 .rechazos-page #tools-section .accordion-item { box-shadow: none !important; }
+.rechazos-page #tools-section { display:none !important; }
 .rechazos-page .form-control:focus,
 .rechazos-page .form-select:focus { border-color: var(--rechazos-pink) !important; box-shadow: 0 0 0 3px rgba(230,0,126,.13) !important; }
 .rechazos-page .badge-reporte { background: var(--rechazos-pink) !important; }
