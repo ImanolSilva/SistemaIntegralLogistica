@@ -742,27 +742,33 @@ tr.sku-cerrado-detail-row td { background: rgba(239,68,68,0.04); border-top: non
 
 /* ── MODAL ── */
 .modal-content {
-    background: #0e0e1a;
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    color: var(--txt);
+    background: #ffffff !important;
+    border: 1px solid #eadfe6 !important;
+    border-radius: 22px !important;
+    color: #2b2027 !important;
+    box-shadow: 0 24px 70px rgba(43,20,37,.28) !important;
 }
-.modal-header { border-bottom: 1px solid var(--border); padding: 1.1rem 1.35rem; }
-.modal-footer { border-top: 1px solid var(--border); padding: 0.85rem 1.35rem; }
-.modal-title  { font-size: 0.92rem; font-weight: 700; color: var(--txt); }
-.modal-body   { padding: 1.1rem 1.35rem; }
+.modal-header { background:linear-gradient(105deg,#35182c,#8e1a5b) !important; color:#fff !important; border:0 !important; padding:1.2rem 1.35rem !important; }
+.modal-header .modal-title { font-size:1rem; font-weight:900; color:#fff !important; }
+.modal-header .btn-close { filter:brightness(0) invert(1); opacity:.9; }
+.modal-footer { background:#fff !important; border-top:1px solid #f0e5eb !important; padding:.95rem 1.35rem !important; }
+.modal-body { background:#fffafd !important; padding:1.35rem !important; }
+.modal-body p { color:#766672 !important; line-height:1.65; }
+.modal-body p strong { color:#2b2027 !important; }
 .drop-zone {
-    border: 1.5px dashed rgba(255,255,255,.12);
-    border-radius: var(--r-md);
-    padding: 2rem 1rem; text-align: center; cursor: pointer;
-    transition: all .2s; color: var(--txt2); font-size: 0.85rem;
+    border: 2px dashed #e6a8c7 !important;
+    border-radius: 18px !important;
+    padding: 2.4rem 1rem !important; text-align: center; cursor: pointer;
+    transition: all .2s; color: #766672 !important; font-size: 0.85rem;
     display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
-    background: rgba(255,255,255,.015);
+    background: linear-gradient(135deg,#fff3fa,#fff) !important;
 }
 .drop-zone:hover, .drop-zone.drag-over {
-    border-color: rgba(var(--rosa-rgb),.4); color: var(--rosa);
-    background: rgba(var(--rosa-rgb),.04);
+    border-color: #e6007e !important; color: #e6007e !important;
+    background: #fff0f7 !important;
 }
+.drop-zone i{display:grid;place-items:center;width:56px;height:56px;margin-bottom:.4rem;border-radius:17px;background:#fff0f7;color:#e6007e;font-size:2rem}.drop-zone strong{color:#2b2027;font-size:.9rem}.drop-zone span{color:#a18794!important}
+.preview-row{background:#fff!important;border-color:#f0e5eb!important}.preview-label{color:#8b7481!important}.preview-value{color:#2b2027!important;font-weight:800}.btn-secondary-outline{border-radius:11px!important;border:1px solid #eadfe6!important;background:#fff!important;color:#6d5b66!important;font-weight:800!important}.btn-primary-rosa{border-radius:11px!important;box-shadow:0 8px 16px rgba(230,0,126,.2)!important}
 .drop-zone i { font-size: 2rem; }
 #filePreview, #datos-preview, #cerradoPreview {
     background: rgba(255,255,255,.03);
