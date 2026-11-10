@@ -43,10 +43,39 @@ body.ui-unificado.rechazos-page {
     border-radius: 18px;
     box-shadow: 0 8px 24px rgba(66, 24, 49, .06);
 }
+.rechazos-page .pdis-title-row {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    min-width: 0;
+}
+.rechazos-page .pdis-back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    border: 1px solid var(--rechazos-line);
+    border-radius: 999px;
+    padding: .55rem .85rem;
+    background: #fff;
+    color: var(--rechazos-pink-dark);
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+}
+.rechazos-page .pdis-back-button:hover {
+    background: #fff0f8;
+    border-color: var(--rechazos-pink);
+    transform: translateX(-2px);
+}
 .rechazos-page main > .text-center h2 {
     margin: 0 !important;
     color: var(--rechazos-ink) !important;
     font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+}
+@media (max-width: 600px) {
+    .rechazos-page main > .text-center { align-items: flex-start; flex-wrap: wrap; }
+    .rechazos-page .pdis-title-row { width: 100%; }
+    .rechazos-page #correoUsuario { margin-left: 0; }
 }
 .rechazos-page main > .text-center h2 i { color: var(--rechazos-pink); }
 .rechazos-page #correoUsuario { margin: 0 0 0 auto; color: var(--rechazos-muted) !important; }

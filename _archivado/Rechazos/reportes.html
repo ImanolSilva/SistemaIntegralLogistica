@@ -193,7 +193,12 @@
     </div>
     <main class="container main-container">
         <div class="text-center">
-            <h2 class="mb-1"><i class="bi bi-file-earmark-medical-fill me-2"></i>Gestor de PDIS</h2>
+            <div class="pdis-title-row">
+                <button type="button" class="pdis-back-button" id="pdis-back-btn" title="Regresar" aria-label="Regresar">
+                    <i class="bi bi-arrow-left"></i><span>Regresar</span>
+                </button>
+                <h2 class="mb-1"><i class="bi bi-file-earmark-medical-fill me-2"></i>Gestor de PDIS</h2>
+            </div>
             <p id="correoUsuario" class="text-muted"><i class="bi bi-person-circle me-2"></i>Cargando usuario...</p>
         </div>
         <hr class="my-4">
@@ -295,6 +300,14 @@
                 
                 menuLateral.addEventListener('hide.bs.offcanvas', () => {
                     hamburgerBtn.classList.remove('open');
+                });
+            }
+
+            const backButton = document.getElementById('pdis-back-btn');
+            if (backButton) {
+                backButton.addEventListener('click', () => {
+                    if (window.history.length > 1) window.history.back();
+                    else window.location.href = '../PDISDashboard/index.html';
                 });
             }
         });
