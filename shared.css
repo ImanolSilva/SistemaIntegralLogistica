@@ -75,6 +75,71 @@ body::before {
 }
 body > * { position: relative; z-index: 1; }
 
+/* === SISTEMA VISUAL UNIFICADO === */
+.ui-unificado {
+    color: #2B2027 !important;
+    background: #F7F4F6 !important;
+}
+.ui-unificado .app-header {
+    min-height: 64px;
+    padding: 0.75rem clamp(1rem, 3vw, 2.25rem);
+    background: #FFFFFF !important;
+    color: #2B2027 !important;
+    border-bottom: 3px solid #E6007E !important;
+    box-shadow: 0 3px 18px rgba(91,35,69,.10);
+}
+.ui-unificado .header-title,
+.ui-unificado .app-header h1,
+.ui-unificado .app-header h2 {
+    color: #2B2027 !important;
+    font-size: clamp(1rem, 2vw, 1.35rem) !important;
+    font-weight: 800 !important;
+    line-height: 1.2;
+    margin: 0 !important;
+}
+.ui-unificado .header-title .bi { color: #E6007E !important; }
+.ui-unificado #hamburger-btn,
+.ui-unificado #logout-btn { color: #2B2027 !important; }
+.ui-unificado .hamburger-icon,
+.ui-unificado .hamburger-icon::before,
+.ui-unificado .hamburger-icon::after { background: #E6007E !important; }
+.ui-unificado .offcanvas {
+    width: min(320px, 88vw) !important;
+    background: #FFFFFF !important;
+    color: #2B2027 !important;
+    border-right: 4px solid #E6007E !important;
+}
+.ui-unificado .offcanvas-header {
+    min-height: 64px;
+    background: #E6007E !important;
+    color: #FFFFFF !important;
+    border: 0 !important;
+}
+.ui-unificado .offcanvas-title { color: #FFFFFF !important; font-weight: 800; }
+.ui-unificado .offcanvas .nav-link {
+    display: flex !important;
+    align-items: center;
+    gap: .65rem;
+    min-height: 52px;
+    padding: .85rem 1.25rem !important;
+    color: #5B354D !important;
+    border-left: 4px solid transparent;
+    font-weight: 700;
+}
+.ui-unificado .offcanvas .nav-link:hover,
+.ui-unificado .offcanvas .nav-link.active {
+    color: #E6007E !important;
+    background: #FFF0F7 !important;
+    border-left-color: #E6007E !important;
+}
+.ui-unificado .offcanvas .nav-link .bi { color: #E6007E !important; }
+.ui-unificado .main-container,
+.ui-unificado main.container,
+.ui-unificado main.container-xl {
+    width: min(1200px, calc(100% - 2rem));
+    margin: 1.5rem auto !important;
+}
+
 /* ── HEADER ── */
 .app-header {
     display: flex;
