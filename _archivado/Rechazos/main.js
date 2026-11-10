@@ -792,6 +792,9 @@ async function loadRechazosFile(secciones) {
             rechazosFiltrados = rechazosFiltrados.filter(row => row.Sección && secciones.includes(row.Sección.toString().trim()));
         }
         
+        // Todos los usuarios pueden enfocar su trabajo por jefatura, pero
+        // únicamente dentro del conjunto de PDIS que ya tienen permitido ver.
+        renderBossFilter(rechazosFiltrados);
         renderRechazos(rechazosFiltrados);
 
     } catch (error) {
