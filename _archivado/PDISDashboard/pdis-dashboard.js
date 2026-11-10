@@ -15,6 +15,7 @@ const safe = value => String(value ?? '').replace(/[&<>]/g, char => ({ '&':'&amp
 const key = value => String(value || 'Sin Estado').trim().toLowerCase();
 
 async function loadPdisDashboard() {
+  resultsBox.innerHTML = '<div class="pdis-empty"><i class="bi bi-arrow-repeat spin"></i><strong>Calculando resultados...</strong><span>Consultando archivos PDIS almacenados.</span></div>';
   filesBox.innerHTML = '<div class="pdis-empty"><i class="bi bi-arrow-repeat spin"></i><strong>Consultando archivos y resultados...</strong></div>';
   try {
     const list = await pdisStorage.ref('uploads').listAll();
@@ -37,12 +38,22 @@ async function loadPdisDashboard() {
     rows.forEach(row => { pieces += Number(row.Piezas) || 0; const state = key(row.Status); status[state] = (status[state] || 0) + 1; const boss = String(row.Jefatura || 'Sin asignar'); bosses[boss] = (bosses[boss] || 0) + 1; });
     const topBosses = Object.entries(bosses).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const latest = files[0];
+    if (!files.length) {
+      kpis.innerHTML = '<div class="pdis-kpi"><i class="bi bi-file-earmark-text"></i><div><strong>0</strong><span>Reportes consolidados</span></div></div><div class="pdis-kpi"><i class="bi bi-box-seam"></i><div><strong>0</strong><span>Piezas registradas</span></div></div><div class="pdis-kpi"><i class="bi bi-files"></i><div><strong>0</strong><span>Archivos analizados</span></div></div>';
+      resultsBox.innerHTML = '<div class="pdis-empty"><i class="bi bi-folder2-open"></i><strong>Aún no hay archivos PDIS para analizar</strong><span>Sube un archivo desde el Gestor PDIS y vuelve a actualizar.</span></div>';
+      filesBox.innerHTML = '<div class="pdis-empty"><i class="bi bi-cloud-arrow-up"></i><strong>No hay archivos PDIS todavía</strong><span>El Dashboard está conectado, pero aún no encuentra archivos en Firebase Storage.</span></div>';
+      return;
+    }
     kpis.innerHTML = `<div class="pdis-kpi"><i class="bi bi-file-earmark-text"></i><div><strong>${rows.length.toLocaleString('es-MX')}</strong><span>Reportes consolidados</span></div></div><div class="pdis-kpi"><i class="bi bi-box-seam"></i><div><strong>${pieces.toLocaleString('es-MX')}</strong><span>Piezas registradas</span></div></div><div class="pdis-kpi"><i class="bi bi-files"></i><div><strong>${files.length}</strong><span>Archivos analizados · ${latest ? latest.date.toLocaleDateString('es-MX') : '—'}</span></div></div>`;
     const states = [['sí encontrada', 'Sí encontrada', 'ok'], ['no encontrada', 'No encontrada', 'bad'], ['encontrada en exhibición', 'En exhibición', 'info'], ['encontrada merma', 'En merma', 'warn'], ['sin estado', 'Sin estado', 'neutral']];
     resultsBox.innerHTML = `<div class="pdis-result-grid">${states.map(([state, label, cls]) => `<div class="result-pill ${cls}"><span>${label}</span><strong>${(status[state] || 0).toLocaleString('es-MX')}</strong></div>`).join('')}</div><div class="pdis-analysis-grid"><div><h4><i class="bi bi-bar-chart-fill"></i> Reportes por jefatura</h4>${topBosses.length ? topBosses.map(([name, count]) => `<div class="boss-row"><span>${safe(name)}</span><strong>${count}</strong></div>`).join('') : '<div class="pdis-muted">Sin datos de jefatura.</div>'}</div><div><h4><i class="bi bi-info-circle"></i> Lectura rápida</h4><p class="pdis-reading">Se analizaron <strong>${rows.length.toLocaleString('es-MX')}</strong> reportes de <strong>${files.length}</strong> archivos.</p></div></div>`;
     filesBox.innerHTML = files.length ? files.map(file => `<article class="pdis-file-row"><div class="pdis-file-icon"><i class="bi bi-file-earmark-spreadsheet-fill"></i></div><div class="pdis-file-main"><strong>${safe(file.name)}</strong><span>${file.date.toLocaleDateString('es-MX')} · ${(Number(file.size || 0) / 1024).toFixed(1)} KB</span></div><span class="pdis-version">v${safe(file.version)}</span></article>`).join('') : '<div class="pdis-empty"><i class="bi bi-folder2-open"></i><strong>No hay archivos PDIS todavía</strong><span>Sube el primer archivo desde el Gestor PDIS.</span></div>';
   } catch (error) { resultsBox.innerHTML = '<div class="pdis-empty error"><i class="bi bi-exclamation-triangle"></i><strong>No se pudieron calcular los resultados</strong><span>Revisa la sesión y los permisos de Firebase Storage.</span></div>'; console.error(error); }
 }
-firebase.auth().onAuthStateChanged(user => { if (user) loadPdisDashboard(); else window.location.href = '../../Login/login.html'; });
+if (typeof firebase === 'undefined') {
+  resultsBox.innerHTML = '<div class="pdis-empty error"><i class="bi bi-wifi-off"></i><strong>No cargó Firebase</strong><span>Revisa la conexión a internet o los scripts externos.</span></div>';
+} else {
+  firebase.auth().onAuthStateChanged(user => { if (user) loadPdisDashboard(); else window.location.href = '../../Login/login.html'; });
+}
 document.getElementById('refresh-pdis').addEventListener('click', loadPdisDashboard);
 document.getElementById('logout-btn').addEventListener('click', () => firebase.auth().signOut());
