@@ -355,8 +355,15 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadReportes() {
         showLoading();
         try {
-            const snap = await db.collection(COLLECTION).orderBy('uploadedAt', 'desc').get();
+            // No dependemos de un índice ni de que todos los registros tengan
+            // uploadedAt; los archivos antiguos también deben aparecer.
+            const snap = await db.collection(COLLECTION).get();
             State.allReportes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            State.allReportes.sort((a,b) => {
+                const da = a.uploadedAt?.toDate ? a.uploadedAt.toDate().getTime() : 0;
+                const dbb = b.uploadedAt?.toDate ? b.uploadedAt.toDate().getTime() : 0;
+                return dbb - da;
+            });
             State.allRows = enrichWithMasterData(State.allReportes.flatMap(r => r.rows || []));
             populateFilterOptions();
             renderAdminList();
@@ -366,7 +373,11 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFilters();
         } catch (e) {
             console.error(e);
-            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar los reportes.', background: '#0e0e1a', color: '#fff' });
+            UI.noDataState.style.display = 'block';
+            UI.dataContent.style.display = 'none';
+            const emptyText = UI.noDataState.querySelector('p');
+            if (emptyText) emptyText.innerHTML = `No se pudieron leer los resultados.<br><small>${e.code || e.message || 'Revisa Firebase y vuelve a intentar.'}</small>`;
+            Swal.fire({ icon: 'error', title: 'No se pudieron cargar los resultados', text: e.code || e.message || 'Revisa Firebase y vuelve a intentar.' });
         } finally { hideLoading(); }
     }
 
