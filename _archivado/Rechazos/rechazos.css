@@ -138,6 +138,15 @@ body.ui-unificado.rechazos-page {
 .rechazos-page #tools-section > h4 { margin-bottom:1rem; }
 .rechazos-page #tools-section .accordion-button { font-size:.98rem; }
 .rechazos-page #tools-section .accordion-button .bi { color:var(--rechazos-pink); }
+.rechazos-page #tools-section .accordion-item { border:0 !important; background:transparent !important; }
+.rechazos-page #tools-section .accordion-button { min-height:60px; padding:1rem 1.15rem !important; border:1px solid var(--rechazos-line); border-radius:14px !important; }
+.rechazos-page #tools-section .accordion-body { padding:1rem 0 0 !important; background:transparent !important; border:0; }
+.rechazos-page .control-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
+.rechazos-page .control-stat { display:flex; align-items:center; gap:.7rem; min-height:82px; padding:.9rem 1rem; border:1px solid var(--rechazos-line); border-radius:14px; background:#fff; }
+.rechazos-page .control-stat > i { display:grid; place-items:center; width:36px; height:36px; border-radius:11px; color:var(--rechazos-pink); background:#FFF0F7; font-size:1rem; }
+.rechazos-page .control-stat strong, .rechazos-page .control-stat span { display:block; }
+.rechazos-page .control-stat strong { color:var(--rechazos-ink); font-size:1rem; }
+.rechazos-page .control-stat span { color:var(--rechazos-muted); font-size:.68rem; margin-top:2px; }
 .rechazos-page .dashboard-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; align-items:end; padding:1rem !important; background:#fff !important; border:1px solid var(--rechazos-line); border-radius:14px !important; }
 .rechazos-page .dashboard-controls h6 { grid-column:1/-1; text-align:left; margin:0; color:var(--rechazos-ink) !important; }
 .rechazos-page .dashboard-controls > .btn, .rechazos-page .dashboard-controls > .row { margin:0 !important; }
@@ -177,5 +186,6 @@ body.ui-unificado.rechazos-page {
     .rechazos-page .sample-file-link { margin-left:2.45rem; }
     .rechazos-page .dashboard-controls { grid-template-columns:1fr; }
     .rechazos-page .dashboard-controls h6 { grid-column:auto; }
+    .rechazos-page .control-stats { grid-template-columns:1fr; }
     .rechazos-page .accordion-button { align-items: flex-start; }
 }

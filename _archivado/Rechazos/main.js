@@ -372,9 +372,10 @@ async function loadFilesFromFirebase() {
     try {
         const storageRef = storage.ref("uploads");
         const fileList = await storageRef.listAll();
-        const rechazosItems = fileList.items.filter(item => 
-            item.name.toLowerCase().includes('rechazos')
-        );
+        const rechazosItems = fileList.items.filter(item => {
+            const name = item.name.toLowerCase();
+            return name.includes('rechazos') || name.includes('pdis');
+        });
 
         if (rechazosItems.length === 0) {
             showAlert("warning", "Sin archivos", "No se encontró ningún reporte de 'Rechazos'. Un administrador debe subir el primero.");
@@ -404,6 +405,15 @@ async function loadFilesFromFirebase() {
         );
 
         filesWithMetadata.sort((a, b) => b.timeCreated - a.timeCreated);
+
+        const controlStats = document.getElementById('controlStats');
+        if (controlStats) {
+            const latest = filesWithMetadata[0]?.timeCreated;
+            controlStats.innerHTML = `
+                <div class="control-stat"><i class="bi bi-files"></i><div><strong>${filesWithMetadata.length}</strong><span>Archivos PDIS</span></div></div>
+                <div class="control-stat"><i class="bi bi-clock-history"></i><div><strong>${latest ? latest.toLocaleDateString('es-MX') : '—'}</strong><span>Última actualización</span></div></div>
+                <div class="control-stat"><i class="bi bi-shield-check"></i><div><strong>Activo</strong><span>Almacenamiento conectado</span></div></div>`;
+        }
         
         renderFileSelectOptions(filesWithMetadata);
 
@@ -549,7 +559,7 @@ async function handleFileUpload(file) {
 
     if (isConfirmed) {
         const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-        const newFileName = `Rechazos_${timestamp}.xlsx`;
+        const newFileName = `PDIS_${timestamp}.xlsx`;
         const fileRef = storage.ref(`uploads/${newFileName}`);
 
         // --- INICIO DEL CAMBIO CLAVE ---
@@ -894,7 +904,7 @@ async function generarDashboard(dateRange = null) {
         // Carga todos los archivos de "Rechazos" desde Firebase Storage.
         const storageRef = storage.ref("uploads");
         const fileList = await storageRef.listAll();
-        const rechazosItems = fileList.items.filter(item => item.name.toLowerCase().includes('rechazos'));
+        const rechazosItems = fileList.items.filter(item => { const name = item.name.toLowerCase(); return name.includes('rechazos') || name.includes('pdis'); });
 
         if (rechazosItems.length === 0) {
             return Swal.fire("Sin Datos", "No se encontraron archivos de 'Rechazos' para analizar.", "info");
@@ -1033,7 +1043,7 @@ async function generarDashboardAuditores() {
         // Carga todos los datos históricos
         const storageRef = storage.ref("uploads");
         const fileList = await storageRef.listAll();
-        const rechazosItems = fileList.items.filter(item => item.name.toLowerCase().includes('rechazos'));
+        const rechazosItems = fileList.items.filter(item => { const name = item.name.toLowerCase(); return name.includes('rechazos') || name.includes('pdis'); });
 
         if (rechazosItems.length === 0) {
             return Swal.fire("Sin Datos", "No se encontraron archivos de 'Rechazos' para analizar.", "info");

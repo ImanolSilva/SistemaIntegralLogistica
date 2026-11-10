@@ -6,7 +6,7 @@
     const links = [
         ['bi-house-fill', 'Inicio', 'index.html'],
         ['bi-grid-1x2-fill', 'Dashboard', 'Dashboard/index.html'],
-        ['bi-file-earmark-medical-fill', 'Rechazos', '_archivado/Rechazos/reportes.html']
+        ['bi-file-earmark-medical-fill', 'PDIS', '_archivado/Rechazos/reportes.html']
     ];
 
     function normalize() {
@@ -27,7 +27,7 @@
                     <div class="go-corner"><div class="go-arrow"></div></div>
                 </a>
                 <a href="${href('_archivado/Rechazos/reportes.html')}" class="action-card">
-                    <div class="card-content"><div class="card-icon"><i class="bi bi-file-earmark-medical-fill"></i></div><h3>Rechazos</h3><p>Gestiona y da seguimiento a los artículos rechazados.</p></div>
+                    <div class="card-content"><div class="card-icon"><i class="bi bi-file-earmark-medical-fill"></i></div><h3>Gestor de PDIS</h3><p>Gestiona y da seguimiento a los artículos PDIS.</p></div>
                     <div class="go-corner"><div class="go-arrow"></div></div>
                 </a>`;
         }
