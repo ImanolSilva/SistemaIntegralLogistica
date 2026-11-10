@@ -140,6 +140,33 @@ body > * { position: relative; z-index: 1; }
     margin: 1.5rem auto !important;
 }
 
+/* Contraste de Inicio: las reglas antiguas usaban blanco sobre fondo claro. */
+.ui-unificado .hero-content h1,
+.ui-unificado .hero-content .lead,
+.ui-unificado .quick-access-section h2,
+.ui-unificado #ephemeris-card .ephemeris-title,
+.ui-unificado #ephemeris-card .ephemeris-text,
+.ui-unificado .quick-access-card h3,
+.ui-unificado .quick-access-card p,
+.ui-unificado .feature-card h4,
+.ui-unificado .feature-card p {
+    color: #2B2027 !important;
+}
+.ui-unificado .hero-content h1 span,
+.ui-unificado .welcome-user-name { color: #E6007E !important; }
+.ui-unificado #ephemeris-card,
+.ui-unificado .quick-access-card,
+.ui-unificado .feature-card {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(230,0,126,.16) !important;
+    box-shadow: 0 10px 28px rgba(91,35,69,.08) !important;
+}
+.ui-unificado #ephemeris-card .ephemeris-text,
+.ui-unificado .quick-access-card p,
+.ui-unificado .feature-card p { color: #6D5B66 !important; }
+.ui-unificado .quick-access-section hr,
+.ui-unificado .section-divider { border-color: rgba(91,35,69,.14) !important; }
+
 /* ── HEADER ── */
 .app-header {
     display: flex;
