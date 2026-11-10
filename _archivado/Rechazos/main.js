@@ -15,7 +15,9 @@
         }
         const db = firebase.firestore();
         const auth = firebase.auth();
-        const storage = firebase.app().storage("gs://sistemaintegrall.firebasestorage.app");
+        // Usa el bucket predeterminado del proyecto; evita errores cuando cambia
+        // el nombre entre el bucket legacy (.appspot.com) y el actual (.firebasestorage.app).
+        const storage = firebase.storage();
 
 /*****************************************************
  * ========== VARIABLES GLOBALES ==========
@@ -233,7 +235,7 @@ function loadDynamicImage(sku, seccion, containerId) {
     };
 }
 
-async function loadStaticExcelFiles() { try { const [userResponse, relResponse] = await Promise.all([fetch("../ArchivosExcel/Usuarios.xlsx"), fetch("../ArchivosExcel/relaciones.xlsx")]); if (!userResponse.ok) console.error("No se encontró Usuarios.xlsx"); const userBlob = await userResponse.blob(); const userData = await userBlob.arrayBuffer(); const userWorkbook = XLSX.read(userData, { type: "array" }); const userSheet = userWorkbook.Sheets["Usuarios"]; if (userSheet) AppState.usuariosData = XLSX.utils.sheet_to_json(userSheet, { defval: "" }); if (!relResponse.ok) console.error("No se encontró relaciones.xlsx"); const relBlob = await relResponse.blob(); const relData = await relBlob.arrayBuffer(); const relWorkbook = XLSX.read(relData, { type: "array" }); const relSheet = relWorkbook.Sheets["Usuarios"]; if (relSheet) AppState.relacionesData = XLSX.utils.sheet_to_json(relSheet); } catch (error) { console.error("Error al cargar archivos estáticos:", error); showAlert("error", "Error Crítico", "No se pudieron cargar los archivos de configuración."); } }
+async function loadStaticExcelFiles() { try { const [userResponse, relResponse] = await Promise.all([fetch("../ExcelReferencia/ArchivosExcel/Usuarios.xlsx"), fetch("../ExcelReferencia/ArchivosExcel/relaciones.xlsx")]); if (!userResponse.ok) console.error("No se encontró Usuarios.xlsx"); const userBlob = await userResponse.blob(); const userData = await userBlob.arrayBuffer(); const userWorkbook = XLSX.read(userData, { type: "array" }); const userSheet = userWorkbook.Sheets["Usuarios"]; if (userSheet) AppState.usuariosData = XLSX.utils.sheet_to_json(userSheet, { defval: "" }); if (!relResponse.ok) console.error("No se encontró relaciones.xlsx"); const relBlob = await relResponse.blob(); const relData = await relBlob.arrayBuffer(); const relWorkbook = XLSX.read(relData, { type: "array" }); const relSheet = relWorkbook.Sheets["Usuarios"]; if (relSheet) AppState.relacionesData = XLSX.utils.sheet_to_json(relSheet); } catch (error) { console.error("Error al cargar archivos estáticos:", error); showAlert("error", "Error Crítico", "No se pudieron cargar los archivos de configuración."); } }
 
 /*****************************************************
  * ========== INICIO DE APP Y MANEJO DE EVENTOS ==========
