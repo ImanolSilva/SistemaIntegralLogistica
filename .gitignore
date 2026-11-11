@@ -67,3 +67,7 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Artefactos temporales de previsualizacion de hojas de calculo
+outputs/**/*.png
+outputs/**/*.ndjson

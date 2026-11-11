@@ -320,3 +320,58 @@ Centro de análisis de los archivos PDIS/rechazos de Storage `uploads/`. Lee la 
 - **Gestor PDIS, etiqueta de estado ilegible:** el mapa de colores solo conocía los nombres anteriores ("Sí encontrada", "Encontrada Merma"). Con los estados actuales ("Encontrada buen estado" / "Encontrada mal estado") quedaba sin fondo y con texto blanco. Ahora `pdiStatusClass()` en `main.js` asigna la clase `pdi-st-buen` / `pdi-st-mal` / `pdi-st-no` / `pdi-st-pend` (estilos en `rechazos.css`), al pintar la lista y al cambiar un estado. También se agregaron los estados actuales a la gráfica de jefaturas del Gestor.
 
   `fixEncoding()` del Gestor PDIS ahora usa `fixText`. Los datos ya guardados en Firestore **no se reescriben**: se reparan al leerlos. Se corrigen de forma permanente cuando el archivo se vuelve a subir.
+
+## 9. Seguridad y despliegue
+
+- `firebase.json` ahora declara `firestore.rules` y `storage.rules`. Antes solo estaba declarada la configuracion de Functions.
+- `firestore.rules` usa la coleccion `admins/{uid}` o el Custom Claim `admin: true` para permisos administrativos.
+- Las colecciones operativas requieren autenticacion. Las cargas administrativas de `reportesDashboard`, `datosMaestros`, `skuManifiestos` y `manifiestosCerrados` requieren administrador.
+- `storage.rules` separa los archivos de Dashboard, uploads PDIS, evidencias, manifiestos y relacion de bodegas.
+- Las evidencias PDIS se pueden leer y cargar con sesion autenticada. La proteccion por responsable se mantiene en la interfaz y en la sincronizacion del archivo; para seguridad fuerte conviene mover esa validacion a una Cloud Function.
+- El frontend contiene la apiKey publica de Firebase, lo cual es normal. Nunca se deben subir claves privadas, tokens de servicio o archivos `.env`.
+- La pagina se publica mediante GitHub Pages desde la rama `main`. Firebase y GitHub Pages se despliegan por separado: Pages publica archivos estaticos y `firebase deploy --only functions,firestore:rules,storage` publica backend y reglas.
+- Antes de publicar reglas nuevas, probarlas en el emulador o en un proyecto de prueba. Las reglas pueden bloquear funciones antiguas si algun modulo usa una coleccion no documentada.
+
+## 10. Esquema flexible de resultados manifestados
+
+El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacion reconoce, entre otros:
+
+| Dato | Encabezados aceptados |
+|---|---|
+| Jefatura | Jefe, Jefatura, Responsable, Gerente |
+| Seccion | Seccion, Sección, Area, Área |
+| Piezas | Piezas, Cantidad, Unidades, Articulos, Manifestados |
+| Faltantes | Faltantes, Faltante, Faltan |
+| Sobrantes | Sobrantes, Sobrante, Exceso, Mercancia de mas |
+| Manifiesto | Manifiesto, Manifesto, Folio, Reporte |
+
+- Si el archivo no trae manifiesto, el registro se agrupa como `GENERAL`.
+- Cada documento de `reportesDashboard` guarda `manifestoId`, `fileName`, `uploadedBy`, `uploadedByEmail`, `uploadedAt` y `rows[]`.
+- Un manifiesto que se vuelve a cargar reemplaza la version anterior del mismo `manifestoId`.
+- Los KPI principales se calculan con Piezas, Faltantes y Sobrante. Exactitud = `(Piezas - Faltantes) / Piezas`.
+- Si se agregan nuevas columnas al archivo real, primero deben incorporarse a `RESULT_ALIASES` y a `normalizeResultRow()` en `Dashboard/app.js`.
+
+## 11. Persistencia y recuperacion PDIS
+
+- Los cambios de `Status`, `Auditor` y `Fotos` se agregan a una cola local antes de sincronizar.
+- La cola utiliza `localStorage`; conviene migrarla a IndexedDB y asociarla al nombre/version del archivo para evitar colisiones entre archivos.
+- Las evidencias seleccionadas se conservan como borrador en IndexedDB si la subida falla. Actualmente el usuario debe reintentar la subida desde el Gestor; una mejora futura es ofrecer una bandeja visible de evidencias pendientes.
+- La version del archivo se valida antes de escribir para detectar conflictos. Si otro usuario actualizo el archivo, se debe recargar antes de continuar.
+- Los estados actuales son `Encontrada buen estado`, `Encontrada mal estado` y `No encontrada`. Los nombres antiguos se conservan solo para leer historicos.
+- Los registros con estado y auditor ya asignados quedan protegidos frente a cambios de otro usuario en la interfaz. La garantia definitiva debe implementarse en backend.
+
+## 12. Pendientes tecnicos priorizados
+
+1. Desplegar y probar las reglas de Firestore y Storage en Firebase.
+2. Corregir o probar `getJefeBodega` con el bucket real `sistemaintegrall.firebasestorage.app`.
+3. Eliminar el `ADMIN_UIDS` duplicado del cliente y usar Custom Claims o `admins` como unica fuente.
+4. Migrar la cola PDIS de `localStorage` a IndexedDB con clave por archivo y version.
+5. Implementar la proteccion de estados en una Cloud Function o transaccion Firestore.
+6. Unificar Firebase SDK y SheetJS para reducir diferencias entre modulos.
+7. Corregir permanentemente los archivos fuente con mojibake y dejar `fixText` solo como compatibilidad para Excel historicos.
+8. Agregar pruebas de carga con el Excel `Prueba_Resultados_Manifestados.xlsx` y una prueba de permisos por rol.
+
+## 13. Archivo de prueba
+
+- `outputs/prueba-resultados/Prueba_Resultados_Manifestados.xlsx` contiene datos ficticios de jefaturas, secciones, articulos, piezas, faltantes y sobrantes.
+- `build_prueba_resultados.mjs` permite regenerarlo. Las previsualizaciones PNG y archivos NDJSON de inspeccion estan ignorados por Git.

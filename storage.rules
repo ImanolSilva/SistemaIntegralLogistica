@@ -1,0 +1,38 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && (
+        request.auth.token.admin == true ||
+        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    match /Dashboard/{fileName} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /uploads/evidencias/{fileName} {
+      allow read, write: if signedIn();
+    }
+    match /uploads/{fileName} {
+      allow read: if signedIn();
+      allow write, delete: if isAdmin();
+    }
+    match /BodegasRelacion/{fileName} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /ExcelManifiestos/{fileName} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /Manifiestos/{store}/{fileName} {
+      allow read, write: if signedIn();
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

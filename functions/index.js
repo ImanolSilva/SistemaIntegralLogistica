@@ -5,7 +5,7 @@ const XLSX = require('xlsx'); // Asegúrate de tener esta librería instalada en
 admin.initializeApp();
 
 // Configura el bucket de Storage (asegúrate de que este sea tu bucket real)
-const bucketName = 'loginliverpool.appspot.com'; // Este es tu bucket de Storage por defecto
+const bucketName = 'sistemaintegrall.firebasestorage.app';
 const storage = admin.storage();
 
 // !!! CONFIGURACIÓN PARA LA FUNCIÓN getJefeBodega !!!
@@ -25,7 +25,7 @@ const JEFATURA_COLUMN_NAME_EXCEL = 'Jefatura'; // Por ejemplo, 'EmailJefe', 'Res
 exports.getUserByEmail = functions.https.onCall(async (data, context) => {
     // Verificar que el usuario que llama esté autenticado
     if (!context.auth) {
-        throw new new functions.https.HttpsError('unauthenticated', 'El usuario debe estar autenticado.');
+        throw new functions.https.HttpsError('unauthenticated', 'El usuario debe estar autenticado.');
     }
 
     // Verificar que el usuario que llama sea admin

@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+    function own(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /admins/{uid} {
+      allow read: if isAdmin() || own(uid);
+      allow write: if isAdmin();
+    }
+    match /usuarios/{uid} {
+      allow read: if isAdmin() || own(uid);
+      allow create: if own(uid);
+      allow update: if isAdmin() || own(uid);
+      allow delete: if isAdmin();
+    }
+    match /reportesDashboard/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /datosMaestros/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /manifiestosCerrados/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /skuManifiestos/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /entregas/{id} {
+      allow read, create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+    match /manifiestos/{id} {
+      allow read, create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+    match /scans/{id} {
+      allow read, create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+    match /presence/{id} {
+      allow read, create, update, delete: if signedIn();
+    }
+    match /inventarios/{id} {
+      allow read, create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+    match /entregasContenedores/{id} {
+      allow read, create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
