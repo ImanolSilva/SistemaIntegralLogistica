@@ -773,22 +773,25 @@ document.addEventListener('DOMContentLoaded', () => {
         $('wrap-diferencias').style.height = Math.max(240, areas.length * 38 + 50) + 'px';
 
         State.charts.diferencias = new Chart(canvas, {
-            type: 'line',
+            type: 'bar',
             data: { labels: areas.map(a => a.key), datasets: [
-                { label: 'Faltantes', data: areas.map(a => a.ft), borderColor: C.bad, backgroundColor: C.bad, pointRadius: 7, pointHoverRadius: 10, pointBorderColor: '#fff', pointBorderWidth: 2, tension: .32 },
-                { label: 'Sobrantes', data: areas.map(a => a.sb), borderColor: C.warn, backgroundColor: C.warn, pointRadius: 7, pointHoverRadius: 10, pointBorderColor: '#fff', pointBorderWidth: 2, tension: .32 },
+                { type: 'bar', label: 'Faltantes', data: areas.map(a => a.ft), backgroundColor: C.bad + 'B8', borderColor: C.bad, borderWidth: 1, borderRadius: 7, maxBarThickness: 30 },
+                { type: 'bar', label: 'Sobrantes', data: areas.map(a => a.sb), backgroundColor: C.warn + 'B8', borderColor: C.warn, borderWidth: 1, borderRadius: 7, maxBarThickness: 30 },
+                { type: 'line', label: 'Exactitud', data: areas.map(a => +((a.pct ?? 0).toFixed(2))), yAxisID: 'y1', borderColor: C.vino, backgroundColor: C.vino, borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 8, pointBackgroundColor: '#fff', pointBorderWidth: 2, tension: .32 }
             ] },
             options: {
                 responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
                 onClick: (_e, els) => { if (els[0]) setFilter(UI.filterJefatura, areas[els[0].index].key); },
                 onHover: (e, els) => { if (e.native?.target) e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
                 plugins: {
                     legend: { position: 'top', align: 'end', labels: { boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 3, font: { size: 11, weight: '700' } } },
-                    tooltip: { ...tooltipStyle, mode: 'index', intersect: false, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.parsed.x)} pzas` } }
+                    tooltip: { ...tooltipStyle, mode: 'index', intersect: false, callbacks: { label: ctx => ctx.dataset.yAxisID === 'y1' ? ` Exactitud: ${pctTxt(ctx.parsed.y)}` : ` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)} pzas` } }
                 },
                 scales: {
                     x: { ticks: { font: { size: 10, weight: '700' }, color: C.txt, maxRotation: 45, minRotation: 25 }, grid: { display: false } },
-                    y: { beginAtZero: true, ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: C.grid } }
+                    y: { beginAtZero: true, title: { display: true, text: 'Piezas', font: { size: 10, weight: '700' } }, ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: C.grid } },
+                    y1: { min: 0, max: 100, position: 'right', title: { display: true, text: 'Exactitud', font: { size: 10, weight: '700' } }, ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { display: false } }
                 }
             }
         });
@@ -921,14 +924,14 @@ document.addEventListener('DOMContentLoaded', () => {
         sortBy(secs, State.sec.sortKey === 'pct' ? 'pctSort' : State.sec.sortKey, State.sec.sortDir);
         $('sec-count').textContent = `${fmt(secs.length)} secciones`;
         $('tbody-secciones').innerHTML = secs.map(s => `<tr>
-                <td><strong>${esc(s.seccion)}</strong>${s.desc && s.desc !== s.seccion ? `<span class="sub">${esc(s.desc)}</span>` : ''}</td>
-                <td>${areaCell(s.jefatura)}</td>
-                <td class="num">${fmt(s.contenedores)}</td>
-                <td class="num">${fmt(s.pz)}</td>
-                <td class="num ${s.ft ? 'falt' : 'zero'}">${fmt(s.ft)}</td>
-                <td class="num ${s.sb ? 'sobr' : 'zero'}">${fmt(s.sb)}</td>
-                <td class="num">${pctBadge(s.pct)}</td>
-                <td><div class="db-share"><div class="db-share-bar"><span style="width:${s.share}%"></span></div><small>${s.ft ? pctTxt(s.share) : '—'}</small></div></td>
+                <td data-label="Sección"><strong>${esc(s.seccion)}</strong>${s.desc && s.desc !== s.seccion ? `<span class="sub">${esc(s.desc)}</span>` : ''}</td>
+                <td data-label="Área">${areaCell(s.jefatura)}</td>
+                <td data-label="Contenedores" class="num">${fmt(s.contenedores)}</td>
+                <td data-label="Piezas" class="num">${fmt(s.pz)}</td>
+                <td data-label="Faltantes" class="num ${s.ft ? 'falt' : 'zero'}">${fmt(s.ft)}</td>
+                <td data-label="Sobrantes" class="num ${s.sb ? 'sobr' : 'zero'}">${fmt(s.sb)}</td>
+                <td data-label="Exactitud" class="num">${pctBadge(s.pct)}</td>
+                <td data-label="Peso en faltantes"><div class="db-share"><div class="db-share-bar"><span style="width:${s.share}%"></span></div><small>${s.ft ? pctTxt(s.share) : '—'}</small></div></td>
             </tr>`).join('') || '<tr><td colspan="8" class="empty">Sin datos</td></tr>';
         markSort('table-secciones', State.sec);
     }
@@ -973,16 +976,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         $('cont-count').textContent = `${fmt(list.length)} de ${fmt(conts.length)} contenedores`;
         $('tbody-contenedor').innerHTML = pageRows.map(c => `<tr>
-                <td><span class="db-mono">${esc(c.contenedor)}</span></td>
-                <td>${esc(manifLabel(c.manifiesto))}</td>
-                <td>${esc(c.seccion)}</td>
-                <td>${areaCell(c.jefatura)}</td>
-                <td class="num">${fmt(c.lineas)}</td>
-                <td class="num">${fmt(c.pz)}</td>
-                <td class="num ${c.ft ? 'falt' : 'zero'}">${fmt(c.ft)}</td>
-                <td class="num ${c.sb ? 'sobr' : 'zero'}">${fmt(c.sb)}</td>
-                <td class="num">${pctBadge(c.pct)}</td>
-                <td><span class="db-status ${c.estado}"><i class="bi ${ESTADOS[c.estado].icon}"></i>${ESTADOS[c.estado].label}</span></td>
+                <td data-label="Contenedor"><span class="db-mono">${esc(c.contenedor)}</span></td>
+                <td data-label="Reporte">${esc(manifLabel(c.manifiesto))}</td>
+                <td data-label="Sección">${esc(c.seccion)}</td>
+                <td data-label="Área">${areaCell(c.jefatura)}</td>
+                <td data-label="Líneas" class="num">${fmt(c.lineas)}</td>
+                <td data-label="Piezas" class="num">${fmt(c.pz)}</td>
+                <td data-label="Faltantes" class="num ${c.ft ? 'falt' : 'zero'}">${fmt(c.ft)}</td>
+                <td data-label="Sobrantes" class="num ${c.sb ? 'sobr' : 'zero'}">${fmt(c.sb)}</td>
+                <td data-label="Exactitud" class="num">${pctBadge(c.pct)}</td>
+                <td data-label="Estado"><span class="db-status ${c.estado}"><i class="bi ${ESTADOS[c.estado].icon}"></i>${ESTADOS[c.estado].label}</span></td>
             </tr>`).join('') || '<tr><td colspan="10" class="empty">Ningún contenedor coincide con la búsqueda</td></tr>';
         markSort('table-contenedores', State.cont);
         renderPager(list.length, pages);
@@ -1042,14 +1045,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }).filter(a => a.ft + a.sb > 0).sort((a, b) => (b.ft + b.sb) - (a.ft + a.sb)).slice(0, 15);
 
         $('tbody-articulos').innerHTML = arts.map(a => `<tr>
-                <td><span class="db-mono">${esc(a.key)}</span></td>
-                <td>${esc(truncate(a.desc || '—', 48))}</td>
-                <td>${areaCell(a.area)}</td>
-                <td class="num">${fmt(a.conts)}</td>
-                <td class="num">${fmt(a.pz)}</td>
-                <td class="num ${a.ft ? 'falt' : 'zero'}">${fmt(a.ft)}</td>
-                <td class="num ${a.sb ? 'sobr' : 'zero'}">${fmt(a.sb)}</td>
-                <td class="num">${pctBadge(a.pct)}</td>
+                <td data-label="Artículo"><span class="db-mono">${esc(a.key)}</span></td>
+                <td data-label="Descripción">${esc(truncate(a.desc || '—', 48))}</td>
+                <td data-label="Área">${areaCell(a.area)}</td>
+                <td data-label="Contenedores" class="num">${fmt(a.conts)}</td>
+                <td data-label="Piezas" class="num">${fmt(a.pz)}</td>
+                <td data-label="Faltantes" class="num ${a.ft ? 'falt' : 'zero'}">${fmt(a.ft)}</td>
+                <td data-label="Sobrantes" class="num ${a.sb ? 'sobr' : 'zero'}">${fmt(a.sb)}</td>
+                <td data-label="Exactitud" class="num">${pctBadge(a.pct)}</td>
             </tr>`).join('') || '<tr><td colspan="8" class="empty">Ningún artículo tiene diferencias 🎉</td></tr>';
     }
 

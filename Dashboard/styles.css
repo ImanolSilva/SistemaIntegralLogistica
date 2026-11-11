@@ -433,9 +433,22 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
     .db-table-tools .db-search { max-width:none; width:100%; }
     .db-table-tip { font-size:.66rem; }
     .db-table-wrap { overflow-x:hidden; }
-    .db-table { min-width:0 !important; font-size:.68rem; }
-    .db-table th, .db-table td { padding:.55rem .3rem !important; line-height:1.25; word-break:break-word; }
-    .db-table th { font-size:.59rem; }
-    .db-table .sub { font-size:.58rem; }
-    .db-table .db-status { white-space:normal; font-size:.58rem; }
+    .db-table { min-width:0 !important; font-size:.78rem; display:block; }
+    .db-table thead { display:none; }
+    .db-table tbody, .db-table tr, .db-table td { display:block; width:100%; }
+    .db-table tbody tr { display:grid; grid-template-columns:1fr 1fr; gap:0 .7rem; padding:.65rem .75rem; border-bottom:1px solid var(--line); }
+    .db-table tbody tr:last-child { border-bottom:0; }
+    .db-table td { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; min-width:0; padding:.38rem 0 !important; line-height:1.25; word-break:break-word; text-align:right; }
+    .db-table td::before { content:attr(data-label); color:var(--txt3); font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; text-align:left; flex:0 0 auto; }
+    .db-table td:first-child { grid-column:1 / -1; text-align:left; font-size:.85rem; }
+    .db-table td:first-child::before { display:none; }
+    .db-table td .db-share { width:100%; }
+    .db-table td .db-status { white-space:normal; font-size:.7rem; }
+    .db-table td.empty { grid-column:1 / -1; display:block; text-align:center; }
+    .db-table td.empty::before { display:none; }
 }
+
+/* Gráficas estilo ejecutivo: superficies suaves, líneas nítidas y puntos de lectura */
+.db-chart { background:linear-gradient(180deg,#fff,#fcf8fb); border:1px solid #eee5eb; border-radius:18px; padding:1rem .8rem .45rem; }
+.db-chart canvas { filter: drop-shadow(0 3px 4px rgba(82,28,65,.04)); }
+.db-panel-sub { max-width:760px; }
