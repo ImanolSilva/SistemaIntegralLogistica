@@ -413,6 +413,12 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.
 - Se renovó también el menú lateral global: fondo blanco-rosado degradado, encabezado vino/rosa, estados activos con relieve, iconos con acento y tarjetas internas con profundidad para evitar el aspecto plano.
 
+### Rediseño del comparativo por reporte 2026-11-11
+
+- Se reemplazó la gráfica que mezclaba barras de miles de piezas con una línea porcentual en doble escala.
+- El comparativo ahora es una gráfica de líneas en escala común de 0 a 100% para `Exactitud`, `Recibidas`, `Faltantes` y `Sobrantes`.
+- Los tooltips conservan el porcentaje y muestran la cantidad real de piezas para no perder contexto.
+
 ### Perfeccionamiento visual de Dashboard y gráficas 2026-11-11
 
 - Se limitaron las gráficas de áreas al conjunto más relevante y se fijaron alturas responsivas para evitar gráficas interminables, etiquetas encimadas y espacios blancos causados por el estiramiento de la cuadrícula.

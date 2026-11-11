@@ -835,29 +835,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (chartEmpty(canvas, manifs.length ? '' : 'Sin reportes')) return;
         const labels = manifs.map(m => { const d = State.manifestInfo[m.key]?.date; return d ? [manifLabel(m.key), fmtDate(d)] : manifLabel(m.key); });
 
+        const pctRows = manifs.map(m => ({
+            expected: m.pz,
+            received: m.pz ? m.recibidas / m.pz * 100 : 0,
+            missing: m.pz ? m.ft / m.pz * 100 : 0,
+            extra: m.pz ? m.sb / m.pz * 100 : 0,
+            accuracy: m.pct == null ? null : +m.pct.toFixed(2)
+        }));
+        const line = (label, key, color, fill = false) => ({ label, data: pctRows.map(m => m[key] == null ? null : +m[key].toFixed(2)), borderColor: color, backgroundColor: fill ? color + '18' : '#fff', borderWidth: key === 'accuracy' ? 3 : 2, pointRadius: 5, pointHoverRadius: 8, pointBackgroundColor: '#fff', pointBorderColor: color, pointBorderWidth: 2, tension: .35, fill });
         State.charts.tendencia = new Chart(canvas, {
-            type: 'bar',
+            type: 'line',
             data: { labels, datasets: [
-                { type: 'line', label: 'Exactitud %', data: manifs.map(m => m.pct == null ? null : +m.pct.toFixed(2)), yAxisID: 'y1', borderColor: C.vino, backgroundColor: C.vino, borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: '#fff', pointBorderWidth: 2, tension: .35, order: 0 },
-                { type: 'bar', label: 'Piezas manifestadas', data: manifs.map(m => m.pz), backgroundColor: 'rgba(230,0,126,.22)', hoverBackgroundColor: 'rgba(230,0,126,.4)', borderRadius: 6, yAxisID: 'y', order: 2, maxBarThickness: 46 },
-                { type: 'bar', label: 'Faltantes', data: manifs.map(m => m.ft), backgroundColor: C.bad + 'CC', borderRadius: 6, yAxisID: 'y', order: 1, maxBarThickness: 46 },
-                { type: 'bar', label: 'Sobrantes', data: manifs.map(m => m.sb), backgroundColor: C.warn + 'BB', borderRadius: 6, yAxisID: 'y', order: 1, maxBarThickness: 46 },
+                line('Exactitud', 'accuracy', C.vino, true),
+                line('Recibidas', 'received', C.ok),
+                line('Faltantes', 'missing', C.bad),
+                line('Sobrantes', 'extra', C.warn),
             ] },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 onClick: (_e, els) => { if (els[0]) setFilter(UI.filterManifiesto, manifs[els[0].index].key); },
                 plugins: {
-                    legend: { position: 'top', align: 'end', labels: { boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 3, font: { size: 11, weight: '700' } } },
+                    legend: { position: 'top', align: 'end', labels: { boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 5, font: { size: 11, weight: '700' } } },
                     tooltip: { ...tooltipStyle, callbacks: {
                         title: items => { const m = manifs[items[0].dataIndex]; const info = State.manifestInfo[m.key]; return `Reporte ${manifLabel(m.key)}${info?.date ? ' · ' + fmtDateTime(info.date) : ''}`; },
-                        label: ctx => ctx.dataset.yAxisID === 'y1' ? ` Exactitud: ${pctTxt(ctx.parsed.y ?? 0)}` : ` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`
+                        label: ctx => { const m = manifs[ctx.dataIndex], p = pctRows[ctx.dataIndex]; const raw = ctx.dataset.label === 'Exactitud' ? m.pct : ctx.dataset.label === 'Recibidas' ? m.recibidas : ctx.dataset.label === 'Faltantes' ? m.ft : m.sb; return ` ${ctx.dataset.label}: ${pctTxt(ctx.parsed.y)} · ${fmt(raw)} pzas`; }
                     } }
                 },
                 scales: {
                     x: { ticks: { font: { size: 10, weight: '600' }, maxRotation: 0, autoSkip: true }, grid: { display: false } },
-                    y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Piezas', font: { size: 10, weight: '700' } }, ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: C.grid } },
-                    y1: { min: 0, max: 100, position: 'right', title: { display: true, text: 'Exactitud', font: { size: 10, weight: '700' } }, ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { display: false } }
+                    y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { color: C.grid } }
                 }
             }
         });
