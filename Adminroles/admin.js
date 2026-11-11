@@ -20,7 +20,6 @@ const firebaseConfig = {
 
     // ========== ESTADO Y ELEMENTOS DEL DOM ==========
     const AppState = {
-        adminUIDs: ["wz4A81Vp8tQIjzVXMANmOHUlsNH2", "8NfEfPSyusZdNUFgXWPtvi3p6Ns1"],
         allUsers: [], 
         filteredUsers: [], 
         allBosses: [],
@@ -69,9 +68,13 @@ const firebaseConfig = {
     auth.onAuthStateChanged(handleAuthChange);
 
     async function handleAuthChange(user) {
-        if (user && AppState.adminUIDs.includes(user.uid)) {
-            await initializeAdminPanel();
-        } else {
+        if (!user) return showNotAdmin();
+        try {
+            const isAdmin = await window.isSystemAdmin(user, db);
+            if (isAdmin) await initializeAdminPanel();
+            else showNotAdmin();
+        } catch (error) {
+            console.error('No se pudo validar el administrador:', error);
             showNotAdmin();
         }
     }
@@ -184,17 +187,10 @@ const firebaseConfig = {
             ? user.createdAt.toDate().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
             : 'N/A';
 
-        const status = user.status || 'pendiente';
+        const status = 'aprobado';
         const bossName = AppState.allBosses.find(b => b.uid === user.jefeAsignado)?.name || 'Sin asignar';
 
-        const actionsHTML = status === 'aprobado' ? `
-            <button class="actions-btn edit-user-btn" title="Editar Usuario"><i class="bi bi-three-dots-vertical"></i></button>
-        ` : `
-            <div class="action-buttons-pending">
-                <button class="btn-action btn-reject reject-btn" title="Rechazar"><i class="bi bi-x-lg"></i></button>
-                <button class="btn-action btn-approve approve-btn" title="Aprobar"><i class="bi bi-check-lg"></i></button>
-            </div>
-        `;
+        const actionsHTML = `<button class="actions-btn edit-user-btn" title="Editar usuario"><i class="bi bi-three-dots-vertical"></i></button>`;
 
         const isSelectedClass = AppState.selectedUserUIDs.has(user.uid) ? 'selected' : '';
         const isCheckedAttribute = AppState.selectedUserUIDs.has(user.uid) ? 'checked' : '';
@@ -235,12 +231,7 @@ const firebaseConfig = {
             if (!card) return; 
             const uid = card.dataset.uid;
 
-            if (e.target.closest('.approve-btn')) {
-                updateUserStatus(uid, 'aprobado');
-            } else if (e.target.closest('.reject-btn')) {
-                updateUserStatus(uid, 'rechazado');
-            } 
-            else if (e.target.closest('.edit-user-btn')) {
+            if (e.target.closest('.edit-user-btn')) {
                 openEditModal(uid);
             } 
             else if (e.target.closest('.copy-uid-btn')) {
@@ -325,11 +316,7 @@ const firebaseConfig = {
         UIElements.modal.name.textContent = name; 
         UIElements.modal.email.textContent = user.email; 
 
-        UIElements.modal.statusSelect.innerHTML = `
-            <option value="aprobado" ${user.status === 'aprobado' ? 'selected' : ''}>Aprobado</option>
-            <option value="pendiente" ${user.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-            <option value="rechazado" ${user.status === 'rechazado' ? 'selected' : ''}>Rechazado</option>
-        `;
+        UIElements.modal.statusSelect.innerHTML = '<option value="aprobado" selected>Acceso activo</option>';
         UIElements.modal.roleSelect.innerHTML = `
             <option value="vendedor" ${user.role === 'vendedor' ? 'selected' : ''}>Vendedor</option>
             <option value="bodeguero" ${user.role === 'bodeguero' ? 'selected' : ''}>Bodeguero</option>
@@ -362,7 +349,7 @@ const firebaseConfig = {
 
         const uid = UIElements.modal.uid.value;
         const dataToUpdate = {
-            status: UIElements.modal.statusSelect.value,
+            status: 'aprobado',
             role: UIElements.modal.roleSelect.value,
             jefeAsignado: UIElements.modal.bossSelect.value || null,
             store: UIElements.modal.storeInput.value.trim() || null, 

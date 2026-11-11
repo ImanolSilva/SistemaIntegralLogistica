@@ -92,14 +92,15 @@
         ['bi-house-fill', 'Inicio', 'index.html'],
         ['bi-grid-1x2-fill', 'Dashboard', 'Dashboard/index.html'],
         ['bi-speedometer2', 'Dashboard PDIS', '_archivado/PDISDashboard/index.html'],
-        ['bi-file-earmark-medical-fill', 'PDIS', '_archivado/Rechazos/reportes.html']
+        ['bi-file-earmark-medical-fill', 'PDIS', '_archivado/Rechazos/reportes.html'],
+        ['bi-person-fill-gear', 'Administrar roles', 'Adminroles/admin.html']
     ];
 
     // Encabezado (hero) de cada módulo. Los módulos con hero propio no aparecen aquí
     // (Dashboard, Dashboard PDIS, Inicio, Login, Pendientes).
     const MODULES = [
         { match: '/adminroles/admin.html', eyebrow: 'Administración', icon: 'bi-person-fill-gear', title: 'Usuarios y roles',
-          desc: 'Aprueba solicitudes de acceso, asigna roles y mantiene actualizados los datos de cada usuario del sistema.' },
+          desc: 'Asigna roles, jefaturas y datos operativos de los usuarios con acceso corporativo automatico.' },
         { match: '/sku/index.html', eyebrow: 'Consulta', icon: 'bi-upc-scan', title: 'Buscador de SKUs',
           desc: 'Localiza artículos por SKU o contenedor y consulta su sección, jefatura y datos de manifiesto.' },
         { match: '/recibos/index.html', eyebrow: 'Operación', icon: 'bi-box-arrow-in-down-right', title: 'Área de Recibos',

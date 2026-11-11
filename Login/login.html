@@ -400,8 +400,8 @@
                     <p class="mb-3">Este sistema utiliza exclusivamente <strong>Google Sign-In</strong>. Si no puedes acceder, puede ser por alguna de estas razones:</p>
                     <ul style="color: rgba(255,255,255,0.65); font-size:0.92rem; line-height:1.9; padding-left:1.2rem;">
                         <li>Estás usando un correo <strong>que no es @liverpool.com.mx</strong> — solo correos corporativos tienen acceso automático.</li>
-                        <li>Tu cuenta está <strong>pendiente de aprobación</strong> (correo externo).</li>
-                        <li>Tu cuenta fue <strong>rechazada o suspendida</strong>.</li>
+                        <li>Tu cuenta corporativa debe pertenecer al dominio <strong>@liverpool.com.mx</strong>.</li>
+                        <li>Las cuentas administrativas autorizadas también pueden acceder con su correo registrado.</li>
                         <li>Bloqueaste el pop-up del navegador — verifica la barra de direcciones.</li>
                     </ul>
                     <div class="pending-notice">
@@ -457,7 +457,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" id="saveRegistrationBtn" class="btn btn-primary w-100">
-                        <i class="fas fa-paper-plane me-2"></i> Enviar Solicitud
+                        <i class="fas fa-check-circle me-2"></i> Activar mi acceso
                     </button>
                 </div>
             </div>
@@ -470,6 +470,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <script src="../access-control.js"></script>
     <script src="./login.js"></script>
 </body>
 </html>

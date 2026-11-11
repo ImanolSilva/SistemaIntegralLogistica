@@ -36,8 +36,6 @@
             box-shadow: 0 8px 28px rgba(0,0,0,0.3);
         }
         .user-card.status-aprobado { border-left-color: var(--rosa-principal); }
-        .user-card.status-pendiente { border-left-color: #FFB547; }
-        .user-card.status-rechazado { border-left-color: rgba(255,255,255,0.25); }
 
         .user-main-info { display: flex; align-items: center; gap: 1rem; min-width: 240px; }
         .user-avatar {
@@ -58,8 +56,6 @@
 
         .status-badge { font-weight: 700; padding: 0.22rem 0.75rem; border-radius: 50px; font-size: 0.76rem; text-transform: capitalize; }
         .status-badge.aprobado { background: rgba(230,0,126,0.18); color: #ff75b5; border: 1px solid rgba(230,0,126,0.35); }
-        .status-badge.pendiente { background: rgba(255,181,71,0.18); color: #FFB547; border: 1px solid rgba(255,181,71,0.35); }
-        .status-badge.rechazado { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.15); }
 
         .user-actions { text-align: right; }
         .actions-btn {
@@ -203,10 +199,7 @@
     <div id="bulk-actions-bar">
         <span><span id="selected-count">0</span> usuarios seleccionados</span>
         <select class="form-select" id="bulk-status-select">
-            <option value="">Estado</option>
-            <option value="aprobado">Aprobado</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="rechazado">Rechazado</option>
+            <option value="">Acceso automático</option>
         </select>
         <select class="form-select" id="bulk-role-select">
             <option value="">Rol</option>
@@ -239,8 +232,8 @@
                     <input type="hidden" id="edit-user-uid">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="modal-status-select" class="form-label fw-bold">Cambiar Estado</label>
-                            <select class="form-select" id="modal-status-select"></select>
+                            <label for="modal-status-select" class="form-label fw-bold">Acceso</label>
+                            <select class="form-select" id="modal-status-select" disabled></select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="modal-role-select" class="form-label fw-bold">Asignar Rol</label>
@@ -284,6 +277,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="../access-control.js"></script>
     <script src="admin.js" defer></script>
     <script>
         // Lógica de animación para el botón de hamburguesa del menú lateral

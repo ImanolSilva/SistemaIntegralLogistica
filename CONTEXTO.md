@@ -385,3 +385,13 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - Se corrigieron las referencias de `getJefeBodega` al bucket de `sistemaintegrall` y el error de construccion de `HttpsError`.
 - Las validaciones de JavaScript ejecutadas en esta actualizacion: `Dashboard/app.js`, `SKU/app.js`, `_archivado/Rechazos/main.js` y `access-control.js` pasaron `node --check`.
 - Las reglas se desplegaron correctamente el 2026-11-11 en `sistemaintegrall` con `firebase deploy --only firestore:rules,storage`. El release activo protege Firestore y Storage con las reglas versionadas en este repositorio.
+
+### Actualizacion de acceso automatico 2026-11-11
+
+- Se elimino del flujo de Login la aprobacion manual por administrador. Ya no se redirige a `Pendientes` ni se solicitan aprobaciones por correo.
+- `access-control.js` centraliza la politica de correo: se permiten todas las cuentas `@liverpool.com.mx` y las cuentas administrativas autorizadas `fernandosilva130501@gmail.com` e `imailin14022002@gmail.com`.
+- Los perfiles nuevos se crean con `status: aprobado` y los perfiles historicos que tenian `pendiente` o `rechazado` se normalizan a acceso activo al iniciar sesion, siempre que el correo cumpla la politica.
+- `Adminroles` queda exclusivamente para asignar rol, tienda, departamento y jefe. Se quitaron las acciones de aprobar/rechazar y los estados pendientes del flujo visible.
+- La validacion de administrador de `Adminroles` usa `isSystemAdmin()` mediante Custom Claim o la coleccion `admins`, no una lista de UIDs en el cliente.
+- `Administrar roles` se agrego al menu comun de todos los modulos para mantener la navegacion unificada; el modulo conserva su proteccion administrativa.
+- Login y registro ahora muestran acceso corporativo automatico y activacion inmediata del perfil.
