@@ -420,3 +420,5 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - El Dashboard reconoce `Cant. Manf.`, `Cant. Registrada`, `Diferencia` y `Status`. Cada fila se clasifica en cuatro conceptos: `Faltante`, `Sobrante`, `Adicional` o `Correcto`.
 - `Adicional` se identifica por el estado correspondiente o por mercancía registrada sin cantidad manifestada; `Faltante` y `Sobrante` se determinan por la diferencia; `Correcto` corresponde a diferencia cero.
 - Se agregó una franja visible de resultados VCM con los cuatro conceptos para que el análisis sea entendible para jefes y gerencias.
+- Se corrigió el enriquecimiento del Dashboard: el catálogo de `Complementos/Jefatura.json` se combina con `datosMaestros/secciones` sin perder datos, y las secciones del Excel VCM ahora resuelven correctamente su jefatura, departamento, gerente y asistente.
+- El catálogo de 182 secciones se cargó en Firebase en `datosMaestros/secciones`. El filtro visual se etiqueta como `Jefatura` y se alimenta con los jefes resueltos desde ese catálogo.

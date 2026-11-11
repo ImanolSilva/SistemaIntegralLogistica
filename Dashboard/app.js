@@ -108,6 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if ($('uploadModal')) State.uploadModal = new bootstrap.Modal($('uploadModal'));
     if ($('datosModal'))  State.datosModal  = new bootstrap.Modal($('datosModal'));
+    const jefeFilterLabel = document.querySelector('label[for="filter-jefatura"]');
+    if (jefeFilterLabel) jefeFilterLabel.innerHTML = '<i class="bi bi-person-badge"></i> Jefatura';
 
     if (window.Chart) {
         Chart.defaults.font.family = "'Inter', sans-serif";
@@ -162,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadJefaturaComplemento();
             const doc = await db.collection(DATOS_COLL).doc(DATOS_DOC).get();
             if (doc.exists && doc.data().sections) {
-                State.masterMap = fixDeep(doc.data().sections);
+                State.masterMap = mergeMasterMaps(State.masterMap, fixDeep(doc.data().sections));
                 const fecha = toDate(doc.data().uploadedAt);
                 setDatosStatus(Object.keys(State.masterMap).length, fecha ? fmtDate(fecha) : '—');
             } else {
@@ -181,8 +183,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const key = String(sec.seccion ?? '').trim();
                 if (key) sections[key] = { Descripcion: sec.departamento || '', Jefatura: jefe.jefe || 'Sin jefatura', Gerente: sec.gerencia || '', Asistente: sec.asistente || '', Bodega: '' };
             }));
-            if (Object.keys(sections).length && !Object.keys(State.masterMap).length) State.masterMap = sections;
+            if (Object.keys(sections).length) State.masterMap = mergeMasterMaps(State.masterMap, sections);
         } catch (error) { console.warn('No se pudo cargar Complementos/Jefatura.json', error); }
+    }
+
+    function mergeMasterMaps(base, incoming) {
+        const result = { ...(base || {}) };
+        Object.entries(incoming || {}).forEach(([key, value]) => {
+            const current = result[key] || {};
+            const clean = Object.fromEntries(Object.entries(value || {}).filter(([, v]) => v !== null && v !== undefined && String(v).trim() !== ''));
+            result[key] = { ...current, ...clean };
+        });
+        return result;
     }
 
     function setDatosStatus(count, when) {
