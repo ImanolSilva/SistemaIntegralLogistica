@@ -492,14 +492,14 @@ function renderAuditores() {
     sortBy(auds, State.aud.sortKey === 'loc' ? 'locSort' : State.aud.sortKey, State.aud.sortDir);
     $('aud-count').textContent = `${fmt(auds.length)} auditores con actividad`;
     $('tbody-auditores').innerHTML = auds.map((a, i) => `<tr>
-            <td><span class="db-area-rank" style="width:26px;height:26px;font-size:.7rem">${i + 1}</span></td>
-            <td><strong>${esc(a.name)}</strong></td>
-            <td class="num">${fmt(a.total)}</td>
-            <td class="num" style="color:var(--ok);font-weight:700">${fmt(a.buen)}</td>
-            <td class="num ${a.mal ? 'sobr' : 'zero'}">${fmt(a.mal)}</td>
-            <td class="num ${a.no ? 'falt' : 'zero'}">${fmt(a.no)}</td>
-            <td class="num">${fmt(a.piezas)}</td>
-            <td class="num">${a.loc == null ? '—' : `<span class="badge-pct ${toneOf(a.loc)}">${pctTxt(a.loc)}</span>`}</td>
+            <td data-label="#"><span class="db-area-rank" style="width:26px;height:26px;font-size:.7rem">${i + 1}</span></td>
+            <td data-label="Auditor"><strong>${esc(a.name)}</strong></td>
+            <td data-label="Revisados" class="num">${fmt(a.total)}</td>
+            <td data-label="Buen estado" class="num" style="color:var(--ok);font-weight:700">${fmt(a.buen)}</td>
+            <td data-label="Mal estado" class="num ${a.mal ? 'sobr' : 'zero'}">${fmt(a.mal)}</td>
+            <td data-label="No encontradas" class="num ${a.no ? 'falt' : 'zero'}">${fmt(a.no)}</td>
+            <td data-label="Piezas" class="num">${fmt(a.piezas)}</td>
+            <td data-label="Localización" class="num">${a.loc == null ? '—' : `<span class="badge-pct ${toneOf(a.loc)}">${pctTxt(a.loc)}</span>`}</td>
         </tr>`).join('') || '<tr><td colspan="8" class="empty">Aún no hay auditores con estados capturados</td></tr>';
     markSort('table-auditores', State.aud);
 }
