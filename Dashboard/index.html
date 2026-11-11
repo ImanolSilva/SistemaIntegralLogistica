@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard · Sistema Liverpool</title>
+    <title>Dashboard de Resultados · Sistema Liverpool</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
@@ -34,7 +34,7 @@
     </div>
 </header>
 
-<!-- Offcanvas menu -->
+<!-- Offcanvas menu (shared-ui.js reemplaza los enlaces) -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralLabel">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title fw-bold" id="menuLateralLabel">Menú Principal</h5>
@@ -44,410 +44,326 @@
         <nav class="nav flex-column">
             <a class="nav-link" href="../index.html"><i class="bi bi-house-fill me-2"></i>Inicio</a>
             <a class="nav-link active" href="../Dashboard/index.html"><i class="bi bi-bar-chart-fill me-2"></i>Dashboard</a>
-            <a class="nav-link" href="../SKU/index.html"><i class="bi bi-upc-scan me-2"></i>Buscador SKU</a>
-            <a class="nav-link" href="../Recibos/index.html"><i class="bi bi-box-arrow-in-down-right me-2"></i>Área de Recibos</a>
-            <a class="nav-link" href="../Manifiestos/Manifiestos.html"><i class="bi bi-file-earmark-text-fill me-2"></i>Manifiestos</a>
-            <a class="nav-link" href="../_archivado/Inventarios/Inventarios.html"><i class="bi bi-boxes me-2"></i>Inventarios</a>
-            <a class="nav-link" href="../_archivado/Bodegas/index.html"><i class="bi bi-building me-2"></i>Bodegas</a>
-            <a class="nav-link" href="../_archivado/Rechazos/reportes.html"><i class="bi bi-file-earmark-medical-fill me-2"></i>Rechazos</a>
-            <a class="nav-link" href="../_archivado/Reportes/resumenSemanal.html"><i class="bi bi-graph-up-arrow me-2"></i>Reportes semanales</a>
-            <a class="nav-link" href="../_archivado/Pendientes/pending.html"><i class="bi bi-hourglass-split me-2"></i>Pendientes</a>
-            <a class="nav-link" href="../_archivado/Kanban/index.html"><i class="bi bi-kanban-fill me-2"></i>Kanban</a>
-            <a class="nav-link" href="../_archivado/Configuraciones/Configuracion.html"><i class="bi bi-gear-fill me-2"></i>Configuración</a>
             <a class="nav-link" id="adminTab" href="../Adminroles/admin.html" style="display:none;"><i class="bi bi-person-fill-gear me-2"></i>Administrar Roles</a>
         </nav>
     </div>
 </div>
 
-<!-- Main -->
-<main class="main-container">
+<main class="db-main">
 
-    <div id="auth-guard" style="display:none" class="empty-state">
+    <div id="auth-guard" style="display:none" class="db-empty">
         <i class="bi bi-lock-fill"></i>
+        <h3>Acceso restringido</h3>
         <p>Debes iniciar sesión para ver este módulo.</p>
-        <a href="../Login/login.html" class="btn-primary-rosa mt-2" style="text-decoration:none">Ir al Login</a>
+        <a href="../Login/login.html" class="db-btn db-btn-primary">Ir al Login</a>
     </div>
 
     <div id="dashboard-content" style="display:none">
 
-        <!-- Welcome Banner -->
-        <div class="welcome-banner" id="welcome-banner">
-            <div class="welcome-content">
-                <div class="welcome-greeting" id="welcome-greeting">Bienvenido</div>
-                <div class="dashboard-purpose"><i class="bi bi-clipboard2-pulse"></i> Centro ejecutivo de resultados manifestados</div>
-                <div class="welcome-subtitle">Panel de operaciones · Liverpool</div>
-                <div class="welcome-stats">
-                    <div class="welcome-stat">
-                        <span class="welcome-stat-value" id="wb-manifiestos">—</span>
-                        <span class="welcome-stat-label">Reportes</span>
-                    </div>
-                    <div class="welcome-stat-sep"></div>
-                    <div class="welcome-stat">
-                        <span class="welcome-stat-value" id="wb-jefaturas">—</span>
-                        <span class="welcome-stat-label">Áreas</span>
-                    </div>
-                    <div class="welcome-stat-sep"></div>
-                    <div class="welcome-stat">
-                        <span class="welcome-stat-value" id="wb-cerrados">—</span>
-                        <span class="welcome-stat-label">Cerrados</span>
-                    </div>
-                    <div class="welcome-stat-sep"></div>
-                    <div class="welcome-stat">
-                        <span class="welcome-stat-value" id="wb-fecha">—</span>
-                        <span class="welcome-stat-label">Actualizado</span>
-                    </div>
+        <!-- ═══ HERO ═══ -->
+        <section class="db-hero">
+            <div class="db-hero-main">
+                <div class="db-hero-eyebrow"><i class="bi bi-clipboard2-pulse"></i> Centro ejecutivo de resultados manifestados</div>
+                <h2 class="db-hero-title" id="welcome-greeting">Bienvenido</h2>
+                <p class="db-hero-scope" id="hero-scope">Cargando información…</p>
+                <div class="db-hero-chips">
+                    <div class="db-hero-chip"><span id="wb-manifiestos">—</span><small>Reportes</small></div>
+                    <div class="db-hero-chip"><span id="wb-jefaturas">—</span><small>Áreas</small></div>
+                    <div class="db-hero-chip"><span id="wb-secciones">—</span><small>Secciones</small></div>
+                    <div class="db-hero-chip"><span id="wb-contenedores">—</span><small>Contenedores</small></div>
                 </div>
+                <div class="db-hero-update"><i class="bi bi-clock-history"></i> <span id="wb-fecha">Sin información de carga</span></div>
             </div>
-            <div class="welcome-illustration"><i class="bi bi-graph-up-arrow"></i></div>
-        </div>
-
-        <!-- Admin Panel (solo admins — se muestra desde JS) -->
-        <div id="admin-panel" class="admin-panel">
-
-            <!-- Header colapsable -->
-            <div class="admin-panel-header" id="admin-panel-toggle">
-                <div class="admin-panel-title">
-                    <i class="bi bi-shield-lock-fill" style="color:var(--rosa)"></i>
-                    <span>Panel de Administración</span>
-                    <span class="admin-badge">Admin</span>
+            <div class="db-hero-gauge">
+                <svg viewBox="0 0 120 120" class="db-gauge" aria-hidden="true">
+                    <circle cx="60" cy="60" r="50" class="db-gauge-track"/>
+                    <circle cx="60" cy="60" r="50" class="db-gauge-fill" id="gauge-fill"/>
+                    <line x1="60" y1="6" x2="60" y2="16" class="db-gauge-meta" id="gauge-meta"/>
+                </svg>
+                <div class="db-gauge-center">
+                    <span class="db-gauge-value" id="gauge-value">—</span>
+                    <span class="db-gauge-label">Exactitud</span>
                 </div>
-                <i class="bi bi-chevron-up admin-chevron" id="admin-chevron"></i>
+                <div class="db-gauge-status" id="gauge-status">—</div>
+                <div class="db-gauge-meta-text">Meta <strong>95%</strong> · <span id="gauge-gap">—</span></div>
             </div>
+        </section>
 
-            <!-- Cuerpo colapsable -->
-            <div id="admin-panel-body">
-
-                <!-- Datos Maestros strip -->
-                <div class="datos-maestros-row" style="margin-top:0.85rem">
-                    <div class="datos-info">
-                        <i class="bi bi-database-fill-gear" style="color:var(--rosa);font-size:1rem"></i>
-                        <div>
-                            <div class="datos-title">Datos Maestros</div>
-                            <div class="datos-status" id="datos-status">Sin cargar</div>
+        <!-- ═══ ADMIN ═══ -->
+        <section id="admin-panel" class="db-panel db-admin" style="display:none">
+            <button class="db-admin-head" id="admin-panel-toggle" type="button">
+                <span class="db-admin-title"><i class="bi bi-shield-lock-fill"></i> Panel de administración <span class="db-tag">Admin</span></span>
+                <span class="db-admin-summary" id="admin-summary">—</span>
+                <i class="bi bi-chevron-down db-chevron" id="admin-chevron"></i>
+            </button>
+            <div id="admin-panel-body" class="db-admin-body" style="display:none">
+                <div class="db-admin-grid">
+                    <div class="db-admin-box">
+                        <div class="db-admin-box-head">
+                            <div>
+                                <div class="db-admin-box-title"><i class="bi bi-database-fill-gear"></i> Datos Maestros</div>
+                                <div class="db-admin-box-sub" id="datos-status">Sin cargar</div>
+                            </div>
+                            <button class="db-btn db-btn-ghost" id="btn-datos-upload"><i class="bi bi-arrow-repeat"></i> Actualizar</button>
+                        </div>
+                        <p class="db-admin-help">Relaciona cada sección con su área (jefatura), gerente y bodega. Si una sección no está aquí, aparece como <em>Sin área asignada</em>.</p>
+                    </div>
+                    <div class="db-admin-box">
+                        <div class="db-admin-box-head">
+                            <div>
+                                <div class="db-admin-box-title"><i class="bi bi-cloud-upload-fill"></i> Archivos de resultados <span class="db-count" id="tab-count-avance">0</span></div>
+                                <div class="db-admin-box-sub">Subir un manifiesto existente reemplaza su versión anterior.</div>
+                            </div>
+                            <button class="db-btn db-btn-primary" id="btn-upload-open"><i class="bi bi-plus-lg"></i> Subir resultados</button>
+                        </div>
+                        <div id="manifests-admin-list" class="db-file-list">
+                            <div class="db-file-empty">No hay reportes cargados aún.</div>
                         </div>
                     </div>
-                    <button class="btn-datos" id="btn-datos-upload">
-                        <i class="bi bi-arrow-repeat"></i> Actualizar
-                    </button>
                 </div>
+            </div>
+        </section>
 
-                <div class="admin-divider"></div>
-
-                <!-- Tabs -->
-                <div class="admin-tabs">
-                    <button class="admin-tab active" data-tab="avance">
-                        <i class="bi bi-cloud-upload-fill"></i> Resultados manifestados
-                        <span class="tab-count" id="tab-count-avance">0</span>
-                    </button>
-                    <button class="admin-tab" data-tab="cerrado">
-                        <i class="bi bi-archive-fill"></i> Manifiestos Cerrados
-                        <span class="tab-count" id="tab-count-cerrado">0</span>
-                    </button>
-                </div>
-
-                <!-- Tab: Avance -->
-                <div class="admin-tab-panel" id="tab-panel-avance">
-                    <div class="panel-header mt-2">
-                        <h2 style="color:var(--txt2);font-size:0.8rem"><i class="bi bi-clipboard2-data" style="color:var(--rosa)"></i> Archivos de resultados</h2>
-                        <button class="btn-primary-rosa" id="btn-upload-open">
-                            <i class="bi bi-plus-circle-fill"></i> Subir resultados
-                        </button>
-                    </div>
-                    <div id="manifests-admin-list" class="manifests-list mt-2">
-                        <div class="no-manifests">No hay reportes cargados aún.</div>
-                    </div>
-                </div>
-
-                <!-- Tab: Cerrado -->
-                <div class="admin-tab-panel" id="tab-panel-cerrado" style="display:none">
-                    <div class="panel-header mt-2">
-                        <h2 style="color:var(--txt2);font-size:0.8rem"><i class="bi bi-archive-fill" style="color:var(--verde)"></i> Manifiestos cerrados</h2>
-                        <button class="btn-cerrado" id="btn-cerrado-open">
-                            <i class="bi bi-plus-circle-fill"></i> Subir Cerrado
-                        </button>
-                    </div>
-                    <div id="cerrados-admin-list" class="manifests-list mt-2">
-                        <div class="no-manifests">No hay manifiestos cerrados cargados aún.</div>
-                    </div>
-                </div>
-
-            </div><!-- /admin-panel-body -->
-        </div>
-
-        <!-- Filters -->
-        <div class="filters-bar">
-            <div class="filter-group">
-                <label><i class="bi bi-file-earmark-text"></i> Reporte</label>
+        <!-- ═══ FILTROS ═══ -->
+        <section class="db-filters" id="filters-bar">
+            <div class="db-filter">
+                <label for="filter-manifiesto"><i class="bi bi-file-earmark-text"></i> Reporte</label>
                 <select id="filter-manifiesto"><option value="">Todos los reportes</option></select>
             </div>
-            <div class="filter-group">
-                <label><i class="bi bi-person-badge"></i> Área</label>
+            <div class="db-filter">
+                <label for="filter-jefatura"><i class="bi bi-person-badge"></i> Área</label>
                 <select id="filter-jefatura"><option value="">Todas las áreas</option></select>
             </div>
-            <div class="filter-group">
-                <label><i class="bi bi-grid-3x3-gap"></i> Sección</label>
+            <div class="db-filter">
+                <label for="filter-seccion"><i class="bi bi-grid-3x3-gap"></i> Sección</label>
                 <select id="filter-seccion"><option value="">Todas las secciones</option></select>
             </div>
-            <button class="btn-reset-filters" id="btn-reset-filters">
-                <i class="bi bi-arrow-counterclockwise"></i> Limpiar
-            </button>
-        </div>
+            <div class="db-filter-actions">
+                <button class="db-btn db-btn-ghost" id="btn-reset-filters" type="button"><i class="bi bi-arrow-counterclockwise"></i> Limpiar</button>
+                <button class="db-btn db-btn-dark" id="btn-export" type="button"><i class="bi bi-file-earmark-excel"></i> Exportar</button>
+            </div>
+            <div class="db-filter-active" id="filter-active"></div>
+        </section>
 
-        <!-- No data -->
-        <div id="no-data-state" class="empty-state" style="display:none">
+        <!-- Sin datos -->
+        <div id="no-data-state" class="db-empty" style="display:none">
             <i class="bi bi-cloud-upload"></i>
-            <p>No hay reportes cargados.<br>Un administrador debe subir el primer archivo Excel.</p>
+            <h3>Aún no hay resultados</h3>
+            <p>Un administrador debe subir el primer archivo Excel de resultados manifestados.</p>
         </div>
 
-        <!-- Data content -->
         <div id="data-content" style="display:none">
 
-            <!-- KPIs — 4 cards estilo innap con gradiente sólido -->
-            <div class="kpi-grid mb-4">
-                <div class="kpi-card rosa">
-                    <div>
-                        <div class="kpi-value" id="kpi-piezas">—</div>
-                        <div class="kpi-label">Artículos manifestados</div>
+            <!-- ═══ KPIs ═══ -->
+            <section class="db-kpis">
+                <article class="db-kpi" data-tone="rosa">
+                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-box-seam"></i></span><span class="db-kpi-label">Piezas manifestadas</span></div>
+                    <div class="db-kpi-value" id="kpi-piezas">—</div>
+                    <div class="db-kpi-sub" id="kpi-piezas-sub">—</div>
+                </article>
+                <article class="db-kpi" data-tone="verde">
+                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-check2-all"></i></span><span class="db-kpi-label">Piezas recibidas</span></div>
+                    <div class="db-kpi-value" id="kpi-recibidas">—</div>
+                    <div class="db-kpi-sub" id="kpi-recibidas-sub">—</div>
+                </article>
+                <article class="db-kpi" data-tone="rojo">
+                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-dash-circle"></i></span><span class="db-kpi-label">Faltantes</span></div>
+                    <div class="db-kpi-value" id="kpi-faltantes">—</div>
+                    <div class="db-kpi-sub" id="kpi-faltantes-sub">—</div>
+                </article>
+                <article class="db-kpi" data-tone="ambar">
+                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-plus-circle"></i></span><span class="db-kpi-label">Sobrantes</span></div>
+                    <div class="db-kpi-value" id="kpi-sobrantes">—</div>
+                    <div class="db-kpi-sub" id="kpi-sobrantes-sub">—</div>
+                </article>
+                <article class="db-kpi" data-tone="vino">
+                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-bullseye"></i></span><span class="db-kpi-label">Exactitud</span></div>
+                    <div class="db-kpi-value" id="kpi-cumplimiento">—</div>
+                    <div class="db-kpi-bar"><span id="kpi-progress-bar"></span><i class="db-kpi-bar-meta" title="Meta 95%"></i></div>
+                    <div class="db-kpi-sub" id="kpi-cumplimiento-sub">—</div>
+                </article>
+                <article class="db-kpi" data-tone="azul">
+                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-boxes"></i></span><span class="db-kpi-label">Contenedores sin diferencia</span></div>
+                    <div class="db-kpi-value" id="kpi-cont-ok">—</div>
+                    <div class="db-kpi-sub" id="kpi-cont-ok-sub">—</div>
+                </article>
+            </section>
+
+            <!-- ═══ HALLAZGOS + SEMÁFORO ═══ -->
+            <section class="db-grid db-grid-insights">
+                <div class="db-panel">
+                    <div class="db-panel-head">
+                        <h3><i class="bi bi-lightbulb-fill"></i> Hallazgos clave</h3>
+                        <span class="db-panel-hint">Se generan automáticamente con los filtros actuales</span>
                     </div>
-                    <div class="kpi-trend" id="kpi-trend-piezas"></div>
-                    <i class="bi bi-box-seam kpi-icon"></i>
+                    <ul class="db-insights" id="insights-list"></ul>
                 </div>
-                <div class="kpi-card rojo">
-                    <div>
-                        <div class="kpi-value" id="kpi-faltantes">—</div>
-                        <div class="kpi-label">Piezas faltantes</div>
+                <div class="db-panel">
+                    <div class="db-panel-head">
+                        <h3><i class="bi bi-traffic-light-fill"></i> Semáforo de áreas</h3>
                     </div>
-                    <div class="kpi-trend" id="kpi-trend-faltantes"></div>
-                    <i class="bi bi-dash-circle kpi-icon"></i>
+                    <div class="db-semaforo" id="semaforo">
+                        <div class="db-sem" data-tone="good"><span class="db-sem-dot"></span><div><strong id="sem-good">0</strong><small>En meta (≥ 95%)</small></div></div>
+                        <div class="db-sem" data-tone="warn"><span class="db-sem-dot"></span><div><strong id="sem-warn">0</strong><small>En atención (85–95%)</small></div></div>
+                        <div class="db-sem" data-tone="bad"><span class="db-sem-dot"></span><div><strong id="sem-bad">0</strong><small>Críticas (&lt; 85%)</small></div></div>
+                    </div>
+                    <div class="db-mini-split" id="split-bar" title="Composición de las diferencias"></div>
+                    <div class="db-mini-legend" id="split-legend"></div>
                 </div>
-                <div class="kpi-card amarillo">
-                    <div>
-                        <div class="kpi-value" id="kpi-sobrantes">—</div>
-                        <div class="kpi-label">Piezas sobrantes</div>
+            </section>
+
+            <!-- ═══ GRÁFICAS ═══ -->
+            <section class="db-grid db-grid-2">
+                <div class="db-panel">
+                    <div class="db-panel-head">
+                        <h3><i class="bi bi-bar-chart-steps"></i> Exactitud por área</h3>
+                        <span class="db-legend-inline"><i style="background:var(--ok)"></i>≥95 <i style="background:var(--warn)"></i>85–95 <i style="background:var(--bad)"></i>&lt;85 <i class="db-legend-line"></i>Meta</span>
                     </div>
-                    <div class="kpi-trend" id="kpi-trend-sobrantes"></div>
-                    <i class="bi bi-plus-circle kpi-icon"></i>
+                    <p class="db-panel-sub">Porcentaje de piezas manifestadas que sí llegaron. Haz clic en una barra para filtrar el área.</p>
+                    <div class="db-chart" id="wrap-jefatura"><canvas id="chart-jefatura"></canvas></div>
                 </div>
-                <div class="kpi-card verde">
-                    <div>
-                        <div class="kpi-value" id="kpi-cumplimiento">—</div>
-                        <div class="kpi-label">Exactitud de recepción</div>
+                <div class="db-panel">
+                    <div class="db-panel-head">
+                        <h3><i class="bi bi-pie-chart-fill"></i> Estado de contenedores</h3>
                     </div>
-                    <div class="kpi-progress-wrap"><div class="kpi-progress-bar" id="kpi-progress-bar"></div></div>
-                    <i class="bi bi-patch-check kpi-icon"></i>
+                    <p class="db-panel-sub">Cada contenedor se clasifica según sus diferencias.</p>
+                    <div class="db-donut-layout">
+                        <div class="db-donut">
+                            <canvas id="chart-estado"></canvas>
+                            <div class="db-donut-center"><strong id="donut-total">—</strong><small>contenedores</small></div>
+                        </div>
+                        <ul class="db-donut-legend" id="estado-legend"></ul>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Segunda fila: columna izquierda estrecha + columna derecha ancha -->
-            <div class="analytics-grid mb-4">
-
-                <!-- IZQUIERDA: Donut + Progress bars -->
-                <div class="left-col">
-
-                    <!-- Donut: exactitud global -->
-                    <div class="donut-card">
-                        <div class="chart-card-title mb-2" style="justify-content:center">
-                            <i class="bi bi-pie-chart-fill" style="color:var(--rosa)"></i>
-                            Distribución por sección
-                        </div>
-                        <div class="donut-wrapper">
-                            <canvas id="chart-seccion"></canvas>
-                            <div class="donut-center-label">
-                                <span class="donut-center-value" id="donut-pct">—</span>
-                                <span class="donut-center-sub">Exactitud</span>
-                            </div>
-                        </div>
+            <section class="db-grid db-grid-2">
+                <div class="db-panel">
+                    <div class="db-panel-head">
+                        <h3><i class="bi bi-arrow-left-right"></i> Faltantes y sobrantes por área</h3>
                     </div>
-
-                    <!-- Progress bars: áreas top -->
-                    <div class="progress-card">
-                        <div class="progress-card-title">Contenedores por estado</div>
-                        <div class="progress-row">
-                            <div class="progress-row-header">
-                                <span class="progress-row-label">Sin diferencias</span>
-                                <span class="progress-row-value" id="prog-val-ok">—</span>
-                            </div>
-                            <div class="progress-track"><div class="progress-fill verde" id="prog-ok"></div></div>
-                        </div>
-                        <div class="progress-row">
-                            <div class="progress-row-header">
-                                <span class="progress-row-label">Con faltantes</span>
-                                <span class="progress-row-value" id="prog-val-falt">—</span>
-                            </div>
-                            <div class="progress-track"><div class="progress-fill rosa" id="prog-falt"></div></div>
-                        </div>
-                        <div class="progress-row">
-                            <div class="progress-row-header">
-                                <span class="progress-row-label">Con sobrantes</span>
-                                <span class="progress-row-value" id="prog-val-sobr">—</span>
-                            </div>
-                            <div class="progress-track"><div class="progress-fill amarillo" id="prog-sobr"></div></div>
-                        </div>
-                        <div class="progress-legend">
-                            <div class="legend-item"><div class="legend-dot" style="background:var(--verde)"></div><span id="prog-count-ok">—</span></div>
-                            <div class="legend-item"><div class="legend-dot" style="background:var(--rosa)"></div><span id="prog-count-falt">—</span></div>
-                            <div class="legend-item"><div class="legend-dot" style="background:var(--amarillo)"></div><span id="prog-count-sobr">—</span></div>
-                        </div>
-                    </div>
-
+                    <p class="db-panel-sub">Piezas con diferencia en cada área, de mayor a menor.</p>
+                    <div class="db-chart" id="wrap-diferencias"><canvas id="chart-diferencias"></canvas></div>
                 </div>
-
-                <!-- DERECHA: Área chart grande + ranking -->
-                <div class="charts-right-col">
-
-                    <!-- Área chart: tendencia por reporte -->
-                    <div class="chart-card">
-                        <div class="chart-card-title" style="justify-content:space-between">
-                            <span style="display:flex;align-items:center;gap:0.4rem">
-                                <i class="bi bi-activity" style="color:var(--azul)"></i>
-                                Estadística de recepción
-                            </span>
-                            <span style="display:flex;gap:1rem;font-size:0.7rem;font-weight:500">
-                                <span><span id="stat-piezas-total" style="font-size:1.1rem;font-weight:800;color:var(--txt)">—</span> <span style="color:var(--txt3)">Piezas</span></span>
-                                <span><span id="stat-faltantes-total" style="font-size:1.1rem;font-weight:800;color:var(--rosa)">—</span> <span style="color:var(--txt3)">Faltantes</span></span>
-                            </span>
-                        </div>
-                        <p class="chart-subtitle">Piezas recibidas vs. faltantes por reporte — evolución histórica.</p>
-                        <div class="chart-wrapper" style="height:260px"><canvas id="chart-tendencia"></canvas></div>
+                <div class="db-panel">
+                    <div class="db-panel-head">
+                        <h3><i class="bi bi-exclamation-diamond-fill"></i> Secciones con más faltantes</h3>
                     </div>
-
-                    <!-- Ranking de áreas -->
-                    <div class="chart-card ranking-card">
-                        <div class="chart-card-title">
-                            <i class="bi bi-trophy-fill" style="color:#F59E0B"></i>
-                            Rendimiento por área
-                            <span style="margin-left:auto;display:flex;gap:0.5rem">
-                                <span class="badge-pct good">≥ 95%</span>
-                                <span class="badge-pct warn">≥ 85%</span>
-                                <span class="badge-pct bad">&lt; 85%</span>
-                            </span>
-                        </div>
-                        <div id="ranking-jefatura" class="ranking-grid mt-2"></div>
-                    </div>
-
+                    <p class="db-panel-sub">Las 10 secciones con más piezas faltantes y su peso en el total.</p>
+                    <div class="db-chart" id="wrap-secciones"><canvas id="chart-secciones"></canvas></div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Gráfica barras por área -->
-            <div class="chart-card mb-4">
-                <div class="chart-card-title">
-                    <i class="bi bi-bar-chart-horizontal-fill" style="color:var(--rosa)"></i>
-                    Exactitud por área
-                    <span class="chart-subtitle" style="margin:0;margin-left:0.5rem">— % del total esperado recibido</span>
+            <section class="db-panel">
+                <div class="db-panel-head">
+                    <h3><i class="bi bi-activity"></i> Comparativo por reporte</h3>
+                    <span class="db-panel-hint">Ordenado por fecha de carga</span>
                 </div>
-                <div class="chart-wrapper" style="height:280px"><canvas id="chart-jefatura"></canvas></div>
-            </div>
+                <p class="db-panel-sub">Piezas manifestadas, faltantes y exactitud de cada reporte cargado.</p>
+                <div class="db-chart db-chart-tall"><canvas id="chart-tendencia"></canvas></div>
+            </section>
 
-            <!-- Tabla por área -->
-            <div class="sec-label mb-2"><span>Detalle por área</span></div>
-            <div class="table-card mb-3">
-                <div class="table-responsive">
-                    <table class="dash-table">
+            <!-- ═══ TARJETAS POR ÁREA ═══ -->
+            <div class="db-section-title"><span>Desempeño por área</span><small>Haz clic en una tarjeta para ver solo esa área</small></div>
+            <section class="db-areas" id="ranking-jefatura"></section>
+
+            <!-- ═══ TABLA SECCIONES ═══ -->
+            <div class="db-section-title"><span>Detalle por sección</span><small id="sec-count">—</small></div>
+            <section class="db-panel db-panel-flush">
+                <div class="db-table-wrap">
+                    <table class="db-table" id="table-secciones">
                         <thead>
                             <tr>
-                                <th>Área / Jefatura</th>
-                                <th style="text-align:right">Piezas</th>
-                                <th style="text-align:right">Faltantes</th>
-                                <th style="text-align:right">Sobrantes</th>
-                                <th style="text-align:right">Exactitud</th>
+                                <th data-sort="seccion">Sección</th>
+                                <th data-sort="jefatura">Área</th>
+                                <th data-sort="contenedores" class="num">Contenedores</th>
+                                <th data-sort="pz" class="num">Piezas</th>
+                                <th data-sort="ft" class="num">Faltantes</th>
+                                <th data-sort="sb" class="num">Sobrantes</th>
+                                <th data-sort="pct" class="num">Exactitud</th>
+                                <th data-sort="share">Peso en faltantes</th>
                             </tr>
                         </thead>
-                        <tbody id="tbody-jefatura"></tbody>
+                        <tbody id="tbody-secciones"></tbody>
                     </table>
                 </div>
-            </div>
+            </section>
 
-            <!-- Tabla por contenedor (colapsable) -->
-            <div class="table-card mb-3">
-                <div class="table-card-header" id="toggle-contenedor">
-                    <h3><i class="bi bi-boxes" style="color:var(--azul)"></i> Detalle por contenedor</h3>
-                    <i class="bi bi-chevron-down collapse-icon" id="icon-contenedor"></i>
+            <!-- ═══ TABLA CONTENEDORES ═══ -->
+            <div class="db-section-title"><span>Detalle por contenedor</span><small id="cont-count">—</small></div>
+            <section class="db-panel db-panel-flush">
+                <div class="db-toolbar">
+                    <div class="db-search">
+                        <i class="bi bi-search"></i>
+                        <input type="search" id="cont-search" placeholder="Buscar contenedor, sección, área, artículo…">
+                    </div>
+                    <div class="db-chips" id="cont-status-chips">
+                        <button class="db-chip active" data-status="">Todos <span data-count="all">0</span></button>
+                        <button class="db-chip" data-status="falt">Con faltantes <span data-count="falt">0</span></button>
+                        <button class="db-chip" data-status="sobr">Con sobrantes <span data-count="sobr">0</span></button>
+                        <button class="db-chip" data-status="mixto">Mixtos <span data-count="mixto">0</span></button>
+                        <button class="db-chip" data-status="ok">Sin diferencia <span data-count="ok">0</span></button>
+                    </div>
                 </div>
-                <div id="panel-contenedor">
-                    <div class="table-responsive">
-                        <table class="dash-table">
+                <div class="db-table-wrap">
+                    <table class="db-table" id="table-contenedores">
+                        <thead>
+                            <tr>
+                                <th data-sort="contenedor">Contenedor</th>
+                                <th data-sort="manifiesto">Reporte</th>
+                                <th data-sort="seccion">Sección</th>
+                                <th data-sort="jefatura">Área</th>
+                                <th data-sort="lineas" class="num">Líneas</th>
+                                <th data-sort="pz" class="num">Piezas</th>
+                                <th data-sort="ft" class="num">Faltantes</th>
+                                <th data-sort="sb" class="num">Sobrantes</th>
+                                <th data-sort="pct" class="num">Exactitud</th>
+                                <th data-sort="estado">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-contenedor"></tbody>
+                    </table>
+                </div>
+                <div class="db-pager" id="cont-pager"></div>
+            </section>
+
+            <!-- ═══ ARTÍCULOS ═══ -->
+            <div id="articulos-block" style="display:none">
+                <div class="db-section-title"><span>Artículos con más diferencias</span><small>Top 15 por piezas con diferencia</small></div>
+                <section class="db-panel db-panel-flush">
+                    <div class="db-table-wrap">
+                        <table class="db-table">
                             <thead>
                                 <tr>
-                                    <th>Contenedor</th>
-                                    <th>Reporte</th>
-                                    <th>Sección</th>
+                                    <th>Artículo</th>
+                                    <th>Descripción</th>
                                     <th>Área</th>
-                                    <th style="text-align:right">Piezas</th>
-                                    <th style="text-align:right">Faltantes</th>
-                                    <th style="text-align:right">Sobrantes</th>
-                                    <th style="text-align:right">Exactitud</th>
+                                    <th class="num">Contenedores</th>
+                                    <th class="num">Piezas</th>
+                                    <th class="num">Faltantes</th>
+                                    <th class="num">Sobrantes</th>
+                                    <th class="num">Exactitud</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbody-contenedor"></tbody>
+                            <tbody id="tbody-articulos"></tbody>
                         </table>
                     </div>
-                </div>
+                </section>
             </div>
 
-            <!-- Tabla Manifiesto Cerrado (colapsable) -->
-            <div class="sec-label mb-2"><span>Manifiestos cerrados</span></div>
-            <div class="table-card mb-3">
-                <div class="table-card-header" id="toggle-cerrado">
-                    <h3><i class="bi bi-archive-fill" style="color:var(--verde)"></i> Detalle de manifiestos cerrados</h3>
-                    <i class="bi bi-chevron-down collapse-icon" id="icon-cerrado"></i>
-                </div>
-                <div id="panel-cerrado" style="display:none">
-                    <div id="no-cerrado-state" class="empty-state" style="padding:2rem">
-                        <i class="bi bi-archive" style="font-size:1.8rem"></i>
-                        <p>No hay manifiestos cerrados cargados aún.</p>
-                    </div>
-                    <div id="cerrado-content" style="display:none">
-
-                        <!-- Explicación para usuarios no técnicos -->
-                        <div class="cerrado-explain" id="cerrado-explain-panel">
-                            <button class="cerrado-explain-toggle" id="cerrado-explain-toggle">
-                                <i class="bi bi-info-circle-fill"></i>
-                                ¿Cómo interpretar esta tabla?
-                                <i class="bi bi-chevron-down cex-chevron"></i>
-                            </button>
-                            <div class="cerrado-explain-body" id="cerrado-explain-body">
-                                <p>Un <strong>Manifiesto Cerrado</strong> es el registro oficial que confirma qué artículos debieron llegar en cada contenedor y cuántos se recibieron realmente.</p>
-                                <p>Esta tabla compara tres fuentes de información:</p>
-                                <ul>
-                                    <li><strong>Datos Maestros</strong> — define a qué Jefatura pertenece cada Sección.</li>
-                                    <li><strong>Reporte de Avance</strong> — dice cuántas piezas se escanearon y cuántas faltan en bodega.</li>
-                                    <li><strong>Manifiesto Cerrado</strong> — dice cuántas piezas venían en el manifiesto original vs. las registradas.</li>
-                                </ul>
-                                <p style="margin-top:0.5rem"><strong>Encabezados por manifiesto:</strong></p>
-                                <ul>
-                                    <li><span class="cex-pill cex-green">Avance 3/3 (100%)</span> — todos los contenedores tienen registro en el Reporte de Avance.</li>
-                                    <li><span class="cex-pill cex-amber">Avance 1/3 (33%)</span> — solo algunos contenedores aparecen en el Reporte de Avance; los demás aún no se han escaneado.</li>
-                                    <li><span class="cex-pill cex-red">Avance 0/3 (0%)</span> — ningún contenedor de este manifiesto aparece en el Reporte de Avance.</li>
-                                    <li><span class="cex-pill cex-green">Jefatura 100%</span> — todas las secciones tienen jefatura asignada en Datos Maestros.</li>
-                                </ul>
-                                <p style="margin-top:0.5rem"><strong>Columna "Match Avance":</strong> muestra el total de piezas y faltantes del Reporte de Avance para ese contenedor. Si dice <em>Sin avance</em>, el contenedor no está registrado en el reporte de bodega todavía.</p>
-                                <p style="margin-top:0.5rem"><strong>Columna "Diferencia":</strong> si es negativa <span style="color:#F87171">(−)</span> hay faltantes; si es positiva <span style="color:#FCD34D">(+)</span> hay sobrantes; si es cero, el conteo es exacto.</p>
-                            </div>
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="dash-table">
-                                <thead>
-                                    <tr>
-                                        <th>Contenedor</th>
-                                        <th>Manifiesto</th>
-                                        <th>Sección</th>
-                                        <th>Área</th>
-                                        <th>Artículo</th>
-                                        <th>Cód. UPC</th>
-                                        <th style="text-align:right">Cant. Manif.</th>
-                                        <th style="text-align:right">Cant. Registr.</th>
-                                        <th style="text-align:right">Diferencia</th>
-                                        <th>Estatus</th>
-                                        <th>Match Avance</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-cerrado"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- ═══ GLOSARIO ═══ -->
+            <details class="db-panel db-glossary">
+                <summary><i class="bi bi-info-circle-fill"></i> ¿Cómo se calculan los indicadores?</summary>
+                <dl>
+                    <div><dt>Piezas manifestadas</dt><dd>Total de piezas que el manifiesto indica que debían llegar.</dd></div>
+                    <div><dt>Piezas recibidas</dt><dd>Piezas manifestadas menos faltantes: lo que sí llegó de lo esperado.</dd></div>
+                    <div><dt>Faltantes</dt><dd>Piezas manifestadas que no se encontraron al recibir.</dd></div>
+                    <div><dt>Sobrantes</dt><dd>Piezas que llegaron de más o que no venían en el manifiesto.</dd></div>
+                    <div><dt>Exactitud</dt><dd>(Piezas − Faltantes) ÷ Piezas. La meta es 95%; entre 85% y 95% requiere atención y menos de 85% es crítico.</dd></div>
+                    <div><dt>Estado de contenedor</dt><dd><b>Sin diferencia</b>: ni faltantes ni sobrantes. <b>Con faltantes</b> / <b>Con sobrantes</b>: solo un tipo de diferencia. <b>Mixto</b>: ambos.</dd></div>
+                    <div><dt>Sin área asignada</dt><dd>Secciones que no existen en Datos Maestros. Actualízalos para asignarles jefatura.</dd></div>
+                </dl>
+            </details>
 
         </div><!-- /data-content -->
     </div><!-- /dashboard-content -->
@@ -458,155 +374,70 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-database-fill me-2" style="color:var(--rosa)"></i>Actualizar Datos Maestros</h5>
+                <h5 class="modal-title"><i class="bi bi-database-fill me-2"></i>Actualizar Datos Maestros</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p style="font-size:0.8rem;color:var(--txt2);margin-bottom:0.85rem">
-                    Archivo <strong>Datos.xlsx</strong> con columnas: <strong>Sección, Descripcion, Jefatura, Gerente, Bodega</strong>.
-                </p>
+                <p class="db-modal-help">Archivo <strong>Datos.xlsx</strong> con columnas: <strong>Sección, Descripcion, Jefatura, Gerente, Bodega</strong>.</p>
                 <div class="drop-zone" id="datos-drop-zone" onclick="document.getElementById('datos-file-input').click()">
                     <i class="bi bi-file-earmark-excel"></i>
                     <strong>Haz clic o arrastra aquí</strong>
-                    <span style="font-size:0.76rem">.xlsx / .xls</span>
+                    <span>.xlsx / .xls</span>
                 </div>
                 <input type="file" id="datos-file-input" accept=".xlsx,.xls" style="display:none">
-                <div id="datos-preview" class="mt-3" style="display:none">
-                    <div class="preview-row">
-                        <span class="preview-label">Secciones</span>
-                        <span class="preview-value" id="datos-prev-count">—</span>
-                    </div>
-                    <div class="preview-row" style="border-bottom:none">
-                        <span class="preview-label">Archivo</span>
-                        <span class="preview-value" id="datos-prev-file">—</span>
-                    </div>
+                <div id="datos-preview" class="db-preview" style="display:none">
+                    <div class="preview-row"><span class="preview-label">Secciones</span><span class="preview-value" id="datos-prev-count">—</span></div>
+                    <div class="preview-row"><span class="preview-label">Archivo</span><span class="preview-value" id="datos-prev-file">—</span></div>
                 </div>
-                <div id="datos-error" style="display:none">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                    <span id="datos-error-msg"></span>
+                <div id="datos-error" class="db-error" style="display:none">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i><span id="datos-error-msg"></span>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary-outline" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn-primary-rosa" id="btn-datos-confirm" disabled>
-                    <i class="bi bi-database-fill-up"></i> Guardar
-                </button>
+                <button type="button" class="db-btn db-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="db-btn db-btn-primary" id="btn-datos-confirm" disabled><i class="bi bi-database-fill-up"></i> Guardar</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal: Subir Reporte de Avance -->
+<!-- Modal: Subir resultados -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-clipboard2-data me-2" style="color:var(--rosa)"></i>Cargar resultados manifestados</h5>
+                <h5 class="modal-title"><i class="bi bi-clipboard2-data me-2"></i>Cargar resultados manifestados</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p style="font-size:0.8rem;color:var(--txt2);margin-bottom:0.85rem">
-                    El sistema detecta automáticamente columnas como <strong>Jefe, Jefatura, Sección, Artículo, Piezas, Manifestados, Faltantes, Sobrantes y Manifiesto</strong>. Si alguna no existe, se mostrará como pendiente para completar el análisis.
-                    Manifiesto: código de <strong>10 dígitos</strong>.
-                </p>
+                <p class="db-modal-help">El sistema detecta columnas como <strong>Manifiesto, Jefatura, Sección, Contenedor, Artículo, Descripción, Piezas, Faltantes y Sobrantes</strong>. Manifiesto: código de <strong>10 dígitos</strong>.</p>
                 <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
                     <i class="bi bi-file-earmark-excel"></i>
                     <strong>Haz clic o arrastra aquí</strong>
-                    <span style="font-size:0.76rem">.xlsx / .xls</span>
+                    <span>.xlsx / .xls</span>
                 </div>
                 <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none">
-                <div id="filePreview" class="mt-3" style="display:none">
+                <div id="filePreview" class="db-preview" style="display:none">
                     <div class="preview-row">
                         <span class="preview-label">Manifiesto(s)</span>
-                        <span class="preview-value" id="prev-manifest-id">—</span>
-                        <span id="prev-multi-tag" class="multi-tag" style="display:none"><i class="bi bi-files me-1"></i>VARIOS</span>
+                        <span class="preview-value"><span id="prev-manifest-id">—</span> <span id="prev-multi-tag" class="db-tag" style="display:none">VARIOS</span></span>
                     </div>
                     <div class="preview-row" id="prev-manifests-row" style="display:none">
-                        <span class="preview-label">IDs</span>
-                        <span class="preview-value" id="prev-manifests-list" style="font-size:0.76rem;word-break:break-all">—</span>
+                        <span class="preview-label">IDs</span><span class="preview-value" id="prev-manifests-list">—</span>
                     </div>
-                    <div class="preview-row">
-                        <span class="preview-label">Archivo</span>
-                        <span class="preview-value" id="prev-filename">—</span>
-                    </div>
-                    <div class="preview-row">
-                        <span class="preview-label">Filas</span>
-                        <span class="preview-value" id="prev-rows">—</span>
-                    </div>
-                    <div class="preview-row">
-                        <span class="preview-label">Jefaturas</span>
-                        <span class="preview-value" id="prev-jefaturas">—</span>
-                    </div>
-                    <div class="preview-row" style="border-bottom:none">
-                        <span class="preview-label">Secciones</span>
-                        <span class="preview-value" id="prev-secciones">—</span>
-                    </div>
+                    <div class="preview-row"><span class="preview-label">Archivo</span><span class="preview-value" id="prev-filename">—</span></div>
+                    <div class="preview-row"><span class="preview-label">Filas</span><span class="preview-value" id="prev-rows">—</span></div>
+                    <div class="preview-row"><span class="preview-label">Piezas / Faltantes / Sobrantes</span><span class="preview-value" id="prev-totales">—</span></div>
+                    <div class="preview-row"><span class="preview-label">Jefaturas</span><span class="preview-value" id="prev-jefaturas">—</span></div>
+                    <div class="preview-row"><span class="preview-label">Secciones</span><span class="preview-value" id="prev-secciones">—</span></div>
                 </div>
-                <div id="upload-error" style="display:none">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                    <span id="upload-error-msg"></span>
+                <div id="upload-error" class="db-error" style="display:none">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i><span id="upload-error-msg"></span>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary-outline" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn-primary-rosa" id="btn-confirm-upload" disabled>
-                    <i class="bi bi-cloud-upload-fill"></i> Subir
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Subir Manifiesto Cerrado -->
-<div class="modal fade" id="cerradoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-archive-fill me-2" style="color:var(--verde)"></i>Subir Manifiesto Cerrado</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p style="font-size:0.8rem;color:var(--txt2);margin-bottom:0.85rem">
-                    Columnas requeridas: <strong>No. Tienda, Manifiesto, Sección, Artículo, Código UPC, Desc. Artículo, Contenedor, Cant. Manf., Cant. Registr., Diferencia, Status, Fecha Man., No. Origen</strong>.
-                </p>
-                <div class="drop-zone" id="cerrado-drop-zone" onclick="document.getElementById('cerrado-file-input').click()">
-                    <i class="bi bi-file-earmark-excel"></i>
-                    <strong>Haz clic o arrastra aquí</strong>
-                    <span style="font-size:0.76rem">.xlsx / .xls</span>
-                </div>
-                <input type="file" id="cerrado-file-input" accept=".xlsx,.xls" style="display:none">
-                <div id="cerradoPreview" class="mt-3" style="display:none">
-                    <div class="preview-row">
-                        <span class="preview-label">Manifiesto(s)</span>
-                        <span class="preview-value" id="cerrado-prev-manifest">—</span>
-                    </div>
-                    <div class="preview-row">
-                        <span class="preview-label">Archivo</span>
-                        <span class="preview-value" id="cerrado-prev-filename">—</span>
-                    </div>
-                    <div class="preview-row">
-                        <span class="preview-label">Filas</span>
-                        <span class="preview-value" id="cerrado-prev-rows">—</span>
-                    </div>
-                    <div class="preview-row">
-                        <span class="preview-label">Contenedores</span>
-                        <span class="preview-value" id="cerrado-prev-contenedores">—</span>
-                    </div>
-                    <div class="preview-row" style="border-bottom:none">
-                        <span class="preview-label">Completos / Faltantes / Sobrantes</span>
-                        <span class="preview-value" id="cerrado-prev-estatus">—</span>
-                    </div>
-                </div>
-                <div id="cerrado-error" style="display:none">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                    <span id="cerrado-error-msg"></span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary-outline" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn-cerrado" id="btn-confirm-cerrado" disabled>
-                    <i class="bi bi-archive-fill"></i> Subir Cerrado
-                </button>
+                <button type="button" class="db-btn db-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="db-btn db-btn-primary" id="btn-confirm-upload" disabled><i class="bi bi-cloud-upload-fill"></i> Subir</button>
             </div>
         </div>
     </div>
