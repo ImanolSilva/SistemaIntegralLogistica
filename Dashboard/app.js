@@ -162,15 +162,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── DATOS MAESTROS ───────────────────────────────────────────────────────
     async function loadMasterData() {
         try {
-            await loadJefaturaComplemento();
             const doc = await db.collection(DATOS_COLL).doc(DATOS_DOC).get();
             if (doc.exists && doc.data().sections) {
-                State.masterMap = mergeMasterMaps(State.masterMap, fixDeep(doc.data().sections));
+                // Firebase funciona como respaldo; Jefatura.json tiene prioridad para no confundir departamento con jefe.
+                State.masterMap = fixDeep(doc.data().sections);
                 const fecha = toDate(doc.data().uploadedAt);
                 setDatosStatus(Object.keys(State.masterMap).length, fecha ? fmtDate(fecha) : '—');
             } else {
                 UI.datosStatus.textContent = 'Sin cargar — las secciones no tendrán área asignada';
             }
+            await loadJefaturaComplemento();
+            if (Object.keys(State.masterMap).length) setDatosStatus(Object.keys(State.masterMap).length, 'catálogo VCM');
         } catch (e) { console.error('Error cargando datos maestros:', e); }
     }
 

@@ -413,6 +413,12 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.
 - Se renovó también el menú lateral global: fondo blanco-rosado degradado, encabezado vino/rosa, estados activos con relieve, iconos con acento y tarjetas internas con profundidad para evitar el aspecto plano.
 
+### Corrección de jefaturas contra departamentos 2026-11-11
+
+- Se detectó que el mapa de `datosMaestros/secciones` de Firebase estaba sobrescribiendo `Jefatura.json` y hacía aparecer departamentos como `Tecnología`, `Caballeros`, `Hogar` o `Damas` dentro del ranking de jefaturas.
+- `Complementos/Jefatura.json` ahora se carga después de Firebase y tiene prioridad para resolver `Jefatura`, `Descripcion`, `Gerente` y `Asistente`; Firebase queda como respaldo para secciones no incluidas en el complemento.
+- El ranking, el filtro de jefatura, las gráficas y los contenedores usan la jefatura real resuelta desde el catálogo VCM.
+
 ### Rediseño del comparativo por reporte 2026-11-11
 
 - Se reemplazó la gráfica que mezclaba barras de miles de piezas con una línea porcentual en doble escala.
