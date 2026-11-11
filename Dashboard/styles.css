@@ -390,3 +390,23 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
     .db-hero-chip { min-width: calc(50% - .4rem); }
     .db-area-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Conceptos VCM: lectura ejecutiva de los resultados */
+.db-vcm-concepts { display: grid; grid-template-columns: minmax(240px, 1.4fr) repeat(4, minmax(135px, 1fr)); gap: .8rem; align-items: stretch; margin: 1rem 0 1.2rem; }
+.db-vcm-intro { padding: 1rem 1.1rem; border-radius: 17px; background: linear-gradient(135deg, #3a132f, #a9005b 62%, #e6007e); color: #fff; box-shadow: 0 12px 24px rgba(142,26,91,.17); }
+.db-vcm-intro h2 { margin: .35rem 0 .2rem; font-size: 1rem; font-weight: 900; }
+.db-vcm-intro p { margin: 0; color: rgba(255,255,255,.75); font-size: .73rem; line-height: 1.45; }
+.db-vcm-kicker { display: inline-flex; gap: .35rem; align-items: center; color: #ffc9e4; font-size: .64rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.db-vcm-card { display: flex; align-items: center; gap: .65rem; min-width: 0; padding: .85rem .75rem; border: 1px solid var(--line); border-radius: 17px; background: linear-gradient(145deg, #fff, #fff4fa); box-shadow: var(--shadow); }
+.db-vcm-card > i { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 12px; color: #fff; font-size: 1rem; }
+.db-vcm-card div { min-width: 0; }
+.db-vcm-card strong, .db-vcm-card b, .db-vcm-card small { display: block; }
+.db-vcm-card strong { color: var(--txt2); font-size: .7rem; }
+.db-vcm-card b { color: var(--txt); font-size: 1.35rem; line-height: 1.15; }
+.db-vcm-card small { color: var(--txt3); font-size: .62rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vcm-faltante > i { background: linear-gradient(135deg, #dc2626, #f87171); }
+.vcm-sobrante > i { background: linear-gradient(135deg, #d97706, #fbbf24); }
+.vcm-adicional > i { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+.vcm-correcto > i { background: linear-gradient(135deg, #059669, #34d399); }
+@media (max-width: 1050px) { .db-vcm-concepts { grid-template-columns: repeat(4, minmax(0, 1fr)); } .db-vcm-intro { grid-column: 1 / -1; } }
+@media (max-width: 600px) { .db-vcm-concepts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .db-vcm-intro { grid-column: 1 / -1; } }

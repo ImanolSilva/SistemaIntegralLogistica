@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const COLLECTION   = "reportesDashboard";
     const DATOS_COLL   = "datosMaestros";
     const DATOS_DOC    = "secciones";
+    const COMPLEMENTO_JEFATURA = "../Complementos/Jefatura.json";
     const STORAGE_PATH = "Dashboard/";
 
     const META = 95;          // meta de exactitud
@@ -36,6 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
         piezas:      ['piezas','articulos','artículos','cantidad','unidades','manifestados','cantmanf','cant_manf'],
         faltantes:   ['faltantes','faltante','faltan','diferenciafaltante','faltanpiezas'],
         sobrante:    ['sobrante','sobrantes','exceso','mercanciademas','mercancia de mas','demas'],
+        registradas: ['cant. registrada','cant registrada','cantidad registrada','registrada','recibidas','recibido'],
+        diferencia:  ['diferencia','diferencias','diferencia piezas'],
+        estado:      ['status','estado','estatus','resultado'],
+        adicional:   ['adicional','adicionales','pieza adicional','piezas adicionales'],
         seccion:     ['seccion','sección','secciones','area','área'],
         jefatura:    ['jefatura','jefe','jefes','responsable','gerente'],
         manifiesto:  ['manifiesto','manifesto','folio manifiesto','reporte'],
@@ -43,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         descripcion: ['descripcion','descripción','descripcionarticulo','descarticulo','desc articulo'],
     };
 
+    RESULT_ALIASES.piezas.push('Cant. Manf.', 'Cant Manf', 'Cantidad Manifestada');
     const C = { ok:'#0E9F6E', warn:'#D97706', bad:'#DC2626', rosa:'#E6007E', vino:'#8E1A5B', violeta:'#7C3AED', txt:'#2B2027', txt2:'#6D5B66', txt3:'#9B8994', grid:'rgba(91,35,69,0.07)' };
     const ESTADOS = {
         ok:    { label:'Sin diferencia', desc:'Llegó exactamente lo manifestado', color:C.ok,      icon:'bi-check-circle-fill' },
@@ -153,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── DATOS MAESTROS ───────────────────────────────────────────────────────
     async function loadMasterData() {
         try {
+            await loadJefaturaComplemento();
             const doc = await db.collection(DATOS_COLL).doc(DATOS_DOC).get();
             if (doc.exists && doc.data().sections) {
                 State.masterMap = fixDeep(doc.data().sections);
@@ -162,6 +169,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 UI.datosStatus.textContent = 'Sin cargar — las secciones no tendrán área asignada';
             }
         } catch (e) { console.error('Error cargando datos maestros:', e); }
+    }
+
+    async function loadJefaturaComplemento() {
+        try {
+            const response = await fetch(COMPLEMENTO_JEFATURA, { cache: 'no-store' });
+            if (!response.ok) return;
+            const source = fixDeep(await response.json());
+            const sections = {};
+            (source.jefes || []).forEach(jefe => (jefe.secciones || []).forEach(sec => {
+                const key = String(sec.seccion ?? '').trim();
+                if (key) sections[key] = { Descripcion: sec.departamento || '', Jefatura: jefe.jefe || 'Sin jefatura', Gerente: sec.gerencia || '', Asistente: sec.asistente || '', Bodega: '' };
+            }));
+            if (Object.keys(sections).length && !Object.keys(State.masterMap).length) State.masterMap = sections;
+        } catch (error) { console.warn('No se pudo cargar Complementos/Jefatura.json', error); }
     }
 
     function setDatosStatus(count, when) {
@@ -189,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Jefatura:       master?.Jefatura    || r.Jefatura       || '—',
                 DescripcionSec: master?.Descripcion || r.DescripcionSec || '',
                 Gerente:        master?.Gerente     || r.Gerente        || '',
+                Asistente:      master?.Asistente   || r.Asistente      || '',
                 Bodega:         master?.Bodega      || r.Bodega         || '',
             };
             enriched.Area = areaOf(enriched.Jefatura);
@@ -211,11 +233,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function normalizeResultRow(row) {
         const get = key => pickColumn(row, RESULT_ALIASES[key]);
+        const piezas = toNum(get('piezas'));
+        const registradas = toNum(get('registradas'));
+        const rawDifference = get('diferencia');
+        const diferencia = rawDifference === '' || rawDifference == null ? registradas - piezas : toNum(rawDifference);
+        const rawEstado = String(get('estado') || '').trim().toLowerCase();
+        const adicional = toNum(get('adicional')) || (rawEstado.includes('adicional') || (piezas === 0 && registradas > 0) ? Math.max(registradas, diferencia, 0) : 0);
+        const concepto = rawEstado.includes('adicional') || adicional > 0 ? 'adicional' : rawEstado.includes('faltante') ? 'faltante' : rawEstado.includes('sobrante') ? 'sobrante' : rawEstado.includes('correcto') ? 'correcto' : diferencia < 0 ? 'faltante' : diferencia > 0 ? 'sobrante' : 'correcto';
         return {
             Contenedor:  String(get('contenedor') || 'General').trim(),
-            Piezas:      toNum(get('piezas')),
-            Faltantes:   toNum(get('faltantes')),
-            Sobrante:    toNum(get('sobrante')),
+            Piezas:      piezas,
+            Registradas: registradas,
+            Diferencia:  diferencia,
+            Faltantes:   toNum(get('faltantes')) || Math.max(-diferencia, 0),
+            Sobrante:    toNum(get('sobrante')) || Math.max(diferencia, 0),
+            Adicional:   adicional,
+            Correcto:    concepto === 'correcto' ? piezas : 0,
+            Concepto:    concepto,
             Seccion:     String(get('seccion') || 'Sin sección').trim(),
             Jefatura:    String(get('jefatura') || 'Sin jefatura').trim(),
             Manifiesto:  String(get('manifiesto') || 'GENERAL').trim(),
@@ -491,6 +525,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         $('kpi-cont-ok').textContent = `${fmt(ok)} / ${fmt(conts.length)}`;
         $('kpi-cont-ok-sub').innerHTML = `<b>${pctTxt(conts.length ? ok / conts.length * 100 : 0)}</b> llegaron sin diferencias`;
+        if ($('kpi-faltantes-vcm')) $('kpi-faltantes-vcm').textContent = fmt(tot.ft);
+        if ($('kpi-sobrantes-vcm')) $('kpi-sobrantes-vcm').textContent = fmt(tot.sb);
+        if ($('kpi-adicional')) $('kpi-adicional').textContent = fmt(tot.ad);
+        if ($('kpi-correcto')) $('kpi-correcto').textContent = fmt(tot.correcto);
     }
 
     // ── HALLAZGOS ────────────────────────────────────────────────────────────
@@ -1223,9 +1261,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function agg(rows) {
-        let pz = 0, ft = 0, sb = 0;
-        rows.forEach(r => { pz += toNum(r.Piezas); ft += toNum(r.Faltantes); sb += toNum(r.Sobrante); });
-        return { pz, ft, sb, lines: rows.length, pct: pctOf(pz, ft) };
+        let pz = 0, ft = 0, sb = 0, ad = 0, correcto = 0;
+        rows.forEach(r => { pz += toNum(r.Piezas); ft += toNum(r.Faltantes); sb += toNum(r.Sobrante); ad += toNum(r.Adicional); correcto += toNum(r.Correcto); });
+        return { pz, ft, sb, ad, correcto, lines: rows.length, pct: pctOf(pz, ft) };
     }
 
     function groupAgg(rows, keyFn) {

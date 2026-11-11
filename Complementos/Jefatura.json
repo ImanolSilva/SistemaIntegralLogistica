@@ -1,0 +1,1262 @@
+{
+  "hoja": "Jefatura",
+  "jefes": [
+    {
+      "jefe": "Adriana Alejandra Prieto Rivero",
+      "secciones": [
+        {
+          "seccion": 391,
+          "departamento": "DULCERÍA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 521,
+          "departamento": "PETITE",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 522,
+          "departamento": "ZONA URBANA MUJER",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 532,
+          "departamento": "PLAYA Y VIAJE",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 535,
+          "departamento": "STUDIO ZEN",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 545,
+          "departamento": "JOVEN CONTEMPORÁNEA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        }
+      ]
+    },
+    {
+      "jefe": "Alan Carreon",
+      "secciones": [
+        {
+          "seccion": 2,
+          "departamento": "Administrativo",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 4,
+          "departamento": "Administrativo",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 41,
+          "departamento": "CONMUTADOR",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Alberto Avila",
+      "secciones": [
+        {
+          "seccion": 5905,
+          "departamento": "OPERACIONES TIENDA",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Alberto Guadalupe Avila Chavira",
+      "secciones": [
+        {
+          "seccion": "Varios",
+          "departamento": null,
+          "gerencia": "Sr. Othon Muedano/Sr. Jose Ortega",
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Alejandro Morales Pereda",
+      "secciones": [
+        {
+          "seccion": 101,
+          "departamento": "MUEBLES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 104,
+          "departamento": "POTTERY BARN",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 105,
+          "departamento": "POTTERY BARN KIDS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 106,
+          "departamento": "POTTERY BARN TEEN",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 107,
+          "departamento": "WEST ELM",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 110,
+          "departamento": "DECORACIÓN TEXTIL",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 112,
+          "departamento": "DUPUIS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 116,
+          "departamento": "MUEBLES DE EXTERIOR",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 207,
+          "departamento": "MOTOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 211,
+          "departamento": "MOVILIDAD ELECTRICA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 340,
+          "departamento": "AUTOMOTRIZ",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 343,
+          "departamento": "FERRETERÍA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 345,
+          "departamento": "MASCOTAS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 380,
+          "departamento": "REG Y COM C/COM D3",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 634,
+          "departamento": "LÍNEA BLANCA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 635,
+          "departamento": "SOLUCION A MEDIDA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 636,
+          "departamento": "EQUIPOS DE EMPOTRAR",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        }
+      ]
+    },
+    {
+      "jefe": "Ana Elizabeth Vazquez Nuñez",
+      "secciones": [
+        {
+          "seccion": 503,
+          "departamento": "KNITWEAR W",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 504,
+          "departamento": "LENCERÍA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 508,
+          "departamento": "ETAM",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 511,
+          "departamento": "BOLSAS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 514,
+          "departamento": "ACCESORIOS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 533,
+          "departamento": "PUNT ROMA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 544,
+          "departamento": "MATERNIDAD",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 553,
+          "departamento": "MUJER ACTUAL",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        }
+      ]
+    },
+    {
+      "jefe": "Ana Laura Herrera",
+      "secciones": [
+        {
+          "seccion": 3,
+          "departamento": "Credito",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Beatriz Herrera Garza",
+      "secciones": [
+        {
+          "seccion": 701,
+          "departamento": "FRAGANCIAS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 702,
+          "departamento": "COSMÉTICOS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 704,
+          "departamento": "FARMACIA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 706,
+          "departamento": "BELLEZA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 780,
+          "departamento": "REG Y COM C/COM D7",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        }
+      ]
+    },
+    {
+      "jefe": "Blanca Patricia Lopez",
+      "secciones": [
+        {
+          "seccion": 201,
+          "departamento": "ACCESORIOS DEPORTIVOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 202,
+          "departamento": "SF TREND M",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 203,
+          "departamento": "ZAPATOS DEPORTIVOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 205,
+          "departamento": "ROPA DEPORTIVA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 206,
+          "departamento": "APARATOS DE EJERCICIO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 357,
+          "departamento": "ÓPTICA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 358,
+          "departamento": "MICAS GRADUADAS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 402,
+          "departamento": "TENIS NIÑO/NIÑA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 404,
+          "departamento": "BOY",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 405,
+          "departamento": "ZAPATOS NIÑA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 423,
+          "departamento": "VIDEOJUEGOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 459,
+          "departamento": "ZAPATOS NIÑO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 610,
+          "departamento": "ZONA GEEK",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 630,
+          "departamento": "SONIDO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 631,
+          "departamento": "INSTRUMENTOS MUSICALES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 633,
+          "departamento": "COMERCIO VIRTUAL",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 639,
+          "departamento": "COLECCIONABLES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 640,
+          "departamento": "SERVICIOS INTEGRALES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        }
+      ]
+    },
+    {
+      "jefe": "Claudia Ileana Magaña Gomez",
+      "secciones": [
+        {
+          "seccion": 417,
+          "departamento": "ACCESORIOS BEBÉ",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 421,
+          "departamento": "BEBÉS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 433,
+          "departamento": "GAP INFANTILES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 435,
+          "departamento": "AEROPOSTALE KIDS NIÑOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 436,
+          "departamento": "BEBÉS MODA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 437,
+          "departamento": "AEROPOSTALE KIDS NIÑAS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 448,
+          "departamento": "NIÑAS 8+",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 466,
+          "departamento": "NIÑAS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 469,
+          "departamento": "COLECCIONES NIÑA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 473,
+          "departamento": "ROPA INTERIOR NIÑA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 479,
+          "departamento": "ACCESORIOS NIÑA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 486,
+          "departamento": "DEPORTIVO NIÑAS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        }
+      ]
+    },
+    {
+      "jefe": "Direccion",
+      "secciones": [
+        {
+          "seccion": 43,
+          "departamento": "INFORMATICA PROVINCIA",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 845,
+          "departamento": "DIRECCION OPERACIONES",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Emma Irene Rojas",
+      "secciones": [
+        {
+          "seccion": 108,
+          "departamento": "TAPICERÍA Y PISOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 111,
+          "departamento": "COLCHONES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 121,
+          "departamento": "TAPETES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 156,
+          "departamento": "ILUMINACIÓN",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 161,
+          "departamento": "CUADROS Y ESPEJOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 322,
+          "departamento": "NAVIDAD",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 627,
+          "departamento": "FOTO Y VIDEO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 628,
+          "departamento": "COMPUTACIÓN",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 629,
+          "departamento": "TV Y VIDEO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 632,
+          "departamento": "CELULARES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 637,
+          "departamento": "ACCESORIOS MULTIMEDIA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 638,
+          "departamento": "SMART HOME",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        }
+      ]
+    },
+    {
+      "jefe": "Heidi Cristy Jacquez Frias",
+      "secciones": [
+        {
+          "seccion": 374,
+          "departamento": "ALTA RELOJERÍA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 375,
+          "departamento": "RELOJES FINOS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 376,
+          "departamento": "RELOJES",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 377,
+          "departamento": "ACCESORIOS FINOS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 523,
+          "departamento": "GAP MUJER",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 525,
+          "departamento": "BANANA REPUBLIC MUJER",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 530,
+          "departamento": "MUJER CONTEMPORÁNEA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 555,
+          "departamento": "COLECCIONES",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 559,
+          "departamento": "DISEÑADORES",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 566,
+          "departamento": "ALTA JOYERÍA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        },
+        {
+          "seccion": 571,
+          "departamento": "JOYERÍA MODA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Mariana Isabel Reyes Badillo"
+        }
+      ]
+    },
+    {
+      "jefe": "Irene Rojas",
+      "secciones": [
+        {
+          "seccion": 30,
+          "departamento": "DISENO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Abigail Zubia"
+        }
+      ]
+    },
+    {
+      "jefe": "Jessica Balderrama",
+      "secciones": [
+        {
+          "seccion": 21,
+          "departamento": "VELADORES",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 27,
+          "departamento": "PREVENCION PERDIDAS",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Jesus Alfredo Encinas Limas",
+      "secciones": [
+        {
+          "seccion": 223,
+          "departamento": "GAP HOMBRE",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 224,
+          "departamento": "AEROPOSTALE HOMBRE",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 225,
+          "departamento": "BANANA REPUBLIC HOMBRE",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 242,
+          "departamento": "TALLAS ESPECIALES",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 251,
+          "departamento": "JUVENILES",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 252,
+          "departamento": "ZONA URBANA HOMBRE",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 271,
+          "departamento": "CASUAL",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 282,
+          "departamento": "CALCETINES",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 285,
+          "departamento": "ROPA INTERIOR",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 288,
+          "departamento": "PIJAMAS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Angel Eduardo Marquez Soto"
+        }
+      ]
+    },
+    {
+      "jefe": "Jesus Fernando Dominguez Barriga",
+      "secciones": [
+        {
+          "seccion": 351,
+          "departamento": "BAÑO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 356,
+          "departamento": "BLANCOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 398,
+          "departamento": "ORGANIZACIÓN HOGAR",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 413,
+          "departamento": "MUEBLES PARA BEBÉ",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 438,
+          "departamento": "PRE-ESCOLAR",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 623,
+          "departamento": "COCINA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        },
+        {
+          "seccion": 625,
+          "departamento": "ELÉCTRICOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Angel Eduardo Marquez Soto"
+        }
+      ]
+    },
+    {
+      "jefe": "Julio Ibarra",
+      "secciones": [
+        {
+          "seccion": 5907,
+          "departamento": "OPERACIONES OMNICANAL",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Luis Daniel Diaz",
+      "secciones": [
+        {
+          "seccion": 327,
+          "departamento": "ESCOLARES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 401,
+          "departamento": "GIRL",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 424,
+          "departamento": "JUGUETES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 425,
+          "departamento": "THE DISNEY STORE",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 443,
+          "departamento": "ROPA INTERIOR NIÑO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 444,
+          "departamento": "NIÑOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 447,
+          "departamento": "NIÑOS 8+",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 450,
+          "departamento": "COLECCIONES NIÑO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 456,
+          "departamento": "DEPORTIVO NIÑOS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        },
+        {
+          "seccion": 478,
+          "departamento": "ACCESORIOS NIÑO",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Ana Abigail Zubia Granados "
+        }
+      ]
+    },
+    {
+      "jefe": "Luis Garcia",
+      "secciones": [
+        {
+          "seccion": 7,
+          "departamento": "ENVIOS",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 17,
+          "departamento": "RECEPCION",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Marco Antonio Calvo",
+      "secciones": [
+        {
+          "seccion": 44,
+          "departamento": "COBRANZAS",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Mario Ortiz",
+      "secciones": [
+        {
+          "seccion": 14,
+          "departamento": "PRESENTACION VISUAL Y DISPLAY",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Martin Cabrera Perez",
+      "secciones": [
+        {
+          "seccion": 213,
+          "departamento": "ACCESORIOS HOMBRE",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 237,
+          "departamento": "ZAPATOS HOMBRE",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 245,
+          "departamento": "HOMBRE CONTEMPORÁNEO",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 261,
+          "departamento": "DISEÑADORES",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 550,
+          "departamento": "ZAPATOS MUJER",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        },
+        {
+          "seccion": 705,
+          "departamento": "CUIDADO PERSONAL",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Ana Isabel Rodriguez Cardona"
+        }
+      ]
+    },
+    {
+      "jefe": "Miguel Montalvo",
+      "secciones": [
+        {
+          "seccion": 897,
+          "departamento": "RESTAURANTE",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Oyuky rodriguez",
+      "secciones": [
+        {
+          "seccion": 975,
+          "departamento": "RECURSOS HUMANOS",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Ricardo Aguirre",
+      "secciones": [
+        {
+          "seccion": 10,
+          "departamento": "MANTENIMIENTO",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 20,
+          "departamento": "LIMPIEZA",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Sergio Ivan Lopez Ballesteros",
+      "secciones": [
+        {
+          "seccion": 241,
+          "departamento": "TRAJES",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 246,
+          "departamento": "SACOS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 247,
+          "departamento": "PANTALONES DE VESTIR",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 276,
+          "departamento": "CAMISAS VESTIR",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 279,
+          "departamento": "CORBATAS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        }
+      ]
+    },
+    {
+      "jefe": "Sergio Lopez",
+      "secciones": [
+        {
+          "seccion": 987,
+          "departamento": "ALTERACIONES",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Sin Asignar",
+      "secciones": [
+        {
+          "seccion": 393,
+          "departamento": "SNACK BAR",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 480,
+          "departamento": "REG Y COM C/COM D4",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 513,
+          "departamento": "CONFIDENTIAL W",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 517,
+          "departamento": "ACCESSORIES W",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    },
+    {
+      "jefe": "Xareni Espindola Perez",
+      "secciones": [
+        {
+          "seccion": 510,
+          "departamento": "VESTIDOS DE FIESTA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 512,
+          "departamento": "MUJER CLÁSICA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 520,
+          "departamento": "VESTIDOS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 524,
+          "departamento": "AEROPOSTALE MUJER",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 529,
+          "departamento": "CURVY CONTEMPORÁNEA",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 540,
+          "departamento": "JUNIORS",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        },
+        {
+          "seccion": 557,
+          "departamento": "CURVY ACTUAL",
+          "gerencia": "Sr. Jose Ortega",
+          "asistente": "Vanely Alejandra Corral Chavira"
+        }
+      ]
+    },
+    {
+      "jefe": "Yadira Yanet Matas Manzano",
+      "secciones": [
+        {
+          "seccion": 147,
+          "departamento": "FLORES Y VELAS",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 149,
+          "departamento": "BOUTIQUE HOGAR",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 152,
+          "departamento": "NUESTRA CASA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 154,
+          "departamento": "MESA FINA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 157,
+          "departamento": "DECORACION HOGAR",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 302,
+          "departamento": "GOURMET",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 307,
+          "departamento": "WILLIAMS-SONOMA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 321,
+          "departamento": "HALLOWEEN",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 323,
+          "departamento": "ARTÍCULOS DE VIAJE",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 338,
+          "departamento": "PAPELERIA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 365,
+          "departamento": "LIBRERÍA",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 388,
+          "departamento": "VINOS Y LICORES",
+          "gerencia": "Sr. Othon Muedano",
+          "asistente": "Alonso Chavez Corral"
+        }
+      ]
+    },
+    {
+      "jefe": "Yanet Matas Manzano",
+      "secciones": [
+        {
+          "seccion": 314,
+          "departamento": "MESA DE BODAS",
+          "gerencia": null,
+          "asistente": "Alonso Chavez Corral"
+        },
+        {
+          "seccion": 414,
+          "departamento": "MESA DE BEBES",
+          "gerencia": null,
+          "asistente": "Alonso Chavez Corral"
+        }
+      ]
+    },
+    {
+      "jefe": null,
+      "secciones": [
+        {
+          "seccion": 905,
+          "departamento": "SERVICIOS GENERALES FACTURABLES",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 910,
+          "departamento": "SERVICIOS GENERALES",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 911,
+          "departamento": "AGENCIA DE VIAJES",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 930,
+          "departamento": "SEGUROS",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 931,
+          "departamento": "ASEGURADORA QUALITAS",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 933,
+          "departamento": "SEGURO CELULAR ACE",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 934,
+          "departamento": "SEGUROS MOTOS",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 936,
+          "departamento": "SEGUROS TELEMARKETING Y MASIVOS",
+          "gerencia": null,
+          "asistente": null
+        },
+        {
+          "seccion": 950,
+          "departamento": "MOVIMIENTOS FINANCIEROS",
+          "gerencia": null,
+          "asistente": null
+        }
+      ]
+    }
+  ]
+}

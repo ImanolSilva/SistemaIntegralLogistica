@@ -412,3 +412,11 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - Se agregaron indicadores visuales de acceso seguro, operación en tiempo real e indicadores claros al hero de Inicio, además de cuatro accesos rápidos para evitar una pantalla vacía.
 - `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.
 - Se renovó también el menú lateral global: fondo blanco-rosado degradado, encabezado vino/rosa, estados activos con relieve, iconos con acento y tarjetas internas con profundidad para evitar el aspecto plano.
+
+### Fuente VCM y estructura de jefaturas 2026-11-11
+
+- `Complementos/Jefatura.json` contiene la relación de jefe, sección, departamento, gerencia y asistente. El Dashboard la usa como catálogo local de respaldo cuando todavía no existe `datosMaestros/secciones` en Firestore.
+- `Complementos/Mnf6000612362-111126-0042.xlsx` es una muestra real del formato VCM: `Cen. Des.`, `Manifiesto`, `Sección`, `Artículo`, `Código UPC`, `Desc. Artículo`, `Contenedor`, `Cant. Manf.`, `Cant. Registrada`, `Diferencia`, `Status`, `Fecha Man` y `Cen. Org.`.
+- El Dashboard reconoce `Cant. Manf.`, `Cant. Registrada`, `Diferencia` y `Status`. Cada fila se clasifica en cuatro conceptos: `Faltante`, `Sobrante`, `Adicional` o `Correcto`.
+- `Adicional` se identifica por el estado correspondiente o por mercancía registrada sin cantidad manifestada; `Faltante` y `Sobrante` se determinan por la diferencia; `Correcto` corresponde a diferencia cero.
+- Se agregó una franja visible de resultados VCM con los cuatro conceptos para que el análisis sea entendible para jefes y gerencias.

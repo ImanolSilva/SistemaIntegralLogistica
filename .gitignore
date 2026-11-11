@@ -71,3 +71,6 @@ node_modules/
 # Artefactos temporales de previsualizacion de hojas de calculo
 outputs/**/*.png
 outputs/**/*.ndjson
+
+# Referencias VCM locales: pueden contener inventario operativo real
+Complementos/*.xlsx
