@@ -384,4 +384,4 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - Se agregaron reglas para `pdisLocks` en `firestore.rules` y se mantuvieron permisos administrativos para cargas de resultados, datos maestros y archivos PDIS.
 - Se corrigieron las referencias de `getJefeBodega` al bucket de `sistemaintegrall` y el error de construccion de `HttpsError`.
 - Las validaciones de JavaScript ejecutadas en esta actualizacion: `Dashboard/app.js`, `SKU/app.js`, `_archivado/Rechazos/main.js` y `access-control.js` pasaron `node --check`.
-- Las reglas quedaron preparadas para despliegue, pero requieren ejecutar `firebase deploy --only firestore:rules,storage` desde un entorno con Firebase CLI autenticada.
+- Las reglas se desplegaron correctamente el 2026-11-11 en `sistemaintegrall` con `firebase deploy --only firestore:rules,storage`. El release activo protege Firestore y Storage con las reglas versionadas en este repositorio.
