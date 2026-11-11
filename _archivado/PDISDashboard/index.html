@@ -1,26 +1,297 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard PDIS - Liverpool</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="../../shared.css"><link rel="stylesheet" href="pdis-dashboard.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="../../shared-ui.js" defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard PDIS · Sistema Liverpool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../shared.css">
+    <script src="../../shared-ui.js" defer></script>
+    <!-- Mismo sistema visual que el Dashboard de Resultados -->
+    <link rel="stylesheet" href="../../Dashboard/styles.css">
+    <link rel="stylesheet" href="pdis-dashboard.css">
     <link rel="stylesheet" href="../../theme.css">
 </head>
 <body class="pdis-dashboard-page">
-  <header class="app-header"><button id="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-label="Abrir menú"><span class="hamburger-icon"></span></button><h1 class="header-title"><i class="bi bi-speedometer2 me-2"></i>Dashboard PDIS</h1><button id="logout-btn" type="button" aria-label="Cerrar sesión"><i class="bi bi-power"></i></button></header>
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral"><div class="offcanvas-header"><h5 class="offcanvas-title">Menú Principal</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button></div><div class="offcanvas-body p-0"><nav class="nav flex-column"></nav></div></div>
-  <main class="pdis-dashboard-shell">
-    <section class="pdis-filters-card"><div class="pdis-section-head"><div><span class="eyebrow">Vista de análisis</span><h3>Elige qué quieres comparar</h3></div><span id="pdis-filter-status" class="filter-live"><i class="bi bi-check2-circle"></i> Vista consolidada</span></div><div class="pdis-filter-grid"><label><span><i class="bi bi-files"></i> Archivos</span><select id="filter-file"><option value="all">Todos los archivos</option></select></label><label><span><i class="bi bi-diagram-3"></i> BDIS por jefatura</span><select id="filter-boss"><option value="all">Todas las jefaturas</option></select></label><label><span><i class="bi bi-flag"></i> Estado</span><select id="filter-status"><option value="all">Todos los estados</option><option>Encontrada buen estado</option><option>Encontrada mal estado</option><option>No encontrada</option></select></label></div></section>
-    <section class="pdis-dashboard-hero"><div><span class="eyebrow"><i class="bi bi-bar-chart-line-fill"></i> Centro de análisis</span><h2>Control de archivos PDIS</h2><p>Consulta las versiones cargadas y abre el análisis histórico cuando lo necesites.</p></div><a class="btn-pdis-outline" href="../Rechazos/reportes.html"><i class="bi bi-file-earmark-medical"></i> Ir al Gestor PDIS</a></section>
-    <section id="pdis-kpis" class="pdis-kpis"><div class="pdis-kpi skeleton"></div><div class="pdis-kpi skeleton"></div><div class="pdis-kpi skeleton"></div></section>
-    <section class="pdis-results-card"><div class="pdis-section-head"><div><span class="eyebrow">Resultados consolidados</span><h3>Resumen de PDIS</h3><p class="pdis-section-subtitle">Información combinada de todos los archivos disponibles.</p></div><button id="refresh-pdis" class="btn-pdis-outline"><i class="bi bi-arrow-clockwise"></i> Actualizar</button></div><div id="pdis-results"><div class="pdis-empty"><i class="bi bi-bar-chart"></i><strong>Calculando resultados...</strong></div></div></section>
-    <section class="pdis-users-card"><div class="pdis-section-head"><div><span class="eyebrow">Rendimiento operativo</span><h3>Usuarios que buscan PDIS</h3><p class="pdis-section-subtitle">Quién ha encontrado más artículos y cuánto lleva resuelto.</p></div><i class="bi bi-trophy-fill section-mark"></i></div><div id="pdis-users"><div class="pdis-empty"><i class="bi bi-people"></i><strong>Calculando usuarios...</strong></div></div></section>
-    <section class="pdis-files-card"><div class="pdis-section-head"><div><span class="eyebrow">Repositorio</span><h3>Archivos subidos</h3></div></div><div id="pdis-files" class="pdis-files"><div class="pdis-empty"><i class="bi bi-cloud-arrow-down"></i><strong>Cargando archivos...</strong></div></div></section>
-    <section class="pdis-actions"><div><i class="bi bi-lightbulb"></i><div><strong>¿Necesitas analizar el histórico?</strong><span>Abre el Gestor PDIS para generar comparativas y rangos.</span></div></div><a href="../Rechazos/reportes.html" class="btn-pdis-primary">Abrir análisis <i class="bi bi-arrow-right"></i></a></section>
-  </main>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script><script src="pdis-dashboard.js"></script>
-</body></html>
+
+<div id="globalLoading" class="loading-overlay"><div class="loading-spinner"></div></div>
+
+<header class="app-header">
+    <button id="hamburger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-label="Abrir menú"><span class="hamburger-icon"></span></button>
+    <h1 class="header-title"><i class="bi bi-speedometer2 me-2"></i>Dashboard PDIS</h1>
+    <div class="header-right"><button id="logout-btn" type="button" title="Cerrar sesión"><i class="bi bi-power"></i></button></div>
+</header>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral">
+    <div class="offcanvas-header"><h5 class="offcanvas-title">Menú Principal</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button></div>
+    <div class="offcanvas-body p-0"><nav class="nav flex-column"></nav></div>
+</div>
+
+<main class="db-main">
+
+    <!-- ═══ HERO ═══ -->
+    <section class="db-hero">
+        <div class="db-hero-main">
+            <div class="db-hero-eyebrow"><i class="bi bi-file-earmark-medical"></i> Centro de análisis de artículos PDIS</div>
+            <h2 class="db-hero-title" id="hero-greeting">Bienvenido</h2>
+            <p class="db-hero-scope" id="hero-scope">Cargando archivos PDIS…</p>
+            <div class="db-hero-chips">
+                <div class="db-hero-chip"><span id="wb-archivos">—</span><small>Archivos</small></div>
+                <div class="db-hero-chip"><span id="wb-jefaturas">—</span><small>Jefaturas</small></div>
+                <div class="db-hero-chip"><span id="wb-secciones">—</span><small>Secciones</small></div>
+                <div class="db-hero-chip"><span id="wb-auditores">—</span><small>Auditores</small></div>
+            </div>
+            <div class="db-hero-update"><i class="bi bi-clock-history"></i> <span id="wb-fecha">—</span></div>
+        </div>
+        <div class="db-hero-gauge">
+            <svg viewBox="0 0 120 120" class="db-gauge" aria-hidden="true">
+                <circle cx="60" cy="60" r="50" class="db-gauge-track"/>
+                <circle cx="60" cy="60" r="50" class="db-gauge-fill" id="gauge-fill"/>
+                <line x1="60" y1="6" x2="60" y2="16" class="db-gauge-meta" id="gauge-meta"/>
+            </svg>
+            <div class="db-gauge-center">
+                <span class="db-gauge-value" id="gauge-value">—</span>
+                <span class="db-gauge-label">Localización</span>
+            </div>
+            <div class="db-gauge-status" id="gauge-status">—</div>
+            <div class="db-gauge-meta-text">Referencia <strong id="gauge-ref">90%</strong> · <span id="gauge-gap">—</span></div>
+        </div>
+    </section>
+
+    <!-- ═══ FILTROS ═══ -->
+    <section class="db-filters pdis-filters">
+        <div class="db-filter">
+            <label for="filter-file"><i class="bi bi-files"></i> Archivo</label>
+            <select id="filter-file"><option value="">Todos los archivos</option></select>
+        </div>
+        <div class="db-filter">
+            <label for="filter-boss"><i class="bi bi-person-badge"></i> Jefatura</label>
+            <select id="filter-boss"><option value="">Todas las jefaturas</option></select>
+        </div>
+        <div class="db-filter">
+            <label for="filter-auditor"><i class="bi bi-person-check"></i> Auditor</label>
+            <select id="filter-auditor"><option value="">Todos los auditores</option></select>
+        </div>
+        <div class="db-filter">
+            <label for="filter-status"><i class="bi bi-flag"></i> Estado</label>
+            <select id="filter-status"><option value="">Todos los estados</option></select>
+        </div>
+        <div class="db-filter-actions">
+            <button class="db-btn db-btn-ghost" id="btn-reset" type="button"><i class="bi bi-arrow-counterclockwise"></i> Limpiar</button>
+            <button class="db-btn db-btn-ghost" id="refresh-pdis" type="button" title="Volver a leer los archivos"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="db-btn db-btn-dark" id="btn-export" type="button"><i class="bi bi-file-earmark-excel"></i> Exportar</button>
+        </div>
+        <div class="db-filter-active" id="filter-active"></div>
+    </section>
+
+    <div id="no-data-state" class="db-empty" style="display:none">
+        <i class="bi bi-folder2-open"></i>
+        <h3 id="no-data-title">Aún no hay archivos PDIS</h3>
+        <p id="no-data-text">Sube el primer archivo desde el Gestor de PDIS para ver el análisis.</p>
+        <a href="../Rechazos/reportes.html" class="db-btn db-btn-primary">Ir al Gestor de PDIS</a>
+    </div>
+
+    <div id="data-content" style="display:none">
+
+        <!-- ═══ KPIs ═══ -->
+        <section class="db-kpis">
+            <article class="db-kpi" data-tone="rosa">
+                <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-clipboard2-data"></i></span><span class="db-kpi-label">Registros PDIS</span></div>
+                <div class="db-kpi-value" id="kpi-total">—</div>
+                <div class="db-kpi-sub" id="kpi-total-sub">—</div>
+            </article>
+            <article class="db-kpi" data-tone="azul">
+                <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-list-check"></i></span><span class="db-kpi-label">Avance de revisión</span></div>
+                <div class="db-kpi-value" id="kpi-avance">—</div>
+                <div class="db-kpi-bar"><span id="kpi-avance-bar"></span></div>
+                <div class="db-kpi-sub" id="kpi-avance-sub">—</div>
+            </article>
+            <article class="db-kpi" data-tone="verde">
+                <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-check-circle"></i></span><span class="db-kpi-label">Buen estado</span></div>
+                <div class="db-kpi-value" id="kpi-buen">—</div>
+                <div class="db-kpi-sub" id="kpi-buen-sub">—</div>
+            </article>
+            <article class="db-kpi" data-tone="ambar">
+                <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-exclamation-circle"></i></span><span class="db-kpi-label">Mal estado / merma</span></div>
+                <div class="db-kpi-value" id="kpi-mal">—</div>
+                <div class="db-kpi-sub" id="kpi-mal-sub">—</div>
+            </article>
+            <article class="db-kpi" data-tone="rojo">
+                <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-x-circle"></i></span><span class="db-kpi-label">No encontradas</span></div>
+                <div class="db-kpi-value" id="kpi-no">—</div>
+                <div class="db-kpi-sub" id="kpi-no-sub">—</div>
+            </article>
+            <article class="db-kpi" data-tone="vino">
+                <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-hourglass-split"></i></span><span class="db-kpi-label">Pendientes de revisar</span></div>
+                <div class="db-kpi-value" id="kpi-pend">—</div>
+                <div class="db-kpi-sub" id="kpi-pend-sub">—</div>
+            </article>
+        </section>
+
+        <!-- ═══ HALLAZGOS + SEMÁFORO ═══ -->
+        <section class="db-grid db-grid-insights">
+            <div class="db-panel">
+                <div class="db-panel-head">
+                    <h3><i class="bi bi-lightbulb-fill"></i> Hallazgos clave</h3>
+                    <span class="db-panel-hint">Se generan con los filtros actuales</span>
+                </div>
+                <ul class="db-insights" id="insights-list"></ul>
+            </div>
+            <div class="db-panel">
+                <div class="db-panel-head"><h3><i class="bi bi-traffic-light-fill"></i> Semáforo de jefaturas</h3></div>
+                <div class="db-semaforo">
+                    <div class="db-sem" data-tone="good"><span class="db-sem-dot"></span><div><strong id="sem-good">0</strong><small id="sem-good-lbl">Localización ≥ 90%</small></div></div>
+                    <div class="db-sem" data-tone="warn"><span class="db-sem-dot"></span><div><strong id="sem-warn">0</strong><small id="sem-warn-lbl">Entre 75% y 90%</small></div></div>
+                    <div class="db-sem" data-tone="bad"><span class="db-sem-dot"></span><div><strong id="sem-bad">0</strong><small id="sem-bad-lbl">Menos de 75%</small></div></div>
+                </div>
+                <div class="db-mini-split" id="split-bar"></div>
+                <div class="db-mini-legend" id="split-legend"></div>
+            </div>
+        </section>
+
+        <!-- ═══ GRÁFICAS ═══ -->
+        <section class="db-grid db-grid-2">
+            <div class="db-panel">
+                <div class="db-panel-head"><h3><i class="bi bi-pie-chart-fill"></i> Estado de los PDIS</h3></div>
+                <p class="db-panel-sub">Resultado de la búsqueda de cada registro. Haz clic para ver el detalle.</p>
+                <div class="db-donut-layout">
+                    <div class="db-donut">
+                        <canvas id="chart-estado"></canvas>
+                        <div class="db-donut-center"><strong id="donut-total">—</strong><small>registros</small></div>
+                    </div>
+                    <ul class="db-donut-legend" id="estado-legend"></ul>
+                </div>
+            </div>
+            <div class="db-panel">
+                <div class="db-panel-head">
+                    <h3><i class="bi bi-bar-chart-steps"></i> Resultado por jefatura</h3>
+                    <span class="db-panel-hint">Clic en una barra para filtrar</span>
+                </div>
+                <p class="db-panel-sub">Composición de estados de cada jefatura, ordenada por localización.</p>
+                <div class="db-chart" id="wrap-jefatura"><canvas id="chart-jefatura"></canvas></div>
+            </div>
+        </section>
+
+        <section class="db-grid db-grid-2">
+            <div class="db-panel">
+                <div class="db-panel-head"><h3><i class="bi bi-exclamation-diamond-fill"></i> Secciones con más no encontradas</h3></div>
+                <p class="db-panel-sub">Las 10 secciones con más registros que no se localizaron.</p>
+                <div class="db-chart" id="wrap-secciones"><canvas id="chart-secciones"></canvas></div>
+            </div>
+            <div class="db-panel">
+                <div class="db-panel-head"><h3><i class="bi bi-trophy-fill"></i> Auditores con más avance</h3></div>
+                <p class="db-panel-sub">Registros revisados por auditor y cuántos localizó.</p>
+                <div class="db-chart" id="wrap-auditores"><canvas id="chart-auditores"></canvas></div>
+            </div>
+        </section>
+
+        <section class="db-panel">
+            <div class="db-panel-head">
+                <h3><i class="bi bi-activity"></i> Rechazos por fecha</h3>
+                <span class="db-panel-hint">Según la fecha y hora del rechazo</span>
+            </div>
+            <p class="db-panel-sub">Registros PDIS generados por día y cuántos se han localizado.</p>
+            <div class="db-chart db-chart-tall"><canvas id="chart-tendencia"></canvas></div>
+        </section>
+
+        <!-- ═══ TARJETAS POR JEFATURA ═══ -->
+        <div class="db-section-title"><span>Desempeño por jefatura</span><small>Haz clic en una tarjeta para ver solo esa jefatura</small></div>
+        <section class="db-areas" id="boss-cards"></section>
+
+        <!-- ═══ AUDITORES ═══ -->
+        <div class="db-section-title"><span>Ranking de auditores</span><small id="aud-count">—</small></div>
+        <section class="db-panel db-panel-flush">
+            <div class="db-table-wrap">
+                <table class="db-table" id="table-auditores">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th data-sort="name">Auditor</th>
+                            <th data-sort="total" class="num">Revisados</th>
+                            <th data-sort="buen" class="num">Buen estado</th>
+                            <th data-sort="mal" class="num">Mal estado</th>
+                            <th data-sort="no" class="num">No encontradas</th>
+                            <th data-sort="piezas" class="num">Piezas</th>
+                            <th data-sort="loc" class="num">Localización</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-auditores"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ═══ DETALLE ═══ -->
+        <div class="db-section-title"><span>Detalle de registros</span><small id="det-count">—</small></div>
+        <section class="db-panel db-panel-flush">
+            <div class="db-toolbar">
+                <div class="db-search">
+                    <i class="bi bi-search"></i>
+                    <input type="search" id="det-search" placeholder="Buscar SKU, remisión, descripción, sección, usuario…">
+                </div>
+                <div class="db-chips" id="det-chips"></div>
+            </div>
+            <div class="db-table-wrap">
+                <table class="db-table" id="table-detalle">
+                    <thead>
+                        <tr>
+                            <th data-sort="remision">Remisión</th>
+                            <th data-sort="sku">SKU</th>
+                            <th data-sort="desc">Descripción</th>
+                            <th data-sort="seccion">Sección</th>
+                            <th data-sort="jefatura">Jefatura</th>
+                            <th data-sort="piezas" class="num">Piezas</th>
+                            <th data-sort="fechaSort">Fecha rechazo</th>
+                            <th data-sort="usuario">Usuario rechazo</th>
+                            <th data-sort="auditor">Auditor</th>
+                            <th data-sort="estado">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-detalle"></tbody>
+                </table>
+            </div>
+            <div class="db-pager" id="det-pager"></div>
+        </section>
+
+        <!-- ═══ ARCHIVOS ═══ -->
+        <div class="db-section-title"><span>Archivos PDIS cargados</span><small id="files-count">—</small></div>
+        <section class="db-panel">
+            <div id="pdis-files" class="db-file-list pdis-files-list"></div>
+        </section>
+
+        <section class="pdis-cta">
+            <div><i class="bi bi-lightbulb"></i><div><strong>¿Necesitas capturar estados o subir un archivo nuevo?</strong><span>El Gestor de PDIS permite registrar el resultado de cada artículo con evidencia y generar comparativas por rango.</span></div></div>
+            <a href="../Rechazos/reportes.html" class="db-btn db-btn-primary">Abrir Gestor de PDIS <i class="bi bi-arrow-right"></i></a>
+        </section>
+
+        <details class="db-panel db-glossary">
+            <summary><i class="bi bi-info-circle-fill"></i> ¿Cómo se calculan los indicadores?</summary>
+            <dl>
+                <div><dt>Registro PDIS</dt><dd>Cada renglón de la hoja "Rechazos" de los archivos PDIS cargados.</dd></div>
+                <div><dt>Avance de revisión</dt><dd>Registros con estado capturado ÷ total de registros.</dd></div>
+                <div><dt>Buen estado</dt><dd>Estados "Encontrada buen estado" y "Encontrada en exhibición".</dd></div>
+                <div><dt>Mal estado / merma</dt><dd>Estados "Encontrada mal estado" y "Encontrada Merma".</dd></div>
+                <div><dt>No encontradas</dt><dd>Registros revisados que no se localizaron.</dd></div>
+                <div><dt>Pendientes</dt><dd>Registros sin estado capturado todavía en el Gestor de PDIS.</dd></div>
+                <div><dt>Localización</dt><dd>(Buen estado + Mal estado) ÷ registros revisados. La referencia es 90%; entre 75% y 90% requiere atención.</dd></div>
+            </dl>
+        </details>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script src="pdis-dashboard.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const b = document.getElementById('hamburger-btn'), m = document.getElementById('menuLateral');
+        if (b && m) { m.addEventListener('show.bs.offcanvas', () => b.classList.add('open')); m.addEventListener('hide.bs.offcanvas', () => b.classList.remove('open')); }
+    });
+</script>
+</body>
+</html>

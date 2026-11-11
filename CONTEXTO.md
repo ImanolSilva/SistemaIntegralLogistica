@@ -177,9 +177,40 @@ El módulo más grande, con `script.js` de unas 5,700 líneas.
 - Vuelve a subir el archivo con los cambios del escáner.
 
 ### Dashboard PDIS (`_archivado/PDISDashboard/`)
-- Lee los archivos PDIS y rechazos de Storage `uploads/`.
-- Clasifica cada pieza: encontrada en buen estado, encontrada en mal estado o no encontrada.
-- Permite comparar archivos, filtrar por jefatura y estado, y ver el ranking de usuarios que buscan PDIS.
+Centro de análisis de los archivos PDIS/rechazos de Storage `uploads/`. Lee la hoja "Rechazos" de cada archivo, cuyos nombres contienen "pdis" o "rechazos".
+- **Columnas que usa:** Remisión, Sku, Descripción Sku, Sección, Piezas, Fecha y Hora Rechazo, Jefatura, Usuario de Rechazo, Comentarios, Status y Auditor.
+- **Estados:**
+
+  | Estado | `Status` que lo produce |
+  |---|---|
+  | Buen estado | "Encontrada buen estado", "Encontrada en exhibición" |
+  | Mal estado / merma | "Encontrada mal estado", "Encontrada Merma" |
+  | No encontrada | "No encontrada" |
+  | Pendiente | Status vacío |
+- **Mismo diseño que el Dashboard de Resultados:** enlaza `../../Dashboard/styles.css` y usa las mismas clases `db-*`. Un cambio en ese CSS afecta a los dos dashboards.
+- **Encabezado:** medidor de **localización**, con referencia de 90% (constante `REF`; umbral de atención `WARN` = 75%).
+- **6 indicadores:**
+  - registros;
+  - avance de revisión;
+  - buen estado;
+  - mal estado;
+  - no encontradas;
+  - pendientes.
+- **Hallazgos automáticos y semáforo de jefaturas.**
+- **Gráficas:**
+  - estado de los PDIS;
+  - resultado por jefatura (100% apilado);
+  - secciones con más no encontradas;
+  - auditores con más avance;
+  - rechazos por fecha, con la línea de localización.
+- **Tarjetas por jefatura.**
+- **Ranking de auditores** (ordenable).
+- **Detalle de registros:** búsqueda, botones por estado y paginación.
+- **Lista de archivos:** versión, fecha, tamaño, registros y avance. Un clic filtra ese archivo.
+- **Exportar a Excel:** hojas Resumen, Jefaturas, Auditores y Detalle.
+- **Fórmulas:**
+  - Localización = (buen + mal) ÷ revisados.
+  - Avance = revisados ÷ total.
 
 ### Gestor de PDIS (`_archivado/Rechazos/`)
 - Carga el reporte PDIS/rechazos, que incluye un archivo de ejemplo.
@@ -278,3 +309,6 @@ El módulo más grande, con `script.js` de unas 5,700 líneas.
 - **Celular:** se corrigió el scroll horizontal de Kanban (tarjeta de métricas) y de Inventarios (indicadores de conexión en el header, que se ocultan en pantallas angostas).
 - **SKU:** dependía del CSS anterior del Dashboard. Se copió a `SKU/legacy-dashboard.css` y se enlazó ahí, para que el rediseño del Dashboard no lo afecte.
 - Nuevo este archivo `CONTEXTO.md`.
+- **Dashboard PDIS, rediseño completo** (`_archivado/PDISDashboard/index.html`, `pdis-dashboard.js`, `pdis-dashboard.css`), con el mismo estilo del Dashboard de Resultados. Ver la sección 5.
+  - **Cambio de criterio:** antes un registro sin `Status` contaba como "No encontrada". Ahora cuenta como **Pendiente**, para distinguir lo no revisado de lo que no se localizó.
+  - Se agregaron el filtro por auditor, la búsqueda en el detalle, la exportación a Excel y la lectura de la fecha de rechazo (texto "20 ene 2025, 12:29:30" o fecha de Excel).
