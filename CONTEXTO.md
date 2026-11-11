@@ -404,3 +404,8 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - Dashboard, Inicio, Recibos y Manifiestos ya usan la validacion comun de administrador; se eliminaron listas de UIDs duplicadas en esos flujos.
 - La exportacion temporal de usuarios de Firebase se elimino del espacio de trabajo y no se versiono.
 - Los correos de la captura pertenecen a cuentas existentes en Firebase Authentication. Los nombres `direct_test`, `probe`, `pivot`, `cmp`, `aureo`, `test_aureo`, `e...` y `mcastrol_test` tienen formato de cuentas de prueba o automatizacion; no se borran automaticamente para evitar eliminar usuarios reales sin confirmacion.
+
+### Rediseño de Inicio 2026-11-11
+
+- `index.html` recibió un rediseño visual completo para Inicio: fondo con textura sutil, panel de bienvenida Liverpool, tarjetas consistentes, CTA de acceso seguro, sombras, estados hover y responsive para celular.
+- Se corrigieron la jerarquia visual, el contraste, los colores dispersos de las tarjetas y los anchos para que Inicio conserve la misma identidad del resto del sistema.
