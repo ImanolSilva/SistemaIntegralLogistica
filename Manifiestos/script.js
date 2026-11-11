@@ -513,8 +513,7 @@
             currentUser = user;
             try {
                 const docSnap = await db.collection("usuarios").doc(user.uid).get();
-                const ADMIN_UIDS_ALL = ["wz4A81Vp8tQIjzVXMANmOHUlsNH2", "8NfEfPSyusZdNUFgXWPtvi3p6Ns1"];
-                const isAdmin = ADMIN_UIDS_ALL.includes(user.uid);
+                const isAdmin = await window.isSystemAdmin(user, db);
                 const adminTabNav = document.getElementById('adminTab');
                 if (adminTabNav && isAdmin) adminTabNav.style.display = 'flex';
 
@@ -533,11 +532,9 @@
                             break;
                         case 'bodeguero':
                             permissions.canScan = true;
-                            permissions.canUpload = true;
                             break;
                         case 'jefe':
                             permissions.canScan = true;
-                            permissions.canUpload = true;
                             permissions.canGenerateReport = true;
                             permissions.canArchive = true;
                             break;

@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const storage = firebase.storage();
 
     // ── CONSTANTS ─────────────────────────────────────────────────────────────
-    const ADMIN_UIDS       = ["wz4A81Vp8tQIjzVXMANmOHUlsNH2", "8NfEfPSyusZdNUFgXWPtvi3p6Ns1"];
     const COLL_ENTREGAS    = "entregas";
     const COLL_BODEGAS_COL = "catalogoBodegas"; // catálogo subido desde Excel
     const COLL_DATOS       = "datosMaestros";
@@ -142,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async user => {
         if (!user) { hideLoading(); window.location.href='../Login/login.html'; return; }
         State.currentUser = user;
-        State.isAdmin     = ADMIN_UIDS.includes(user.uid);
+        State.isAdmin     = await window.isSystemAdmin(user, db);
         State.userName    = user.displayName || null;
         State.userEmail   = user.email       || null;
 
@@ -157,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (State.isAdmin && UI.adminTab) UI.adminTab.style.display = 'flex';
         // Panel de bodegas visible para todos — el catálogo lo puede subir cualquier usuario autorizado
-        if (UI.adminPanel) UI.adminPanel.style.display = 'block';
+        if (UI.adminPanel) UI.adminPanel.style.display = State.isAdmin ? 'block' : 'none';
 
         showLoading('Cargando catálogos...');
         await Promise.all([loadBodegas(), loadMasterData()]);

@@ -5,6 +5,7 @@ service firebase.storage {
     function isAdmin() {
       return signedIn() && (
         request.auth.token.admin == true ||
+        request.auth.token.email in ['fernandosilva130501@gmail.com', 'imailin14022002@gmail.com', 'mireyesb@liverpool.com.mx', 'agavila@liverpool.com.mx'] ||
         firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
       );
     }
@@ -14,7 +15,8 @@ service firebase.storage {
       allow write: if isAdmin();
     }
     match /uploads/evidencias/{fileName} {
-      allow read, write: if signedIn();
+      allow read: if signedIn();
+      allow write, delete: if isAdmin();
     }
     match /uploads/{fileName} {
       allow read: if signedIn();
@@ -29,7 +31,8 @@ service firebase.storage {
       allow write: if isAdmin();
     }
     match /Manifiestos/{store}/{fileName} {
-      allow read, write: if signedIn();
+      allow read: if signedIn();
+      allow write, delete: if isAdmin();
     }
     match /{allPaths=**} {
       allow read, write: if false;

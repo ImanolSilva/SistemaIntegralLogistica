@@ -2,7 +2,9 @@
 (function () {
     const SPECIAL_EMAILS = [
         'fernandosilva130501@gmail.com',
-        'imailin14022002@gmail.com'
+        'imailin14022002@gmail.com',
+        'mireyesb@liverpool.com.mx',
+        'agavila@liverpool.com.mx'
     ];
 
     window.isAllowedSystemEmail = function (email) {
@@ -14,6 +16,7 @@
 
     window.isSystemAdmin = async function (user, db) {
         if (!user || !db) return false;
+        if (SPECIAL_EMAILS.includes(String(user.email || '').trim().toLowerCase())) return true;
         if (user.getIdTokenResult) {
             const token = await user.getIdTokenResult();
             if (token.claims && token.claims.admin === true) return true;
