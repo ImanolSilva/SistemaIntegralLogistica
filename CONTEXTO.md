@@ -413,6 +413,12 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.
 - Se renovó también el menú lateral global: fondo blanco-rosado degradado, encabezado vino/rosa, estados activos con relieve, iconos con acento y tarjetas internas con profundidad para evitar el aspecto plano.
 
+### Comparativo por reporte: perfil de indicadores 2026-11-11
+
+- Se corrigió la orientación de la gráfica comparativa: ahora cada línea representa un reporte y el eje muestra `Exactitud`, `Recibidas`, `Faltantes` y `Sobrantes`.
+- Los reportes se comparan en una escala común de 0 a 100%, con línea de meta del 95% y tooltips que incluyen tanto porcentaje como piezas reales.
+- El clic en cualquier punto filtra el Dashboard por el reporte correspondiente.
+
 ### Corrección de jefaturas contra departamentos 2026-11-11
 
 - Se detectó que el mapa de `datosMaestros/secciones` de Firebase estaba sobrescribiendo `Jefatura.json` y hacía aparecer departamentos como `Tecnología`, `Caballeros`, `Hogar` o `Damas` dentro del ranking de jefaturas.

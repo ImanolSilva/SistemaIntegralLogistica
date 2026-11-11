@@ -835,33 +835,43 @@ document.addEventListener('DOMContentLoaded', () => {
         chartReset('tendencia');
         const manifs = groupAgg(rows, r => r.Manifiesto).sort((a, b) => manifDate(a.key) - manifDate(b.key) || a.key.localeCompare(b.key));
         if (chartEmpty(canvas, manifs.length ? '' : 'Sin reportes')) return;
-        const labels = manifs.map(m => { const d = State.manifestInfo[m.key]?.date; return d ? [manifLabel(m.key), fmtDate(d)] : manifLabel(m.key); });
-
+        const labels = ['Exactitud', 'Recibidas', 'Faltantes', 'Sobrantes'];
         const pctRows = manifs.map(m => ({
-            expected: m.pz,
-            received: m.pz ? m.recibidas / m.pz * 100 : 0,
-            missing: m.pz ? m.ft / m.pz * 100 : 0,
-            extra: m.pz ? m.sb / m.pz * 100 : 0,
-            accuracy: m.pct == null ? null : +m.pct.toFixed(2)
+            accuracy: m.pct == null ? null : +m.pct.toFixed(2),
+            received: m.pz ? +(m.recibidas / m.pz * 100).toFixed(2) : 0,
+            missing: m.pz ? +(m.ft / m.pz * 100).toFixed(2) : 0,
+            extra: m.pz ? +(m.sb / m.pz * 100).toFixed(2) : 0
         }));
-        const line = (label, key, color, fill = false) => ({ label, data: pctRows.map(m => m[key] == null ? null : +m[key].toFixed(2)), borderColor: color, backgroundColor: fill ? color + '18' : '#fff', borderWidth: key === 'accuracy' ? 3 : 2, pointRadius: 5, pointHoverRadius: 8, pointBackgroundColor: '#fff', pointBorderColor: color, pointBorderWidth: 2, tension: .35, fill });
+        const colors = ['#8E1A5B', '#0E9F6E', '#DC2626', '#D97706', '#2563EB', '#7C3AED'];
+        const metricKeys = ['accuracy', 'received', 'missing', 'extra'];
+        const datasets = manifs.map((m, index) => ({
+            label: manifLabel(m.key),
+            data: metricKeys.map(key => pctRows[index][key]),
+            borderColor: colors[index % colors.length],
+            backgroundColor: '#fff',
+            borderWidth: 3,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: colors[index % colors.length],
+            pointBorderWidth: 2.5,
+            tension: .28,
+            fill: false
+        }));
         State.charts.tendencia = new Chart(canvas, {
             type: 'line',
-            data: { labels, datasets: [
-                line('Exactitud', 'accuracy', C.vino, true),
-                line('Recibidas', 'received', C.ok),
-                line('Faltantes', 'missing', C.bad),
-                line('Sobrantes', 'extra', C.warn),
-            ] },
+            plugins: [metaLinePlugin],
+            data: { labels, datasets },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
-                onClick: (_e, els) => { if (els[0]) setFilter(UI.filterManifiesto, manifs[els[0].index].key); },
+                onClick: (_e, els) => { if (els[0]) setFilter(UI.filterManifiesto, manifs[els[0].datasetIndex].key); },
                 plugins: {
                     legend: { position: 'top', align: 'end', labels: { boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 5, font: { size: 11, weight: '700' } } },
+                    metaLine: { value: META },
                     tooltip: { ...tooltipStyle, callbacks: {
-                        title: items => { const m = manifs[items[0].dataIndex]; const info = State.manifestInfo[m.key]; return `Reporte ${manifLabel(m.key)}${info?.date ? ' · ' + fmtDateTime(info.date) : ''}`; },
-                        label: ctx => { const m = manifs[ctx.dataIndex], p = pctRows[ctx.dataIndex]; const raw = ctx.dataset.label === 'Exactitud' ? m.pct : ctx.dataset.label === 'Recibidas' ? m.recibidas : ctx.dataset.label === 'Faltantes' ? m.ft : m.sb; return ` ${ctx.dataset.label}: ${pctTxt(ctx.parsed.y)} · ${fmt(raw)} pzas`; }
+                        title: items => `${items[0].label}`,
+                        label: ctx => { const m = manifs[ctx.datasetIndex], key = metricKeys[ctx.dataIndex]; const raw = key === 'accuracy' ? m.pct : key === 'received' ? m.recibidas : key === 'missing' ? m.ft : m.sb; return ` ${ctx.dataset.label}: ${pctTxt(ctx.parsed.y)} · ${fmt(raw)} pzas`; }
                     } }
                 },
                 scales: {
