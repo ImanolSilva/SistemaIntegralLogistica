@@ -452,3 +452,12 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
 .db-chart { background:linear-gradient(180deg,#fff,#fcf8fb); border:1px solid #eee5eb; border-radius:18px; padding:1rem .8rem .45rem; }
 .db-chart canvas { filter: drop-shadow(0 3px 4px rgba(82,28,65,.04)); }
 .db-panel-sub { max-width:760px; }
+.db-grid > .db-panel { align-self:start; }
+.db-grid-2 { align-items:start; }
+.db-chart { box-sizing:border-box; }
+@media (max-width:760px) {
+    .db-chart, .db-chart-tall { height:290px !important; min-height:290px; padding:.65rem .35rem .25rem; }
+    .db-panel { padding:.9rem .75rem; }
+    .db-panel-head h3 { font-size:.88rem; }
+    .db-panel-sub { font-size:.7rem; }
+}

@@ -413,6 +413,12 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.
 - Se renovó también el menú lateral global: fondo blanco-rosado degradado, encabezado vino/rosa, estados activos con relieve, iconos con acento y tarjetas internas con profundidad para evitar el aspecto plano.
 
+### Perfeccionamiento visual de Dashboard y gráficas 2026-11-11
+
+- Se limitaron las gráficas de áreas al conjunto más relevante y se fijaron alturas responsivas para evitar gráficas interminables, etiquetas encimadas y espacios blancos causados por el estiramiento de la cuadrícula.
+- Se retiraron etiquetas permanentes de puntos cuando provocaban saturación; el detalle completo permanece disponible al pasar o pulsar cada punto mediante tooltip.
+- Los paneles de gráficas ahora se alinean por su contenido y en móvil usan una altura compacta consistente.
+
 ### Ajuste visual de tablas y gráficas 2026-11-11
 
 - Las tablas del Dashboard ahora se convierten en tarjetas de dos columnas en pantallas pequeñas; cada dato conserva su etiqueta y ya no se corta ni obliga a desplazarse lateralmente.

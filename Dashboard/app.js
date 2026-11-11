@@ -704,14 +704,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderChartJefatura(rows) {
         const canvas = $('chart-jefatura');
         chartReset('jefatura');
-        const areas = groupAgg(rows, r => r.Area).filter(a => a.pct != null).sort((a, b) => b.pct - a.pct);
+        const areas = groupAgg(rows, r => r.Area).filter(a => a.pct != null).sort((a, b) => b.pct - a.pct).slice(0, 10);
         if (chartEmpty(canvas, areas.length ? '' : 'Sin datos por área')) return;
-        $('wrap-jefatura').style.height = Math.max(240, areas.length * 38 + 50) + 'px';
+        $('wrap-jefatura').style.height = '330px';
         const colors = areas.map(a => toneColor(a.pct));
 
         State.charts.jefatura = new Chart(canvas, {
             type: 'line',
-            plugins: [metaLinePlugin, valueLabelPlugin],
+            plugins: [metaLinePlugin],
             data: { labels: areas.map(a => a.key), datasets: [{ data: areas.map(a => +a.pct.toFixed(2)), backgroundColor: colors, borderColor: C.vino, borderWidth: 2, pointRadius: 7, pointHoverRadius: 10, pointBorderWidth: 2, pointBorderColor: '#fff', showLine: true, tension: .32 }] },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -721,7 +721,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: { display: false },
                     metaLine: { value: META },
-                    valueLabels: { format: v => v.toFixed(1) + '%' },
                     tooltip: { ...tooltipStyle, callbacks: {
                         label: ctx => ` Exactitud: ${pctTxt(ctx.parsed.y)}`,
                         afterLabel: ctx => { const a = areas[ctx.dataIndex]; return [` Piezas: ${fmt(a.pz)}`, ` Faltantes: ${fmt(a.ft)}`, ` Sobrantes: ${fmt(a.sb)}`]; }
@@ -770,7 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chartReset('diferencias');
         const areas = groupAgg(rows, r => r.Area).filter(a => a.ft + a.sb > 0).sort((a, b) => (b.ft + b.sb) - (a.ft + a.sb)).slice(0, 12);
         if (chartEmpty(canvas, areas.length ? '' : 'Sin faltantes ni sobrantes 🎉')) return;
-        $('wrap-diferencias').style.height = Math.max(240, areas.length * 38 + 50) + 'px';
+        $('wrap-diferencias').style.height = '330px';
 
         State.charts.diferencias = new Chart(canvas, {
             type: 'bar',
@@ -802,12 +801,12 @@ document.addEventListener('DOMContentLoaded', () => {
         chartReset('secciones');
         const secs = groupAgg(rows, r => r.Seccion).filter(s => s.ft > 0).sort((a, b) => b.ft - a.ft).slice(0, 10);
         if (chartEmpty(canvas, secs.length ? '' : 'No hay secciones con faltantes 🎉')) return;
-        $('wrap-secciones').style.height = Math.max(240, secs.length * 34 + 40) + 'px';
-        const labels = secs.map(s => { const d = descSeccion(s.key); return d ? `${s.key} · ${truncate(d, 22)}` : s.key; });
+        $('wrap-secciones').style.height = '330px';
+        const labels = secs.map(s => s.key);
 
         State.charts.secciones = new Chart(canvas, {
             type: 'line',
-            plugins: [valueLabelPlugin],
+            plugins: [],
             data: { labels, datasets: [{ data: secs.map(s => s.ft), borderColor: C.bad, backgroundColor: secs.map((_, i) => i < 3 ? C.bad : C.bad + '88'), pointRadius: 7, pointHoverRadius: 10, pointBorderColor: '#fff', pointBorderWidth: 2, showLine: true, tension: .32 }] },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -816,7 +815,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 onHover: (e, els) => { if (e.native?.target) e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
                 plugins: {
                     legend: { display: false },
-                    valueLabels: { format: (v) => `${fmt(v)} · ${pctTxt(tot.ft ? v / tot.ft * 100 : 0)}` },
                     tooltip: { ...tooltipStyle, callbacks: {
                         title: items => { const s = secs[items[0].dataIndex]; const d = descSeccion(s.key); return `Sección ${s.key}${d ? ' · ' + d : ''}`; },
                         label: ctx => { const s = secs[ctx.dataIndex]; return [` Faltantes: ${fmt(s.ft)} (${pctTxt(tot.ft ? s.ft / tot.ft * 100 : 0)} del total)`, ` Exactitud: ${pctTxt(s.pct ?? 0)}`, ` Área: ${areaOfSeccion(s.key)}`]; }
