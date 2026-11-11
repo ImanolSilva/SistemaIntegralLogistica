@@ -413,6 +413,15 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.
 - Se renovó también el menú lateral global: fondo blanco-rosado degradado, encabezado vino/rosa, estados activos con relieve, iconos con acento y tarjetas internas con profundidad para evitar el aspecto plano.
 
+### Dashboard de resultados: lectura VCM y responsividad 2026-11-11
+
+- Se renombró el KPI principal a `Piezas esperadas (VCM)`: representa la suma de `Cant. Manf.`, es decir, lo que VCM esperaba recibir. `Piezas recibidas` usa `Cant. Registrada` cuando existe; 166 esperadas y 158 registradas dejan 8 pendientes.
+- La exactitud se calcula como `Piezas recibidas / Piezas esperadas * 100`, y el tablero explica ambas magnitudes. La exportación conserva esta misma semántica.
+- `Contenedores con diferencias` identifica los contenedores con faltantes o sobrantes; al pulsar la tarjeta se listan los contenedores afectados y sus cantidades.
+- Todos los KPI principales son interactivos: muestran la fórmula, el origen de los datos y un detalle de secciones o contenedores que explica el resultado.
+- `Detalle por sección` y `Artículos con más diferencias` tienen búsqueda propia; las tablas usan anchos flexibles, saltos de texto y reglas móviles para evitar desplazamiento horizontal.
+- Las gráficas de exactitud, diferencias y secciones usan series de puntos con tooltips y selección por área/sección para comparar resultados de forma más clara.
+
 ### Fuente VCM y estructura de jefaturas 2026-11-11
 
 - `Complementos/Jefatura.json` contiene la relación de jefe, sección, departamento, gerencia y asistente. El Dashboard la usa como catálogo local de respaldo cuando todavía no existe `datosMaestros/secciones` en Firestore.

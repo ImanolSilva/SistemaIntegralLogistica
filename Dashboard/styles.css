@@ -410,3 +410,32 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
 .vcm-correcto > i { background: linear-gradient(135deg, #059669, #34d399); }
 @media (max-width: 1050px) { .db-vcm-concepts { grid-template-columns: repeat(4, minmax(0, 1fr)); } .db-vcm-intro { grid-column: 1 / -1; } }
 @media (max-width: 600px) { .db-vcm-concepts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .db-vcm-intro { grid-column: 1 / -1; } }
+
+/* Interacción, filtros y lectura móvil */
+.db-kpi[data-kpi] { cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+.db-kpi[data-kpi]:hover, .db-kpi[data-kpi]:focus-visible { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(142,26,91,.16); outline: 2px solid rgba(230,0,126,.25); }
+.db-table-tools { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem 1rem; border-bottom:1px solid var(--line); background:linear-gradient(135deg,#fff,#fff7fb); }
+.db-table-tools .db-search { max-width:430px; flex:1; }
+.db-table-tip { color:var(--txt3); font-size:.72rem; font-weight:700; }
+.db-table-tip i { color:var(--rosa); margin-right:.25rem; }
+.kpi-explain { text-align:left; color:var(--txt2); line-height:1.55; font-size:.9rem; }
+.kpi-explain p { margin:.35rem 0 .8rem; }
+.kpi-explain-formula { padding:.85rem; border-radius:14px; background:linear-gradient(135deg,#fff0f8,#f8f0ff); color:var(--txt); text-align:center; font-size:1.15rem; margin:.8rem 0; }
+.kpi-detail-list { display:grid; gap:.45rem; margin-top:.7rem; }
+.kpi-detail-list div { display:flex; justify-content:space-between; gap:.75rem; padding:.55rem .7rem; border:1px solid var(--line); border-radius:10px; background:#fff; }
+.kpi-detail-list span { color:var(--txt2); text-align:right; }
+.db-swal-popup { max-width:540px !important; }
+.db-table-wrap { overflow-x:hidden; }
+.db-table { width:100%; table-layout:fixed; }
+.db-table th, .db-table td { white-space:normal; overflow-wrap:anywhere; }
+@media (max-width:760px) {
+    .db-table-tools { align-items:stretch; flex-direction:column; padding:.65rem; }
+    .db-table-tools .db-search { max-width:none; width:100%; }
+    .db-table-tip { font-size:.66rem; }
+    .db-table-wrap { overflow-x:hidden; }
+    .db-table { min-width:0 !important; font-size:.68rem; }
+    .db-table th, .db-table td { padding:.55rem .3rem !important; line-height:1.25; word-break:break-word; }
+    .db-table th { font-size:.59rem; }
+    .db-table .sub { font-size:.58rem; }
+    .db-table .db-status { white-space:normal; font-size:.58rem; }
+}

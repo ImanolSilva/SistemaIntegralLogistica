@@ -157,34 +157,34 @@
 
             <!-- ═══ KPIs ═══ -->
             <section class="db-kpis">
-                <article class="db-kpi" data-tone="rosa">
-                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-box-seam"></i></span><span class="db-kpi-label">Piezas manifestadas</span></div>
+                <article class="db-kpi" data-tone="rosa" data-kpi="expected" tabindex="0" role="button">
+                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-box-seam"></i></span><span class="db-kpi-label">Piezas esperadas (VCM)</span></div>
                     <div class="db-kpi-value" id="kpi-piezas">—</div>
                     <div class="db-kpi-sub" id="kpi-piezas-sub">—</div>
                 </article>
-                <article class="db-kpi" data-tone="verde">
+                <article class="db-kpi" data-tone="verde" data-kpi="received" tabindex="0" role="button">
                     <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-check2-all"></i></span><span class="db-kpi-label">Piezas recibidas</span></div>
                     <div class="db-kpi-value" id="kpi-recibidas">—</div>
                     <div class="db-kpi-sub" id="kpi-recibidas-sub">—</div>
                 </article>
-                <article class="db-kpi" data-tone="rojo">
+                <article class="db-kpi" data-tone="rojo" data-kpi="missing" tabindex="0" role="button">
                     <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-dash-circle"></i></span><span class="db-kpi-label">Faltantes</span></div>
                     <div class="db-kpi-value" id="kpi-faltantes">—</div>
                     <div class="db-kpi-sub" id="kpi-faltantes-sub">—</div>
                 </article>
-                <article class="db-kpi" data-tone="ambar">
+                <article class="db-kpi" data-tone="ambar" data-kpi="extra" tabindex="0" role="button">
                     <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-plus-circle"></i></span><span class="db-kpi-label">Sobrantes</span></div>
                     <div class="db-kpi-value" id="kpi-sobrantes">—</div>
                     <div class="db-kpi-sub" id="kpi-sobrantes-sub">—</div>
                 </article>
-                <article class="db-kpi" data-tone="vino">
+                <article class="db-kpi" data-tone="vino" data-kpi="accuracy" tabindex="0" role="button">
                     <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-bullseye"></i></span><span class="db-kpi-label">Exactitud</span></div>
                     <div class="db-kpi-value" id="kpi-cumplimiento">—</div>
                     <div class="db-kpi-bar"><span id="kpi-progress-bar"></span><i class="db-kpi-bar-meta" title="Meta 95%"></i></div>
                     <div class="db-kpi-sub" id="kpi-cumplimiento-sub">—</div>
                 </article>
-                <article class="db-kpi" data-tone="azul">
-                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-boxes"></i></span><span class="db-kpi-label">Contenedores sin diferencia</span></div>
+                <article class="db-kpi" data-tone="azul" data-kpi="containers" tabindex="0" role="button">
+                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-boxes"></i></span><span class="db-kpi-label">Contenedores con diferencias</span></div>
                     <div class="db-kpi-value" id="kpi-cont-ok">—</div>
                     <div class="db-kpi-sub" id="kpi-cont-ok-sub">—</div>
                 </article>
@@ -268,7 +268,7 @@
                     <h3><i class="bi bi-activity"></i> Comparativo por reporte</h3>
                     <span class="db-panel-hint">Ordenado por fecha de carga</span>
                 </div>
-                <p class="db-panel-sub">Piezas manifestadas, faltantes y exactitud de cada reporte cargado.</p>
+                <p class="db-panel-sub">Piezas esperadas por VCM, faltantes y exactitud de cada reporte cargado.</p>
                 <div class="db-chart db-chart-tall"><canvas id="chart-tendencia"></canvas></div>
             </section>
 
@@ -279,6 +279,7 @@
             <!-- ═══ TABLA SECCIONES ═══ -->
             <div class="db-section-title"><span>Detalle por sección</span><small id="sec-count">—</small></div>
             <section class="db-panel db-panel-flush">
+                <div class="db-table-tools"><label class="db-search"><i class="bi bi-search"></i><input type="search" id="section-search" placeholder="Filtrar sección, área o descripción…"></label><span class="db-table-tip"><i class="bi bi-hand-index-thumb"></i> Pulsa un indicador para conocer el cálculo</span></div>
                 <div class="db-table-wrap">
                     <table class="db-table" id="table-secciones">
                         <thead>
@@ -340,6 +341,7 @@
             <div id="articulos-block" style="display:none">
                 <div class="db-section-title"><span>Artículos con más diferencias</span><small>Top 15 por piezas con diferencia</small></div>
                 <section class="db-panel db-panel-flush">
+                    <div class="db-table-tools"><label class="db-search"><i class="bi bi-search"></i><input type="search" id="article-search" placeholder="Filtrar SKU, descripción o área…"></label></div>
                     <div class="db-table-wrap">
                         <table class="db-table">
                             <thead>
@@ -364,8 +366,8 @@
             <details class="db-panel db-glossary">
                 <summary><i class="bi bi-info-circle-fill"></i> ¿Cómo se calculan los indicadores?</summary>
                 <dl>
-                    <div><dt>Piezas manifestadas</dt><dd>Total de piezas que el manifiesto indica que debían llegar.</dd></div>
-                    <div><dt>Piezas recibidas</dt><dd>Piezas manifestadas menos faltantes: lo que sí llegó de lo esperado.</dd></div>
+                    <div><dt>Piezas esperadas (VCM)</dt><dd>Total indicado por VCM: lo que el sistema esperaba recibir.</dd></div>
+                    <div><dt>Piezas recibidas</dt><dd>Total registrado o escaneado en el resultado. La diferencia contra VCM muestra lo pendiente.</dd></div>
                     <div><dt>Faltantes</dt><dd>Piezas manifestadas que no se encontraron al recibir.</dd></div>
                     <div><dt>Sobrantes</dt><dd>Piezas que llegaron de más o que no venían en el manifiesto.</dd></div>
                     <div><dt>Exactitud</dt><dd>(Piezas − Faltantes) ÷ Piezas. La meta es 95%; entre 85% y 95% requiere atención y menos de 85% es crítico.</dd></div>

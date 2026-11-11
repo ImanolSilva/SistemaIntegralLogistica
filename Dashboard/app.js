@@ -71,7 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
         parsedDatos: null,
         charts: {},
         cont: { search: '', status: '', sortKey: 'ft', sortDir: 'desc', page: 1 },
-        sec:  { sortKey: 'ft', sortDir: 'desc' },
+        sec:  { sortKey: 'ft', sortDir: 'desc', search: '' },
+        artSearch: '',
         uploadModal: null,
         datosModal: null,
     };
@@ -477,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (UI.filterSeccion.value)    parts.push(`sección <strong>${esc(UI.filterSeccion.value)}</strong>`);
         const scope = parts.length ? `Viendo ${parts.join(' · ')}.` : 'Viendo <strong>todos los reportes</strong> cargados.';
         $('hero-scope').innerHTML = rows.length
-            ? `${scope} Se manifestaron <strong>${fmt(tot.pz)}</strong> piezas: faltan <strong>${fmt(tot.ft)}</strong> y sobran <strong>${fmt(tot.sb)}</strong>.`
+            ? `${scope} VCM esperaba <strong>${fmt(tot.pz)}</strong> piezas; se registraron <strong>${fmt(tot.recibidas)}</strong>, faltan <strong>${fmt(tot.ft)}</strong> y sobran <strong>${fmt(tot.sb)}</strong>.`
             : 'Todavía no hay resultados para mostrar.';
 
         const last = State.allReportes.find(r => toDate(r.uploadedAt));
@@ -506,19 +507,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── KPIs ─────────────────────────────────────────────────────────────────
     function renderKPIs(tot, conts) {
-        const recibidas = Math.max(tot.pz - tot.ft, 0);
+        const recibidas = tot.recibidas > 0 ? tot.recibidas : Math.max(tot.pz - tot.ft, 0);
         const faltPct = tot.pz > 0 ? tot.ft / tot.pz * 100 : 0;
         const sobrPct = tot.pz > 0 ? tot.sb / tot.pz * 100 : 0;
         const byEst = countBy(conts, c => c.estado);
         const contFalt = (byEst.falt || 0) + (byEst.mixto || 0);
         const contSobr = (byEst.sobr || 0) + (byEst.mixto || 0);
         const ok = byEst.ok || 0;
+        const conDiferencias = conts.filter(c => c.estado !== 'ok');
 
         animateNumber($('kpi-piezas'), tot.pz, true);
         $('kpi-piezas-sub').innerHTML = `${fmt(conts.length)} contenedores · ${fmt(tot.lines)} líneas`;
 
         animateNumber($('kpi-recibidas'), recibidas, true);
-        $('kpi-recibidas-sub').innerHTML = `<b>${pctTxt(tot.pct ?? 0)}</b> de lo manifestado`;
+        $('kpi-recibidas-sub').innerHTML = `<b>${pctTxt(tot.pct ?? 0)}</b> de lo esperado por VCM`;
 
         animateNumber($('kpi-faltantes'), tot.ft, true);
         $('kpi-faltantes-sub').innerHTML = `<b>${faltPct.toFixed(2)}%</b> del total · ${fmt(contFalt)} contenedores`;
@@ -535,8 +537,8 @@ document.addEventListener('DOMContentLoaded', () => {
             : tot.pct >= META ? `Cumple la meta de ${META}% <b>(+${(tot.pct - META).toFixed(1)} pts)</b>`
             : `A <b>${(META - tot.pct).toFixed(1)} pts</b> de la meta de ${META}%`;
 
-        $('kpi-cont-ok').textContent = `${fmt(ok)} / ${fmt(conts.length)}`;
-        $('kpi-cont-ok-sub').innerHTML = `<b>${pctTxt(conts.length ? ok / conts.length * 100 : 0)}</b> llegaron sin diferencias`;
+        $('kpi-cont-ok').textContent = fmt(conDiferencias.length);
+        $('kpi-cont-ok-sub').innerHTML = `<b>${fmt(contFalt)}</b> con faltantes · <b>${fmt(contSobr)}</b> con sobrantes`;
         if ($('kpi-faltantes-vcm')) $('kpi-faltantes-vcm').textContent = fmt(tot.ft);
         if ($('kpi-sobrantes-vcm')) $('kpi-sobrantes-vcm').textContent = fmt(tot.sb);
         if ($('kpi-adicional')) $('kpi-adicional').textContent = fmt(tot.ad);
@@ -621,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('sem-warn').textContent = c.warn || 0;
         $('sem-bad').textContent  = c.bad  || 0;
 
-        const recibidas = Math.max(tot.pz - tot.ft, 0);
+        const recibidas = tot.recibidas > 0 ? tot.recibidas : Math.max(tot.pz - tot.ft, 0);
         const base = recibidas + tot.ft + tot.sb || 1;
         const segs = [
             ['Recibidas', recibidas, C.ok],
@@ -643,13 +645,16 @@ document.addEventListener('DOMContentLoaded', () => {
         id: 'metaLine',
         afterDatasetsDraw(chart, _args, opts) {
             if (opts?.value == null) return;
-            const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
-            const xp = x.getPixelForValue(opts.value);
+            const { ctx, chartArea: { left, right, top, bottom }, scales: { x, y } } = chart;
             ctx.save();
             ctx.strokeStyle = C.txt; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
-            ctx.beginPath(); ctx.moveTo(xp, top); ctx.lineTo(xp, bottom); ctx.stroke();
-            ctx.setLineDash([]); ctx.fillStyle = C.txt; ctx.font = "700 10px Inter, sans-serif"; ctx.textAlign = 'center';
-            ctx.fillText(`Meta ${opts.value}%`, xp, top - 4);
+            if (y?.type === 'linear' && x?.type === 'category') {
+                const yp = y.getPixelForValue(opts.value); ctx.beginPath(); ctx.moveTo(left, yp); ctx.lineTo(right, yp); ctx.stroke();
+                ctx.setLineDash([]); ctx.fillStyle = C.txt; ctx.font = "700 10px Inter, sans-serif"; ctx.textAlign = 'right'; ctx.fillText(`Meta ${opts.value}%`, right, yp - 4);
+            } else {
+                const xp = x.getPixelForValue(opts.value); ctx.beginPath(); ctx.moveTo(xp, top); ctx.lineTo(xp, bottom); ctx.stroke();
+                ctx.setLineDash([]); ctx.fillStyle = C.txt; ctx.font = "700 10px Inter, sans-serif"; ctx.textAlign = 'center'; ctx.fillText(`Meta ${opts.value}%`, xp, top - 4);
+            }
             ctx.restore();
         }
     };
@@ -705,11 +710,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const colors = areas.map(a => toneColor(a.pct));
 
         State.charts.jefatura = new Chart(canvas, {
-            type: 'bar',
+            type: 'line',
             plugins: [metaLinePlugin, valueLabelPlugin],
-            data: { labels: areas.map(a => a.key), datasets: [{ data: areas.map(a => +a.pct.toFixed(2)), backgroundColor: colors.map(c => c + 'CC'), hoverBackgroundColor: colors, borderRadius: 6, borderSkipped: false, barPercentage: .72 }] },
+            data: { labels: areas.map(a => a.key), datasets: [{ data: areas.map(a => +a.pct.toFixed(2)), backgroundColor: colors, borderColor: C.vino, borderWidth: 2, pointRadius: 7, pointHoverRadius: 10, pointBorderWidth: 2, pointBorderColor: '#fff', showLine: true, tension: .32 }] },
             options: {
-                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 layout: { padding: { top: 14, right: 8 } },
                 onClick: (_e, els) => { if (els[0]) setFilter(UI.filterJefatura, areas[els[0].index].key); },
                 onHover: (e, els) => { if (e.native?.target) e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
@@ -718,13 +723,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     metaLine: { value: META },
                     valueLabels: { format: v => v.toFixed(1) + '%' },
                     tooltip: { ...tooltipStyle, callbacks: {
-                        label: ctx => ` Exactitud: ${pctTxt(ctx.parsed.x)}`,
+                        label: ctx => ` Exactitud: ${pctTxt(ctx.parsed.y)}`,
                         afterLabel: ctx => { const a = areas[ctx.dataIndex]; return [` Piezas: ${fmt(a.pz)}`, ` Faltantes: ${fmt(a.ft)}`, ` Sobrantes: ${fmt(a.sb)}`]; }
                     } }
                 },
                 scales: {
-                    x: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { color: C.grid } },
-                    y: { ticks: { font: { size: 11, weight: '700' }, color: C.txt }, grid: { display: false } }
+                    x: { ticks: { font: { size: 10, weight: '700' }, color: C.txt, maxRotation: 45, minRotation: 25 }, grid: { display: false } },
+                    y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } }, grid: { color: C.grid } }
                 }
             }
         });
@@ -768,13 +773,13 @@ document.addEventListener('DOMContentLoaded', () => {
         $('wrap-diferencias').style.height = Math.max(240, areas.length * 38 + 50) + 'px';
 
         State.charts.diferencias = new Chart(canvas, {
-            type: 'bar',
+            type: 'line',
             data: { labels: areas.map(a => a.key), datasets: [
-                { label: 'Faltantes', data: areas.map(a => a.ft), backgroundColor: C.bad + 'D0', borderRadius: 5, borderSkipped: false },
-                { label: 'Sobrantes', data: areas.map(a => a.sb), backgroundColor: C.warn + 'C0', borderRadius: 5, borderSkipped: false },
+                { label: 'Faltantes', data: areas.map(a => a.ft), borderColor: C.bad, backgroundColor: C.bad, pointRadius: 7, pointHoverRadius: 10, pointBorderColor: '#fff', pointBorderWidth: 2, tension: .32 },
+                { label: 'Sobrantes', data: areas.map(a => a.sb), borderColor: C.warn, backgroundColor: C.warn, pointRadius: 7, pointHoverRadius: 10, pointBorderColor: '#fff', pointBorderWidth: 2, tension: .32 },
             ] },
             options: {
-                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 onClick: (_e, els) => { if (els[0]) setFilter(UI.filterJefatura, areas[els[0].index].key); },
                 onHover: (e, els) => { if (e.native?.target) e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
                 plugins: {
@@ -782,8 +787,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     tooltip: { ...tooltipStyle, mode: 'index', intersect: false, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.parsed.x)} pzas` } }
                 },
                 scales: {
-                    x: { stacked: true, beginAtZero: true, ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: C.grid } },
-                    y: { stacked: true, ticks: { font: { size: 11, weight: '700' }, color: C.txt }, grid: { display: false } }
+                    x: { ticks: { font: { size: 10, weight: '700' }, color: C.txt, maxRotation: 45, minRotation: 25 }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: C.grid } }
                 }
             }
         });
@@ -798,11 +803,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const labels = secs.map(s => { const d = descSeccion(s.key); return d ? `${s.key} · ${truncate(d, 22)}` : s.key; });
 
         State.charts.secciones = new Chart(canvas, {
-            type: 'bar',
+            type: 'line',
             plugins: [valueLabelPlugin],
-            data: { labels, datasets: [{ data: secs.map(s => s.ft), backgroundColor: secs.map((_, i) => i < 3 ? C.bad : C.bad + '80'), borderRadius: 5, borderSkipped: false, barPercentage: .7 }] },
+            data: { labels, datasets: [{ data: secs.map(s => s.ft), borderColor: C.bad, backgroundColor: secs.map((_, i) => i < 3 ? C.bad : C.bad + '88'), pointRadius: 7, pointHoverRadius: 10, pointBorderColor: '#fff', pointBorderWidth: 2, showLine: true, tension: .32 }] },
             options: {
-                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 layout: { padding: { right: 50 } },
                 onClick: (_e, els) => { if (els[0]) setFilter(UI.filterSeccion, secs[els[0].index].key); },
                 onHover: (e, els) => { if (e.native?.target) e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
@@ -815,8 +820,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     } }
                 },
                 scales: {
-                    x: { beginAtZero: true, ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: C.grid } },
-                    y: { ticks: { font: { size: 10.5, weight: '700' }, color: C.txt }, grid: { display: false } }
+                    x: { ticks: { font: { size: 9, weight: '700' }, color: C.txt, maxRotation: 50, minRotation: 25 }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: C.grid } }
                 }
             }
         });
@@ -905,7 +910,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── TABLA SECCIONES ──────────────────────────────────────────────────────
     function renderTablaSecciones(rows, tot) {
-        const secs = groupAgg(rows, r => r.Seccion).map(s => {
+        const q = (State.sec.search || '').trim().toLowerCase();
+        const visibleRows = q ? rows.filter(r => [r.Seccion, r.Area, r.DescripcionSec].join(' ').toLowerCase().includes(q)) : rows;
+        const secs = groupAgg(visibleRows, r => r.Seccion).map(s => {
             const sRows = rows.filter(r => r.Seccion === s.key);
             return { ...s, seccion: s.key, jefatura: sRows[0]?.Area || NO_AREA, desc: sRows[0]?.DescripcionSec || '',
                 contenedores: uniq(sRows.map(r => r.Manifiesto + '|' + r.Contenedor)).length,
@@ -1009,6 +1016,14 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => { State.cont.search = e.target.value; State.cont.page = 1; renderTablaContenedores(State._conts); }, 180);
     });
+    $('section-search')?.addEventListener('input', e => {
+        State.sec.search = e.target.value;
+        renderTablaSecciones(State.filteredRows, agg(State.filteredRows));
+    });
+    $('article-search')?.addEventListener('input', e => {
+        State.artSearch = e.target.value;
+        renderArticulos(State.filteredRows);
+    });
 
     bindSort('table-secciones', State.sec, () => renderTablaSecciones(State.filteredRows, agg(State.filteredRows)));
     bindSort('table-contenedores', State.cont, () => renderTablaContenedores(State._conts));
@@ -1018,7 +1033,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const withArt = rows.filter(r => r.Articulo);
         $('articulos-block').style.display = withArt.length ? 'block' : 'none';
         if (!withArt.length) return;
-        const arts = groupAgg(withArt, r => r.Articulo).map(a => {
+        const q = (State.artSearch || '').trim().toLowerCase();
+        const visibleRows = q ? withArt.filter(r => [r.Articulo, r.Descripcion, r.Area].join(' ').toLowerCase().includes(q)) : withArt;
+        const arts = groupAgg(visibleRows, r => r.Articulo).map(a => {
             const aRows = withArt.filter(r => r.Articulo === a.key);
             return { ...a, desc: aRows.find(r => r.Descripcion)?.Descripcion || '', area: aRows[0].Area,
                 conts: uniq(aRows.map(r => r.Manifiesto + '|' + r.Contenedor)).length };
@@ -1036,6 +1053,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>`).join('') || '<tr><td colspan="8" class="empty">Ningún artículo tiene diferencias 🎉</td></tr>';
     }
 
+    // Cada KPI explica su origen y muestra el detalle que lo compone.
+    function showKpiExplanation(kind) {
+        const rows = State.filteredRows, tot = agg(rows), conts = State._conts || buildContenedores(rows);
+        const titles = { expected: 'Piezas esperadas por VCM', received: 'Piezas recibidas / registradas', missing: 'Piezas faltantes', extra: 'Piezas sobrantes', accuracy: 'Exactitud de recepción', containers: 'Contenedores con diferencias' };
+        let body = '';
+        if (kind === 'expected') body = `<p>Es la suma de la columna Cant. Manf. del archivo VCM: <b>${fmt(tot.pz)}</b> piezas que el sistema esperaba recibir.</p>`;
+        if (kind === 'received') body = `<p>Es la suma de las piezas registradas o escaneadas: <b>${fmt(tot.recibidas)}</b>. Comparadas contra ${fmt(tot.pz)} esperadas, quedan <b>${fmt(Math.max(tot.pz - tot.recibidas, 0))}</b> pendientes.</p>`;
+        if (kind === 'missing') body = `<p>Son piezas esperadas que no aparecen como recibidas. Total: <b>${fmt(tot.ft)}</b>.</p>${topDetail(rows, 'Faltantes')}`;
+        if (kind === 'extra') body = `<p>Son piezas recibidas por encima de lo esperado o marcadas como sobrantes. Total: <b>${fmt(tot.sb)}</b>.</p>${topDetail(rows, 'Sobrantes')}`;
+        if (kind === 'accuracy') body = `<p>Fórmula: piezas recibidas ÷ piezas esperadas × 100.</p><div class="kpi-explain-formula"><b>${fmt(tot.recibidas)}</b> ÷ <b>${fmt(tot.pz)}</b> = <strong>${pctTxt(tot.pct)}</strong></div><p>${tot.ft ? `La diferencia principal son ${fmt(tot.ft)} piezas faltantes.` : 'No hay faltantes registrados.'}</p>`;
+        if (kind === 'containers') { const bad = conts.filter(c => c.estado !== 'ok').sort((a,b) => (b.ft+b.sb)-(a.ft+a.sb)); body = `<p><b>${fmt(bad.length)}</b> de ${fmt(conts.length)} contenedores tienen faltantes o sobrantes.</p>` + (bad.length ? `<div class="kpi-detail-list">${bad.slice(0,12).map(c => `<div><b>${esc(c.contenedor)}</b><span>${c.ft ? `Faltan ${fmt(c.ft)}` : ''}${c.ft && c.sb ? ' · ' : ''}${c.sb ? `Sobran ${fmt(c.sb)}` : ''}</span></div>`).join('')}</div>` : '<p class="text-success">Todos están completos.</p>'); }
+        Swal.fire({ title: titles[kind], html: `<div class="kpi-explain">${body}</div>`, confirmButtonText: 'Entendido', customClass: { popup: 'db-swal-popup' } });
+    }
+    function topDetail(rows, label) { const key = label === 'Faltantes' ? 'ft' : 'sb'; const groups = groupAgg(rows, r => r.Seccion).filter(g => g[key] > 0).sort((a,b) => b[key] - a[key]).slice(0, 6); return groups.length ? `<div class="kpi-detail-list">${groups.map(g => `<div><b>Sección ${esc(g.key)}</b><span>${fmt(g[key])} piezas</span></div>`).join('')}</div>` : '<p class="text-success">No hay registros para este resultado.</p>'; }
+    document.querySelectorAll('.db-kpi[data-kpi]').forEach(card => { card.addEventListener('click', () => showKpiExplanation(card.dataset.kpi)); card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showKpiExplanation(card.dataset.kpi); } }); });
+
     // ── EXPORTAR ─────────────────────────────────────────────────────────────
     $('btn-export').addEventListener('click', () => {
         const rows = State.filteredRows;
@@ -1052,8 +1085,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ['Sección', UI.filterSeccion.value || 'Todas'],
             [],
             ['Indicador', 'Valor'],
-            ['Piezas manifestadas', tot.pz],
-            ['Piezas recibidas', Math.max(tot.pz - tot.ft, 0)],
+            ['Piezas esperadas (VCM)', tot.pz],
+            ['Piezas recibidas / registradas', tot.recibidas],
             ['Faltantes', tot.ft],
             ['Sobrantes', tot.sb],
             ['Exactitud %', round2(tot.pct ?? 0)],
@@ -1273,9 +1306,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function agg(rows) {
-        let pz = 0, ft = 0, sb = 0, ad = 0, correcto = 0;
-        rows.forEach(r => { pz += toNum(r.Piezas); ft += toNum(r.Faltantes); sb += toNum(r.Sobrante); ad += toNum(r.Adicional); correcto += toNum(r.Correcto); });
-        return { pz, ft, sb, ad, correcto, lines: rows.length, pct: pctOf(pz, ft) };
+        let pz = 0, recibidas = 0, ft = 0, sb = 0, ad = 0, correcto = 0;
+        rows.forEach(r => {
+            const expected = toNum(r.Piezas), received = toNum(r.Registradas);
+            pz += expected;
+            recibidas += received > 0 ? received : Math.max(expected - toNum(r.Faltantes), 0);
+            ft += toNum(r.Faltantes); sb += toNum(r.Sobrante); ad += toNum(r.Adicional); correcto += toNum(r.Correcto);
+        });
+        return { pz, recibidas, ft, sb, ad, correcto, lines: rows.length, pct: pz > 0 ? recibidas / pz * 100 : null };
     }
 
     function groupAgg(rows, keyFn) {
