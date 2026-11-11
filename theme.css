@@ -365,3 +365,43 @@ body .db-file-empty {
     background: linear-gradient(145deg, #fff, #fff3f9) !important;
     border-color: rgba(230,0,126,.22) !important;
 }
+
+/* === Navegacion Liverpool renovada === */
+body.ui-unificado .offcanvas {
+    background: linear-gradient(155deg, #fff 0%, #fff8fc 48%, #f8e7f1 100%) !important;
+    border-right: 4px solid transparent !important;
+    border-image: linear-gradient(180deg, #e6007e, #8e1a5b) 1 !important;
+    box-shadow: 18px 0 42px rgba(91,35,69,.16) !important;
+}
+body.ui-unificado .offcanvas-header {
+    background: linear-gradient(110deg, #5b123f 0%, #a9005b 55%, #e6007e 100%) !important;
+    min-height: 66px; box-shadow: 0 8px 20px rgba(91,0,55,.18);
+}
+body.ui-unificado .offcanvas .nav-link {
+    margin: .18rem .75rem !important; border-left: 0 !important; border-radius: 13px !important;
+    color: #5b354d !important; min-height: 50px; transition: transform .18s, background .18s, color .18s, box-shadow .18s;
+}
+body.ui-unificado .offcanvas .nav-link:hover {
+    color: #a9005b !important; background: linear-gradient(100deg, #fff0f7, #f7e4f0) !important;
+    transform: translateX(3px); box-shadow: 0 6px 14px rgba(230,0,126,.08);
+}
+body.ui-unificado .offcanvas .nav-link.active {
+    color: #a9005b !important;
+    background: linear-gradient(100deg, #ffe1f0 0%, #fff3f9 100%) !important;
+    box-shadow: inset 4px 0 0 #e6007e, 0 8px 18px rgba(230,0,126,.10);
+}
+body.ui-unificado .offcanvas .nav-link .bi { color: #e6007e !important; filter: drop-shadow(0 3px 5px rgba(230,0,126,.18)); }
+body.ui-unificado .menu-brand-block {
+    background: linear-gradient(135deg, #fff, #ffe9f4) !important;
+    box-shadow: 0 10px 22px rgba(91,35,69,.08);
+}
+body.ui-unificado .menu-brand-mark {
+    background: linear-gradient(135deg, #a9005b, #e6007e) !important;
+    box-shadow: 0 8px 16px rgba(230,0,126,.24);
+}
+body.ui-unificado .menu-status-card {
+    background: linear-gradient(135deg, #fff, #f8edf4) !important;
+    box-shadow: 0 8px 18px rgba(91,35,69,.06);
+}
+body.ui-unificado .menu-footer { color: #9b6d88 !important; }
+body.ui-unificado .menu-section-label { color: #9b6d88 !important; }
