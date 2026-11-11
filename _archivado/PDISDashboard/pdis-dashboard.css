@@ -12,5 +12,50 @@
 .db-status.no   { background: var(--bad-soft); color: var(--bad); }
 .pdis-desc { max-width: 260px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle; }
 .db-file-icon.pdis { background: var(--rosa-soft); color: var(--rosa); }
+#table-detalle, #table-auditores { width:100%; table-layout:fixed; }
+#table-detalle th:nth-child(1) { width:10%; }
+#table-detalle th:nth-child(2) { width:11%; }
+#table-detalle th:nth-child(3) { width:21%; }
+#table-detalle th:nth-child(4) { width:9%; }
+#table-detalle th:nth-child(5) { width:14%; }
+#table-detalle th:nth-child(6) { width:6%; }
+#table-detalle th:nth-child(7) { width:13%; }
+#table-detalle th:nth-child(8) { width:9%; }
+#table-detalle th:nth-child(9) { width:9%; }
+#table-detalle th:nth-child(10) { width:12%; }
+#table-auditores th:nth-child(1) { width:7%; }
+#table-auditores th:nth-child(2) { width:22%; }
+#table-auditores th:nth-child(n+3) { width:11.8%; }
+#table-detalle tbody td, #table-auditores tbody td { overflow:hidden; text-overflow:ellipsis; }
+#table-detalle .pdis-desc { max-width:100%; }
+@media (max-width:760px) {
+    .pdis-dashboard-page .db-table-wrap { overflow-x:hidden; }
+    .pdis-dashboard-page .db-table { display:block; min-width:0 !important; }
+    .pdis-dashboard-page .db-table thead { display:none; }
+    .pdis-dashboard-page .db-table tbody, .pdis-dashboard-page .db-table tr, .pdis-dashboard-page .db-table td { display:block; width:100%; }
+    .pdis-dashboard-page .db-table tbody tr { display:grid; grid-template-columns:1fr 1fr; gap:0 .8rem; padding:.7rem .8rem; border-bottom:1px solid var(--line); }
+    .pdis-dashboard-page .db-table td { display:flex; justify-content:space-between; align-items:flex-start; gap:.5rem; padding:.38rem 0 !important; white-space:normal; overflow:visible; text-overflow:clip; text-align:right; line-height:1.25; }
+    .pdis-dashboard-page .db-table td::before { content:attr(data-label); color:var(--txt3); font-size:.6rem; font-weight:800; text-transform:uppercase; text-align:left; flex:0 0 auto; }
+    #table-detalle tbody td:nth-child(1)::before { content:'Remisión'; }
+    #table-detalle tbody td:nth-child(2)::before { content:'SKU'; }
+    #table-detalle tbody td:nth-child(3)::before { content:'Descripción'; }
+    #table-detalle tbody td:nth-child(4)::before { content:'Sección'; }
+    #table-detalle tbody td:nth-child(5)::before { content:'Jefatura'; }
+    #table-detalle tbody td:nth-child(6)::before { content:'Piezas'; }
+    #table-detalle tbody td:nth-child(7)::before { content:'Fecha'; }
+    #table-detalle tbody td:nth-child(8)::before { content:'Usuario'; }
+    #table-detalle tbody td:nth-child(9)::before { content:'Auditor'; }
+    #table-detalle tbody td:nth-child(10)::before { content:'Estado'; }
+    #table-auditores tbody td:nth-child(1)::before { content:'#'; }
+    #table-auditores tbody td:nth-child(2)::before { content:'Auditor'; }
+    #table-auditores tbody td:nth-child(3)::before { content:'Revisados'; }
+    #table-auditores tbody td:nth-child(4)::before { content:'Buen estado'; }
+    #table-auditores tbody td:nth-child(5)::before { content:'Mal estado'; }
+    #table-auditores tbody td:nth-child(6)::before { content:'No encontradas'; }
+    #table-auditores tbody td:nth-child(7)::before { content:'Piezas'; }
+    #table-auditores tbody td:nth-child(8)::before { content:'Localización'; }
+    .pdis-dashboard-page .db-table td:first-child { grid-column:1 / -1; text-align:left; font-size:.85rem; }
+    .pdis-dashboard-page .db-table td:first-child::before { display:none; }
+}
 @media (max-width: 1024px) { .pdis-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px)  { .pdis-filters { grid-template-columns: 1fr; } }

@@ -413,6 +413,12 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.
 - Se renovó también el menú lateral global: fondo blanco-rosado degradado, encabezado vino/rosa, estados activos con relieve, iconos con acento y tarjetas internas con profundidad para evitar el aspecto plano.
 
+### Tabla PDIS responsiva 2026-11-11
+
+- La tabla de detalle PDIS ahora usa distribución fija de columnas, anchos proporcionales, truncado seguro con tooltip y evita que descripción, fecha, usuario y auditor se monten.
+- En celulares la tabla se convierte en tarjetas de dos columnas con etiquetas visibles para cada dato; se elimina el desplazamiento horizontal.
+- El ranking de auditores recibe la misma estructura responsiva y proporciones estables.
+
 ### Comparativo por reporte: perfil de indicadores 2026-11-11
 
 - Se corrigió la orientación de la gráfica comparativa: ahora cada línea representa un reporte y el eje muestra `Exactitud`, `Recibidas`, `Faltantes` y `Sobrantes`.
