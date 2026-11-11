@@ -4,9 +4,7 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function isAdmin() {
       return signedIn() && (
-        request.auth.token.admin == true ||
-        request.auth.token.email in ['fernandosilva130501@gmail.com', 'imailin14022002@gmail.com', 'mireyesb@liverpool.com.mx', 'agavila@liverpool.com.mx'] ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        request.auth.token.email in ['fernandosilva130501@gmail.com', 'imailin14022002@gmail.com', 'mireyesb@liverpool.com.mx', 'agavila@liverpool.com.mx']
       );
     }
     function own(uid) { return signedIn() && request.auth.uid == uid; }

@@ -399,7 +399,7 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 ### Administradores de archivos 2026-11-11
 
 - Las cuentas con permisos administrativos de carga, sustitucion y eliminacion son: `fernandosilva130501@gmail.com`, `imailin14022002@gmail.com`, `mireyesb@liverpool.com.mx` y `agavila@liverpool.com.mx`.
-- La validacion se aplica tanto en la interfaz (`access-control.js`) como en las reglas de Firestore y Storage. Un usuario normal puede operar y consultar, pero no puede cargar, sustituir o eliminar archivos administrativos.
+- La validacion se aplica tanto en la interfaz (`access-control.js`) como en las reglas de Firestore y Storage. La lista exacta de cuatro correos es la unica fuente de permisos administrativos; Custom Claims o documentos antiguos de `admins` ya no habilitan a cuentas no listadas. Un usuario normal puede operar y consultar, pero no puede cargar, sustituir o eliminar archivos administrativos.
 - Se restringieron las rutas de Storage de Dashboard, PDIS/evidencias, uploads, BodegasRelacion, ExcelManifiestos y Manifiestos a administradores para evitar que una restriccion visual pueda saltarse desde el navegador.
 - Dashboard, Inicio, Recibos y Manifiestos ya usan la validacion comun de administrador; se eliminaron listas de UIDs duplicadas en esos flujos.
 - La exportacion temporal de usuarios de Firebase se elimino del espacio de trabajo y no se versiono.
