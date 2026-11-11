@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
     // ── CONSTANTES ───────────────────────────────────────────────────────────
-    const ADMIN_UIDS   = ["wz4A81Vp8tQIjzVXMANmOHUlsNH2", "8NfEfPSyusZdNUFgXWPtvi3p6Ns1"];
     const COLLECTION   = "reportesDashboard";
     const DATOS_COLL   = "datosMaestros";
     const DATOS_DOC    = "secciones";
@@ -113,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async user => {
         if (!user) { hideLoading(); UI.authGuard.style.display = 'block'; return; }
         State.currentUser = user;
-        State.isAdmin = ADMIN_UIDS.includes(user.uid);
+        State.isAdmin = await window.isSystemAdmin(user, db);
         UI.dashboardContent.style.display = 'block';
         if (State.isAdmin) UI.adminPanel.style.display = 'block';
         const adminTabNav = $('adminTab');

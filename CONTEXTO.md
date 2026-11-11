@@ -375,3 +375,13 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 
 - `outputs/prueba-resultados/Prueba_Resultados_Manifestados.xlsx` contiene datos ficticios de jefaturas, secciones, articulos, piezas, faltantes y sobrantes.
 - `build_prueba_resultados.mjs` permite regenerarlo. Las previsualizaciones PNG y archivos NDJSON de inspeccion estan ignorados por Git.
+
+### Actualizacion 2026-11-11
+
+- Se agrego `access-control.js` como fuente comun para validar administradores mediante Custom Claims o `admins/{uid}`. Dashboard, SKU y Gestor PDIS ya no dependen de listas de UIDs en el cliente.
+- Se agrego la coleccion `pdisLocks`. Antes de guardar un estado, el Gestor PDIS intenta reservar el registro por archivo y remision mediante una transaccion. Otro usuario recibe un aviso y no puede sobrescribirlo; un administrador puede corregirlo.
+- La cola de cambios PDIS conserva una copia en IndexedDB y mantiene `localStorage` como respaldo de compatibilidad. Al sincronizar correctamente se limpian ambos respaldos.
+- Se agregaron reglas para `pdisLocks` en `firestore.rules` y se mantuvieron permisos administrativos para cargas de resultados, datos maestros y archivos PDIS.
+- Se corrigieron las referencias de `getJefeBodega` al bucket de `sistemaintegrall` y el error de construccion de `HttpsError`.
+- Las validaciones de JavaScript ejecutadas en esta actualizacion: `Dashboard/app.js`, `SKU/app.js`, `_archivado/Rechazos/main.js` y `access-control.js` pasaron `node --check`.
+- Las reglas quedaron preparadas para despliegue, pero requieren ejecutar `firebase deploy --only firestore:rules,storage` desde un entorno con Firebase CLI autenticada.

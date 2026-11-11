@@ -59,6 +59,12 @@ service cloud.firestore {
       allow read, create, update: if signedIn();
       allow delete: if isAdmin();
     }
+    match /pdisLocks/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid && request.resource.data.ownerUid == request.auth.uid);
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid);
+    }
     match /{document=**} {
       allow read, write: if false;
     }

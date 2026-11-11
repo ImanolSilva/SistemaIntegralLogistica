@@ -34,8 +34,27 @@ const AppState = {
     isSyncing: false
 };
 let adminBossFilter = "";
-const ADMIN_UIDS = ["8NfEfPSyusZdNUFgXWPtvi3p6Ns1", "wz4A81Vp8tQIjzVXMANmOHUlsNH2", "AdRGcxSGPEejg2goMYWftQG5rlj1", "awNwmt9acXa7rLCsfx14cBMsT6y1", "MlRuwWe8WhMzfnW3Mko94VEMacc2", "TCiYd7MxGGeVpelbA8goOcNSifo1"];
 const autoSaveTimers = {};
+const PENDING_DB_NAME = 'pdisPendingChanges';
+
+function savePendingChangesOffline() {
+    localStorage.setItem('pendingChanges', JSON.stringify(AppState.pendingChanges));
+    try {
+        const request = indexedDB.open(PENDING_DB_NAME, 1);
+        request.onupgradeneeded = () => request.result.createObjectStore('queue', { keyPath: 'id' });
+        request.onsuccess = () => {
+            const tx = request.result.transaction('queue', 'readwrite');
+            tx.objectStore('queue').put({ id: 'active', changes: AppState.pendingChanges, updatedAt: Date.now() });
+        };
+    } catch (error) { console.warn('No se pudo respaldar la cola offline:', error); }
+}
+function clearPendingChangesOffline() {
+    localStorage.removeItem('pendingChanges');
+    try {
+        const request = indexedDB.open(PENDING_DB_NAME, 1);
+        request.onsuccess = () => request.result.transaction('queue', 'readwrite').objectStore('queue').delete('active');
+    } catch (error) { console.warn('No se pudo limpiar la cola offline:', error); }
+}
 
 /*****************************************************
  * ========== MANEJO DE CACHÉ Y SINCRONIZACIÓN ==========
@@ -47,7 +66,7 @@ function queueChange(remision, field, value) {
         AppState.pendingChanges[remision] = {};
     }
     AppState.pendingChanges[remision][field] = value;
-    localStorage.setItem('pendingChanges', JSON.stringify(AppState.pendingChanges));
+    savePendingChangesOffline();
     updateSyncStatus('pending');
 }
 
@@ -56,8 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pdisList) new MutationObserver(enforcePdiStatuses).observe(pdisList, { childList: true, subtree: true });
 });
 
-function loadPendingChanges() {
-    const savedChanges = localStorage.getItem('pendingChanges');
+async function loadPendingChanges() {
+    let savedChanges = localStorage.getItem('pendingChanges');
+    try {
+        const request = indexedDB.open(PENDING_DB_NAME, 1);
+        await new Promise(resolve => { request.onupgradeneeded = () => request.result.createObjectStore('queue', { keyPath: 'id' }); request.onsuccess = resolve; request.onerror = resolve; });
+        if (request.result) {
+            const record = await new Promise(resolve => { const get = request.result.transaction('queue').objectStore('queue').get('active'); get.onsuccess = () => resolve(get.result); get.onerror = () => resolve(null); });
+            if (record?.changes) savedChanges = JSON.stringify(record.changes);
+        }
+    } catch (error) { console.warn('No se pudo leer la cola offline:', error); }
     if (savedChanges) {
         AppState.pendingChanges = JSON.parse(savedChanges);
         console.log("Cambios pendientes cargados desde localStorage.", AppState.pendingChanges);
@@ -152,7 +179,7 @@ async function syncPendingChanges(isAutoSave = false) {
         if (!hasChanges) {
              console.log("No se encontraron cambios netos para sincronizar.");
              AppState.pendingChanges = {};
-             localStorage.removeItem('pendingChanges');
+             clearPendingChangesOffline();
              if (isAutoSave) updateSyncStatus('synced'); else Swal.close();
              AppState.isSyncing = false;
              return;
@@ -179,7 +206,7 @@ async function syncPendingChanges(isAutoSave = false) {
         AppState.fileVersion = newVersion;
         AppState.allRechazosEnExcel = excelData;
         AppState.pendingChanges = {};
-        localStorage.removeItem('pendingChanges');
+        clearPendingChangesOffline();
         
         if (isAutoSave) {
             updateSyncStatus('synced');
@@ -208,6 +235,20 @@ function fixEncoding(str) { if (!str) return ""; if (window.fixText) return wind
 function isMobile() { return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent); }
 function parseExcelDate(value) { if (!value) return ""; if (typeof value === "number") { const dateObj = new Date(Math.round((value - 25569) * 86400 * 1000)); return dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }); } const parsed = Date.parse(value); if (!isNaN(parsed)) { const dateObj = new Date(parsed); return dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }); } return value; }
 function showSection(sectionId) { const section = document.getElementById(sectionId); if (section) { section.classList.remove('hidden'); setTimeout(() => section.classList.add('visible'), 50); } }
+async function claimPdiLock(remision, user, status) {
+    if (AppState.isAdmin) return true;
+    const fileName = AppState.selectedFileData?.name || 'pdis';
+    const lockId = `${fileName}_${remision}`.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 140);
+    const ref = db.collection('pdisLocks').doc(lockId);
+    try {
+        return await db.runTransaction(async tx => {
+            const snap = await tx.get(ref);
+            if (snap.exists && snap.data().ownerUid !== user.uid) return false;
+            tx.set(ref, { ownerUid: user.uid, ownerEmail: user.email || '', status, fileName, remision: String(remision), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+            return true;
+        });
+    } catch (error) { console.error('No se pudo reservar el PDIS:', error); return false; }
+}
 
 function loadDynamicImage(sku, seccion, containerId) {
     const container = document.getElementById(containerId);
@@ -248,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             document.getElementById("correoUsuario").innerHTML = `<i class="bi bi-person-circle me-2"></i>${user.email}`;
-            AppState.isAdmin = ADMIN_UIDS.includes(user.uid);
+            AppState.isAdmin = await window.isSystemAdmin(user, db);
             const adminTabNav = document.getElementById('adminTab');
             if (adminTabNav && AppState.isAdmin) adminTabNav.style.display = 'flex';
             loadPendingChanges();
@@ -340,7 +381,7 @@ function setupEventListeners() {
     });
     
     // Listener para el guardado automático de cambios (Estado y Auditor)
-    document.addEventListener("change", (e) => {
+    document.addEventListener("change", async (e) => {
         if (e.target.classList.contains("status-select")) {
             const rowIndex = e.target.dataset.rowIndex;
             const newStatus = e.target.value;
@@ -360,6 +401,12 @@ function setupEventListeners() {
                     return;
                 }
                 const auditorName = user.displayName || user.email;
+                const lockGranted = await claimPdiLock(remision, user, newStatus);
+                if (!lockGranted) {
+                    e.target.value = AppState.rechazosGlobal[rowIndex].Status || 'No encontrada';
+                    showAlert('warning', 'PDIS protegido', 'Otro usuario ya reservó este registro. No se puede sobrescribir.');
+                    return;
+                }
 
                 AppState.rechazosGlobal[rowIndex].Status = newStatus;
                 AppState.rechazosGlobal[rowIndex].Auditor = auditorName;
