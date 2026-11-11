@@ -1254,20 +1254,6 @@
             };
 
             const updateUIForLoggedInUser = async (user) => {
-                if (!sessionStorage.getItem('manifestWarningShown')) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Aviso Importante sobre Manifiestos',
-                        html: `<div style="text-align: left; padding: 1rem;"><p><i class="bi bi-clock-history" style="color: var(--fuego-naranja);"></i> Los manifiestos se archivan y eliminan automáticamente después de <strong>3 días</strong>.</p><p><i class="bi bi-envelope-exclamation" style="color: var(--fuego-rojo);"></i> Al 4º día, se enviará un reporte por correo a las jefaturas correspondientes.</p><p class="mt-3">Por favor, mantente al pendiente del estado de tus manifiestos o consúltalo con tu jefe de recibos para no verte afectado.</p></div>`,
-                        confirmButtonText: 'Entendido',
-                        confirmButtonColor: 'var(--rosa-principal)',
-                        customClass: {
-                            popup: 'animate__animated animate__bounceIn'
-                        }
-                    });
-                    sessionStorage.setItem('manifestWarningShown', 'true');
-                }
-
                 if (ui.logoutButton) ui.logoutButton.style.display = 'inline-flex';
                 if (ui.hamburgerBtn) ui.hamburgerBtn.style.display = 'flex';
                 if (ui.authButton) ui.authButton.style.display = 'none';
