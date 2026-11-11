@@ -409,3 +409,5 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 
 - `index.html` recibió un rediseño visual completo para Inicio: fondo con textura sutil, panel de bienvenida Liverpool, tarjetas consistentes, CTA de acceso seguro, sombras, estados hover y responsive para celular.
 - Se corrigieron la jerarquia visual, el contraste, los colores dispersos de las tarjetas y los anchos para que Inicio conserve la misma identidad del resto del sistema.
+- Se agregaron indicadores visuales de acceso seguro, operación en tiempo real e indicadores claros al hero de Inicio, además de cuatro accesos rápidos para evitar una pantalla vacía.
+- `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.

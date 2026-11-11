@@ -176,8 +176,16 @@
                     <div class="card-content"><div class="card-icon"><i class="bi bi-grid-1x2-fill"></i></div><h3>Dashboard</h3><p>Consulta indicadores y el estado general de la operación.</p></div>
                     <div class="go-corner"><div class="go-arrow"></div></div>
                 </a>
+                <a href="${href('_archivado/PDISDashboard/index.html')}" class="action-card">
+                    <div class="card-content"><div class="card-icon"><i class="bi bi-speedometer2"></i></div><h3>Dashboard PDIS</h3><p>Revisa avances, resultados y desempeño por jefatura.</p></div>
+                    <div class="go-corner"><div class="go-arrow"></div></div>
+                </a>
                 <a href="${href('_archivado/Rechazos/reportes.html')}" class="action-card">
                     <div class="card-content"><div class="card-icon"><i class="bi bi-file-earmark-medical-fill"></i></div><h3>Gestor de PDIS</h3><p>Gestiona y da seguimiento a los artículos PDIS.</p></div>
+                    <div class="go-corner"><div class="go-arrow"></div></div>
+                </a>
+                <a href="${href('SKU/index.html')}" class="action-card">
+                    <div class="card-content"><div class="card-icon"><i class="bi bi-upc-scan"></i></div><h3>Buscador SKU</h3><p>Encuentra productos y consulta su informacion rapidamente.</p></div>
                     <div class="go-corner"><div class="go-arrow"></div></div>
                 </a>`;
         }

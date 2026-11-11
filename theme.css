@@ -287,3 +287,81 @@ body .offcanvas.offcanvas-start { font-family: 'Inter', sans-serif; }
     body .main-container, body main.container, body main.container-xl { border-radius: 18px !important; }
     body .table { font-size: .76rem; }
 }
+
+/* === Superficies Liverpool: profundidad y degradados coherentes === */
+html body {
+    background: linear-gradient(135deg, #fbf8fa 0%, #fff 42%, #fff4fa 100%) !important;
+    background-attachment: fixed !important;
+}
+body .app-header {
+    background: linear-gradient(110deg, rgba(255,255,255,.98), rgba(255,255,255,.92), rgba(255,240,248,.96)) !important;
+}
+body .main-container,
+body main.container,
+body main.container-xl {
+    background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(255,248,252,.96)) !important;
+    box-shadow: 0 18px 48px rgba(91,35,69,.10), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+body .card,
+body .db-panel,
+body .form-card,
+body .panel,
+body .section-card,
+body .user-card,
+body .report-card {
+    background: linear-gradient(145deg, #fff 0%, #fff8fc 100%) !important;
+    border-color: rgba(230,0,126,.14) !important;
+    box-shadow: 0 12px 28px rgba(91,35,69,.08), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+body .card-header,
+body .card-footer,
+body .db-panel-head,
+body .db-admin-head {
+    background: linear-gradient(105deg, #fff8fc, #f9eff6) !important;
+}
+body .form-control,
+body .form-select,
+body textarea.form-control,
+body .input-group-text {
+    background: linear-gradient(145deg, #fff, #fff8fc) !important;
+}
+body .modal-content {
+    background: linear-gradient(145deg, #fff, #fff7fb) !important;
+}
+body .modal-footer { background: linear-gradient(105deg, #fff8fc, #fff) !important; }
+body .btn-primary,
+body .btn-main,
+body .btn-primary-rosa,
+body .btn-rosa,
+body .btn-cta-secondary {
+    background: linear-gradient(135deg, #a9005b 0%, #e6007e 55%, #f04a9b 100%) !important;
+    border-color: transparent !important;
+}
+body .hero-logo-wrap i {
+    display: inline-block !important;
+    color: #fff !important;
+    font-size: 2rem !important;
+    line-height: 1 !important;
+    opacity: 1 !important;
+    text-shadow: 0 3px 12px rgba(73,0,43,.3);
+}
+body .hero-logo-wrap {
+    background: linear-gradient(145deg, rgba(255,255,255,.28), rgba(255,255,255,.08)) !important;
+    box-shadow: 0 12px 25px rgba(32,0,21,.2) !important;
+}
+body .hero-meta {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: .55rem; margin-top: 1.25rem;
+}
+body .hero-meta span {
+    display: inline-flex; align-items: center; gap: .4rem; padding: .48rem .75rem; border-radius: 999px;
+    color: rgba(255,255,255,.88); background: rgba(255,255,255,.11); border: 1px solid rgba(255,255,255,.18);
+    font-size: .72rem; font-weight: 700;
+}
+body .hero-meta i { color: #FFC9E4; }
+body .drop-zone,
+body .upload-area,
+body .empty-state,
+body .db-file-empty {
+    background: linear-gradient(145deg, #fff, #fff3f9) !important;
+    border-color: rgba(230,0,126,.22) !important;
+}
