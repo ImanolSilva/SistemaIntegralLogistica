@@ -225,3 +225,10 @@ body.ui-unificado.rechazos-page {
     .rechazos-page .control-stats { grid-template-columns:1fr; }
     .rechazos-page .accordion-button { align-items: flex-start; }
 }
+
+/* Etiqueta de estado de cada PDIS: colores legibles (fondo suave + texto oscuro del mismo tono) */
+.rechazos-page .badge.pdi-status { min-width: 120px; font-size: .74rem !important; font-weight: 800 !important; padding: .42em .8em !important; border: 1px solid transparent; letter-spacing: 0; }
+.rechazos-page .badge.pdi-st-buen { background: #E7F7F0 !important; color: #0B7A55 !important; border-color: #BFE8D7 !important; }
+.rechazos-page .badge.pdi-st-mal  { background: #FEF3E2 !important; color: #A85A05 !important; border-color: #F8D9A8 !important; }
+.rechazos-page .badge.pdi-st-no   { background: #FDECEC !important; color: #B91C1C !important; border-color: #F7C7C7 !important; }
+.rechazos-page .badge.pdi-st-pend { background: #F3EEF1 !important; color: #6D5B66 !important; border-color: #E4D5DE !important; }

@@ -1,4 +1,86 @@
 /* Navegación, encabezado de módulo y tema visual compartidos por todos los módulos. */
+
+/* ── Reparación de textos con codificación dañada (mojibake) ──────────────────
+   Algunos Excel llegan con acentos codificados dos veces: "AUDÍFONOS" se ve como
+   "AUDÃƒÂFONOS" y "BÓXER" como "BÃƒâ€œXER". fixText() revierte esas capas
+   (UTF-8 leído como Windows-1252/Latin-1), solo en tramos que al decodificarse
+   forman UTF-8 válido, así que el texto correcto nunca se altera. */
+(function () {
+    if (window.fixText) return;
+    const CP1252 = { 0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97, 0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F };
+    const HI = '\\u0080-\\u00FF\\u0152\\u0153\\u0160\\u0161\\u0178\\u017D\\u017E\\u0192\\u02C6\\u02DC\\u2013\\u2014\\u2018-\\u201E\\u2020-\\u2022\\u2026\\u2030\\u2039\\u203A\\u20AC\\u2122';
+    const RUN = new RegExp('[' + HI + ']{2,}', 'g');
+    const SUSPECT = /[ÂÃ][\u0080-¿ŒœŠšŸŽžƒˆ˜–—‘-„†-•…‰‹›€™]|â€/;
+    const decoder = typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { fatal: true }) : null;
+    function decodeRun(run) {
+        const bytes = [];
+        for (const ch of run) {
+            const c = ch.codePointAt(0);
+            if (c < 256) bytes.push(c); else if (CP1252[c] != null) bytes.push(CP1252[c]); else return run;
+        }
+        try { return decoder.decode(new Uint8Array(bytes)); } catch (e) { return run; }
+    }
+    window.fixText = function (value) {
+        if (typeof value !== 'string' || !decoder || !SUSPECT.test(value)) return value;
+        let out = value;
+        for (let i = 0; i < 4 && SUSPECT.test(out); i++) {
+            const next = out.replace(RUN, decodeRun);
+            if (next === out) break;
+            out = next;
+        }
+        return out;
+    };
+    window.fixTextDeep = function (obj) {
+        if (typeof obj === 'string') return window.fixText(obj);
+        if (Array.isArray(obj)) return obj.map(window.fixTextDeep);
+        if (obj && typeof obj === 'object' && Object.getPrototypeOf(obj) === Object.prototype) {
+            const o = {};
+            Object.keys(obj).forEach(k => { o[window.fixText(k)] = window.fixTextDeep(obj[k]); });
+            return o;
+        }
+        return obj;
+    };
+
+    // Todo Excel que lean los módulos pasa por XLSX.utils.sheet_to_json: se repara ahí
+    // para que filtros, cálculos, archivos que se vuelven a subir y exportaciones queden limpios.
+    function patchXLSX() {
+        const X = window.XLSX;
+        if (!X || !X.utils || typeof X.utils.sheet_to_json !== 'function' || X.utils.sheet_to_json.__fixText) return;
+        const original = X.utils.sheet_to_json;
+        const patched = function () { return window.fixTextDeep(original.apply(this, arguments)); };
+        patched.__fixText = true;
+        X.utils.sheet_to_json = patched;
+    }
+    patchXLSX();
+    document.addEventListener('DOMContentLoaded', patchXLSX);
+    window.addEventListener('load', patchXLSX);
+
+    // Red de seguridad para todos los módulos: corrige el texto visible en pantalla.
+    function fixNode(node) {
+        if (node.nodeType === 3) {
+            const v = node.nodeValue, f = window.fixText(v);
+            if (f !== v) node.nodeValue = f;
+            return;
+        }
+        if (node.nodeType !== 1 || node.tagName === 'SCRIPT' || node.tagName === 'STYLE') return;
+        if (node.title) { const f = window.fixText(node.title); if (f !== node.title) node.title = f; }
+        const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+        let t;
+        while ((t = walker.nextNode())) {
+            const v = t.nodeValue;
+            if (SUSPECT.test(v)) t.nodeValue = window.fixText(v);
+        }
+    }
+    function start() {
+        fixNode(document.body);
+        new MutationObserver(muts => muts.forEach(m => {
+            if (m.type === 'characterData') fixNode(m.target);
+            else m.addedNodes.forEach(fixNode);
+        })).observe(document.body, { childList: true, subtree: true, characterData: true });
+    }
+    if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+
 (function () {
     // La raíz del sistema es la carpeta donde vive este script.
     const scriptSrc = (document.currentScript && document.currentScript.src) || '';

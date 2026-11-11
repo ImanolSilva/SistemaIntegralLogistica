@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const doc = await db.collection(DATOS_COLL).doc(DATOS_DOC).get();
             if (doc.exists && doc.data().sections) {
-                State.masterMap = doc.data().sections;
+                State.masterMap = fixDeep(doc.data().sections);
                 const fecha = toDate(doc.data().uploadedAt);
                 setDatosStatus(Object.keys(State.masterMap).length, fecha ? fmtDate(fecha) : '—');
             } else {
@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Sin orderBy: los registros sin uploadedAt también deben aparecer.
             const snap = await db.collection(COLLECTION).get();
-            State.allReportes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            State.allReportes = snap.docs.map(d => { const data = d.data(); return { id: d.id, ...data, rows: fixDeep(data.rows || []) }; });
             State.allReportes.sort((a, b) => (toDate(b.uploadedAt)?.getTime() || 0) - (toDate(a.uploadedAt)?.getTime() || 0));
 
             State.manifestInfo = {};
@@ -1263,6 +1263,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function uniq(a) { return [...new Set(a)]; }
     function countBy(a, fn) { return a.reduce((acc, x) => { const k = fn(x); acc[k] = (acc[k] || 0) + 1; return acc; }, {}); }
+    // Repara acentos dañados en datos ya guardados (ver fixText en shared-ui.js)
+    function fixDeep(v) { return window.fixTextDeep ? window.fixTextDeep(v) : v; }
     function toNum(v) { const n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? 0 : n; }
     function fmt(n) { return Number(n).toLocaleString('es-MX'); }
     function fmtShort(n) { return n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'k' : fmt(n); }

@@ -204,7 +204,7 @@ async function syncPendingChanges(isAutoSave = false) {
  *****************************************************/
 function showAlert(icon, title, text = '', config = {}) { const defaultConfig = { toast: true, position: "top-end", showConfirmButton: false, timer: 3000, timerProgressBar: true, didOpen: (toast) => { toast.addEventListener('mouseenter', Swal.stopTimer); toast.addEventListener('mouseleave', Swal.resumeTimer); } }; return Swal.fire({ icon, title, text, ...defaultConfig, ...config }); }
 function setUIForRole(isAdmin) { document.getElementById("dropzone").classList.toggle("hidden", !isAdmin); }
-function fixEncoding(str) { if (!str) return ""; try { return decodeURIComponent(escape(str)); } catch { return str; } }
+function fixEncoding(str) { if (!str) return ""; if (window.fixText) return window.fixText(String(str)); try { return decodeURIComponent(escape(str)); } catch { return str; } }
 function isMobile() { return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent); }
 function parseExcelDate(value) { if (!value) return ""; if (typeof value === "number") { const dateObj = new Date(Math.round((value - 25569) * 86400 * 1000)); return dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }); } const parsed = Date.parse(value); if (!isNaN(parsed)) { const dateObj = new Date(parsed); return dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }); } return value; }
 function showSection(sectionId) { const section = document.getElementById(sectionId); if (section) { section.classList.remove('hidden'); setTimeout(() => section.classList.add('visible'), 50); } }
@@ -370,7 +370,7 @@ function setupEventListeners() {
                 const headerBadge = document.querySelector(`#heading-${rowIndex} .badge`);
                 if(headerBadge) {
                     const statusColors = { "Sí encontrada": "var(--verde-exito)", "No encontrada": "var(--rojo-peligro)", "Encontrada en exhibición": "var(--azul-info)", "Encontrada Merma": "#ff9800", "Sin Estado": "var(--gris-oscuro)" };
-                    headerBadge.style.backgroundColor = statusColors[newStatus] || 'var(--gris-oscuro)';
+                    headerBadge.style.backgroundColor = ''; headerBadge.className = 'badge rounded-pill me-2 pdi-status ' + pdiStatusClass(newStatus);
                     headerBadge.textContent = newStatus;
                 }
                 const picker = document.querySelector(`#status-${rowIndex}`)?.closest('.status-picker');
@@ -808,6 +808,8 @@ function renderRechazos(rechazosData) { const container = document.getElementByI
 // ===== SECCIÓN MODIFICADA (INICIO) =====
 // Se ajusta la función para renderizar el ícono de comentario correcto desde el inicio.
 // ===== INICIO DE LA FUNCIÓN ACTUALIZADA =====
+// Clase visual de la etiqueta de estado (acepta nombres actuales y anteriores)
+function pdiStatusClass(status) { const c = String(status || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim(); if (!c || c === "sin estado") return "pdi-st-pend"; if (c.includes("mal estado") || c.includes("merma")) return "pdi-st-mal"; if (c.includes("no encontr")) return "pdi-st-no"; if (c.includes("buen estado") || c.includes("si encontrada") || c.includes("exhibicion")) return "pdi-st-buen"; return "pdi-st-pend"; }
 function renderRechazoItem(rechazo, i) {
     const { _rowIndex, Remisión, Sku, Sección } = rechazo;
     const fecha = parseExcelDate(rechazo["Fecha y Hora Rechazo"]) || "N/A";
@@ -860,7 +862,7 @@ function renderRechazoItem(rechazo, i) {
     <div class="accordion-item report-card shadow-sm mb-3 rounded-4 border-0" id="item-${_rowIndex}">
         <h2 class="accordion-header" id="heading-${_rowIndex}">
             <button class="accordion-button collapsed px-2 py-2 d-flex flex-row align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${_rowIndex}">
-                <span class="badge rounded-pill me-2" style="background-color: ${statusColors[estadoActual]}; min-width: 120px; font-size: 0.75rem;">${estadoActual}</span>
+                <span class="badge rounded-pill me-2 pdi-status ${pdiStatusClass(estadoActual)}">${estadoActual}</span>
                 <div class="report-summary flex-grow-1 d-flex flex-column flex-md-row align-items-md-center gap-2">
                     <span class="sku-title fw-semibold" title="${descripcionSku}">${descripcionSku}</span>
                     <span class="user-info text-muted small"><i class="bi bi-person"></i> ${usuarioName}</span>
@@ -1279,6 +1281,8 @@ function renderDashboardUI(dataConRendimiento, dateRange) {
 
             const labels = dataConRendimiento.map(d => d.jefe);
             const statusColors = {
+                'Encontrada buen estado': 'rgba(14, 159, 110, 0.85)',
+                'Encontrada mal estado': 'rgba(217, 119, 6, 0.85)',
                 'Sí encontrada': 'rgba(40, 167, 69, 0.8)',
                 'No encontrada': 'rgba(220, 53, 69, 0.8)',
                 'Encontrada en exhibición': 'rgba(13, 110, 253, 0.8)',

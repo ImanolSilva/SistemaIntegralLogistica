@@ -312,3 +312,11 @@ Centro de análisis de los archivos PDIS/rechazos de Storage `uploads/`. Lee la 
 - **Dashboard PDIS, rediseño completo** (`_archivado/PDISDashboard/index.html`, `pdis-dashboard.js`, `pdis-dashboard.css`), con el mismo estilo del Dashboard de Resultados. Ver la sección 5.
   - **Cambio de criterio:** antes un registro sin `Status` contaba como "No encontrada". Ahora cuenta como **Pendiente**, para distinguir lo no revisado de lo que no se localizó.
   - Se agregaron el filtro por auditor, la búsqueda en el detalle, la exportación a Excel y la lectura de la fecha de rechazo (texto "20 ene 2025, 12:29:30" o fecha de Excel).
+- **Reparación de acentos dañados en todo el sistema.** Algunos Excel traen texto codificado dos veces: "AUDÍFONOS" se veía como "AUDÃƒÂFONOS" y "BÓXER" como "BÃƒâ€œXER". `shared-ui.js` define `window.fixText()` y `window.fixTextDeep()`, que revierten hasta 4 capas de UTF-8 leído como Windows-1252/Latin-1. Solo cambian tramos que al decodificarse forman UTF-8 válido, así que los textos correctos (Ñ, €, comillas) no se tocan. Se aplica en tres niveles:
+  1. `XLSX.utils.sheet_to_json` queda envuelto, así que todo Excel que lea cualquier módulo llega reparado: filtros, cálculos, re-subidas y exportaciones.
+  2. El Dashboard repara los `rows` y los Datos Maestros que ya estaban guardados en Firestore.
+  3. Un `MutationObserver` corrige el texto visible en pantalla de todos los módulos como red de seguridad.
+
+- **Gestor PDIS, etiqueta de estado ilegible:** el mapa de colores solo conocía los nombres anteriores ("Sí encontrada", "Encontrada Merma"). Con los estados actuales ("Encontrada buen estado" / "Encontrada mal estado") quedaba sin fondo y con texto blanco. Ahora `pdiStatusClass()` en `main.js` asigna la clase `pdi-st-buen` / `pdi-st-mal` / `pdi-st-no` / `pdi-st-pend` (estilos en `rechazos.css`), al pintar la lista y al cambiar un estado. También se agregaron los estados actuales a la gráfica de jefaturas del Gestor.
+
+  `fixEncoding()` del Gestor PDIS ahora usa `fixText`. Los datos ya guardados en Firestore **no se reescriben**: se reparan al leerlos. Se corrigen de forma permanente cuando el archivo se vuelve a subir.
