@@ -413,6 +413,13 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - `theme.css` ahora aplica superficies con degradado blanco-rosado, botones con degradado Liverpool, sombras más profundas y controles con acabado suave en los módulos unificados. El icono del hero se fuerza visible y con tamaño consistente.
 - Se renovó también el menú lateral global: fondo blanco-rosado degradado, encabezado vino/rosa, estados activos con relieve, iconos con acento y tarjetas internas con profundidad para evitar el aspecto plano.
 
+### Normalización transversal de tablas 2026-11-12
+
+- Se fijaron anchos proporcionales en las tablas de secciones, contenedores y artículos del Dashboard para evitar que Área, Líneas, Piezas y Estado se monten.
+- Se agregó truncado seguro con elipsis para nombres largos y protección de badges/identificadores.
+- `theme.css` ahora protege las tablas Bootstrap de módulos antiguos con contenedor responsive y ancho mínimo controlado para que no se deformen.
+- La tabla PDIS conserva su vista de tarjetas en celular y sus columnas fijas en escritorio.
+
 ### Tabla PDIS responsiva 2026-11-11
 
 - La tabla de detalle PDIS ahora usa distribución fija de columnas, anchos proporcionales, truncado seguro con tooltip y evita que descripción, fecha, usuario y auditor se monten.

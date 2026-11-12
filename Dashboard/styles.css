@@ -455,6 +455,17 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
 .db-grid > .db-panel { align-self:start; }
 .db-grid-2 { align-items:start; }
 .db-chart { box-sizing:border-box; }
+/* Todas las tablas del Dashboard conservan columnas independientes y no montan texto. */
+#table-secciones, #table-contenedores, #table-articulos { table-layout:fixed; width:100%; }
+#table-secciones th:nth-child(1) { width:13%; } #table-secciones th:nth-child(2) { width:22%; }
+#table-secciones th:nth-child(n+3) { width:10.8%; }
+#table-contenedores th:nth-child(1) { width:11%; } #table-contenedores th:nth-child(2) { width:14%; }
+#table-contenedores th:nth-child(3) { width:12%; } #table-contenedores th:nth-child(4) { width:17%; }
+#table-contenedores th:nth-child(n+5) { width:9.2%; }
+#table-articulos th:nth-child(1) { width:13%; } #table-articulos th:nth-child(2) { width:27%; }
+#table-articulos th:nth-child(3) { width:19%; } #table-articulos th:nth-child(n+4) { width:10.25%; }
+.db-table thead th, .db-table tbody td { overflow:hidden; text-overflow:ellipsis; }
+.db-table tbody td .db-status, .db-table tbody td .db-mono, .db-table tbody td .db-noarea { max-width:100%; overflow:hidden; text-overflow:ellipsis; }
 @media (max-width:760px) {
     .db-chart, .db-chart-tall { height:290px !important; min-height:290px; padding:.65rem .35rem .25rem; }
     .db-panel { padding:.9rem .75rem; }

@@ -405,3 +405,12 @@ body.ui-unificado .menu-status-card {
 }
 body.ui-unificado .menu-footer { color: #9b6d88 !important; }
 body.ui-unificado .menu-section-label { color: #9b6d88 !important; }
+
+/* Protección transversal para tablas Bootstrap en módulos antiguos y nuevos. */
+body .table-responsive { width:100%; max-width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }
+body .table-responsive > .table { width:100%; min-width:680px; table-layout:fixed; }
+body .table-responsive > .table th, body .table-responsive > .table td { overflow:hidden; text-overflow:ellipsis; vertical-align:middle; }
+@media (max-width:760px) {
+    body .table-responsive > .table { min-width:680px; font-size:.74rem; }
+    body .table-responsive > .table th, body .table-responsive > .table td { max-width:220px; }
+}
