@@ -525,3 +525,4 @@ Resultado: 42/42 verificaciones de flujo PDIS (subida, lista, filtros, estados e
 - El Dashboard de resultados muestra la descripción completa del artículo (antes se recortaba a 48 caracteres).
 - Dashboard PDIS: la tabla de detalle tiene etiquetas para celular, anchos por columna, ID y SKU sin partir, fecha sin hora cuando es fecha de carga y comentarios completos; el detalle por sección de una jefatura se desplaza en horizontal si no cabe.
 - Verificado con un detector automático de contenido cortado en 1440, 1280, 1024, 820 y 390 px: sin cortes.
+- 2026-11-17: las etiquetas de estado de las tablas ("Sin diferencia", "Con faltantes", etc.) van en una sola línea y la columna Estado de Contenedores tiene ancho propio (15%).

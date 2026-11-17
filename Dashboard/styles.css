@@ -506,3 +506,14 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
 @media (max-width: 760px) {
     .db-table td::before { white-space: nowrap; word-break: keep-all; overflow-wrap: normal; max-width: none; letter-spacing: .02em; }
 }
+
+/* Etiquetas de estado en una sola línea y columna Estado con espacio suficiente */
+.db-table tbody td .db-status { white-space: nowrap; }
+@media (min-width: 761px) {
+    #table-contenedores { min-width: 1080px; }
+    #table-contenedores th:nth-child(1) { width: 12%; } #table-contenedores th:nth-child(2) { width: 12%; }
+    #table-contenedores th:nth-child(3) { width: 8%; } #table-contenedores th:nth-child(4) { width: 15%; }
+    #table-contenedores th:nth-child(5), #table-contenedores th:nth-child(6) { width: 7%; }
+    #table-contenedores th:nth-child(7), #table-contenedores th:nth-child(8), #table-contenedores th:nth-child(9) { width: 8%; }
+    #table-contenedores th:nth-child(10) { width: 15%; }
+}
