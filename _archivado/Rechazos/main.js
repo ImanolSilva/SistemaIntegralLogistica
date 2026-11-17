@@ -156,15 +156,16 @@ async function syncPendingChanges(isAutoSave = false) {
         const response = await fetch(url);
         const data = await response.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets["Rechazos"];
-        if (!sheet) throw new Error("La hoja 'Rechazos' no fue encontrada en el archivo.");
-        
+        const sheetName = getPdisSheetName(workbook);
+        const sheet = workbook.Sheets[sheetName];
+        if (!sheet) throw new Error("No se encontró la hoja de datos en el archivo.");
+
         let excelData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-        
+
         let hasChanges = false;
         const updatesMap = new Map(Object.entries(AppState.pendingChanges));
         excelData.forEach(row => {
-            const remision = row.Remisión?.toString();
+            const remision = rowKey(row);
             if (remision && updatesMap.has(remision)) {
                 const updates = updatesMap.get(remision);
                 for (const field in updates) {
@@ -185,8 +186,9 @@ async function syncPendingChanges(isAutoSave = false) {
              return;
         }
 
-        const newSheet = XLSX.utils.json_to_sheet(excelData);
-        workbook.Sheets["Rechazos"] = newSheet;
+        const headerOrder = [...new Set(excelData.flatMap(row => Object.keys(row)))];
+        const newSheet = XLSX.utils.json_to_sheet(excelData, { header: headerOrder });
+        workbook.Sheets[sheetName] = newSheet;
         const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
         const newBlob = new Blob([wbout], { type: "application/octet-stream" });
         const newVersion = (parseInt(serverVersion) + 1).toString();
@@ -195,8 +197,9 @@ async function syncPendingChanges(isAutoSave = false) {
         // 2. Preparamos los NUEVOS metadatos, asegurándonos de preservar la fecha original.
         const newMetadata = {
             customMetadata: {
+                ...(currentMetadata.customMetadata || {}),
                 'version': newVersion,
-                'originalUploadDate': originalUploadDate 
+                'originalUploadDate': originalUploadDate
             }
         };
         // --- FIN DEL CAMBIO CLAVE ---
@@ -234,6 +237,100 @@ function setUIForRole(isAdmin) { document.getElementById("dropzone").classList.t
 function fixEncoding(str) { if (!str) return ""; if (window.fixText) return window.fixText(String(str)); try { return decodeURIComponent(escape(str)); } catch { return str; } }
 function isMobile() { return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent); }
 function parseExcelDate(value) { if (!value) return ""; if (typeof value === "number") { const dateObj = new Date(Math.round((value - 25569) * 86400 * 1000)); return dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }); } const parsed = Date.parse(value); if (!isNaN(parsed)) { const dateObj = new Date(parsed); return dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }); } return value; }
+/*****************************************************
+ * ========== FORMATO BASE "ALMACEN PDIS" ==========
+ * Archivo base: Complementos/ALMACEN PDIS _Liverpool_Tabla.xlsx
+ * Los archivos se suben con estas mismas columnas. Al subir se agregan
+ * FECHA_CARGA (para filtrar), ID_PDIS (llave única por fila) y las columnas
+ * de seguimiento Status, Auditor y Fotos. Los archivos antiguos con la hoja
+ * "Rechazos" (llave Remisión) se siguen leyendo.
+ *****************************************************/
+const PDIS_SHEET = 'PDIS';
+const PDIS_BASE_COLUMNS = ['JEFE', 'SKU', 'DESCRIPCION', 'SECCION', 'ESTATUS', 'VISIBLES', 'ULT_MOV', 'DÍAS ANTIGÜEDAD', 'ANT_DIA_MES', 'ENVASE', 'DIR_DES', 'INVENTARIO', 'NEGS_PISO', 'COSTO_TOTAL'];
+const PDIS_REQUIRED_COLUMNS = ['JEFE', 'SKU', 'DESCRIPCION', 'SECCION'];
+const PDIS_EXTRA_COLUMNS = ['FECHA_CARGA', 'ID_PDIS', 'Status', 'Auditor', 'Fotos'];
+
+const normKeyCache = new Map();
+function normKey(k) {
+    const raw = String(k ?? '');
+    if (!normKeyCache.has(raw)) normKeyCache.set(raw, fixEncoding(raw).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, ''));
+    return normKeyCache.get(raw);
+}
+function pickField(row, ...names) {
+    if (!row) return '';
+    const wanted = names.map(normKey);
+    const key = Object.keys(row).find(k => wanted.includes(normKey(k)));
+    return key ? row[key] : '';
+}
+function rowKey(row) { return String(pickField(row, 'ID_PDIS', 'Remisión') ?? '').trim(); }
+function normSeccion(s) { return String(s ?? '').trim().replace(/^0+(?=\d)/, ''); }
+function todayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function formatFechaCarga(v) {
+    const m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return parseExcelDate(v);
+    return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+// Hoja de trabajo: "PDIS" (formato nuevo), "Rechazos" (formato anterior) o la primera.
+function getPdisSheetName(workbook) {
+    if (workbook.Sheets[PDIS_SHEET]) return PDIS_SHEET;
+    if (workbook.Sheets['Rechazos']) return 'Rechazos';
+    return workbook.SheetNames[0];
+}
+// Vista normalizada de una fila, sin importar si viene del formato nuevo o del anterior.
+function pdisView(row) {
+    const isLegacy = !pickField(row, 'ID_PDIS') && !!pickField(row, 'Remisión');
+    return {
+        key: rowKey(row),
+        sku: String(pickField(row, 'SKU', 'Sku') ?? '').trim(),
+        desc: fixEncoding(pickField(row, 'DESCRIPCION', 'Descripción Sku')),
+        seccion: String(pickField(row, 'SECCION', 'Sección') ?? '').trim(),
+        jefe: fixEncoding(pickField(row, 'JEFE', 'Jefatura')),
+        piezas: pickField(row, 'INVENTARIO', 'Piezas'),
+        fecha: isLegacy ? parseExcelDate(pickField(row, 'Fecha y Hora Rechazo')) : formatFechaCarga(pickField(row, 'FECHA_CARGA')),
+        fechaCargaRaw: pickField(row, 'FECHA_CARGA', 'Fecha y Hora Rechazo'),
+        usuario: fixEncoding(pickField(row, 'Usuario de Rechazo')),
+        isLegacy
+    };
+}
+
+// Lee el Excel que sube el administrador, valida las columnas base y devuelve
+// las filas con el orden de columnas del archivo base.
+function parseBaseWorkbook(data) {
+    const workbook = XLSX.read(data, { type: 'array' });
+    for (const name of workbook.SheetNames) {
+        const sheet = workbook.Sheets[name];
+        const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        const headerIndex = matrix.slice(0, 15).findIndex(r => {
+            const keys = r.map(normKey);
+            return PDIS_REQUIRED_COLUMNS.every(c => keys.includes(normKey(c)));
+        });
+        if (headerIndex === -1) continue;
+        const headerKeys = matrix[headerIndex].map(normKey);
+        const missing = PDIS_BASE_COLUMNS.filter(c => !headerKeys.includes(normKey(c)));
+        const raw = XLSX.utils.sheet_to_json(sheet, { defval: '', range: headerIndex });
+        const rows = raw.filter(r => String(pickField(r, 'SKU')).trim() || String(pickField(r, 'DESCRIPCION')).trim());
+        return { rows, missing, sheetName: name };
+    }
+    return null;
+}
+function buildPdisRows(rows, fechaCarga) {
+    const stamp = fechaCarga.replace(/-/g, '');
+    return rows.map((r, i) => {
+        const out = {};
+        PDIS_BASE_COLUMNS.forEach(col => {
+            let v = pickField(r, col);
+            if (col === 'SKU' || col === 'SECCION') v = String(v ?? '').trim();
+            out[col] = v ?? '';
+        });
+        out.FECHA_CARGA = fechaCarga;
+        out.ID_PDIS = `${stamp}-${String(i + 1).padStart(4, '0')}`;
+        out.Status = pickField(r, 'Status') || '';
+        out.Auditor = pickField(r, 'Auditor') || '';
+        out.Fotos = pickField(r, 'Fotos') || '';
+        return out;
+    });
+}
+
 function showSection(sectionId) { const section = document.getElementById(sectionId); if (section) { section.classList.remove('hidden'); setTimeout(() => section.classList.add('visible'), 50); } }
 async function claimPdiLock(remision, user, status) {
     if (AppState.isAdmin) return true;
@@ -394,7 +491,7 @@ function setupEventListeners() {
             }
 
             if (AppState.rechazosGlobal[rowIndex]) {
-                const remision = AppState.rechazosGlobal[rowIndex].Remisión;
+                const remision = rowKey(AppState.rechazosGlobal[rowIndex]);
                 const user = auth.currentUser;
                 if (!user) {
                     showAlert("error", "Error de Sesión", "No se pudo identificar al usuario. Por favor, recarga la página.");
@@ -466,12 +563,15 @@ async function loadFilesFromFirebase() {
                     name: item.name,
                     ref: item,
                     timeCreated: displayDate, // Usamos la fecha correcta para mostrar
+                    fechaCarga: (metadata.customMetadata && metadata.customMetadata.fechaCarga) || "",
+                    size: metadata.size,
                     version: (metadata.customMetadata && metadata.customMetadata.version) || "1"
                 };
             })
         );
 
-        filesWithMetadata.sort((a, b) => b.timeCreated - a.timeCreated);
+        // Ordena por fecha de carga (FECHA_CARGA) y, en empate, por fecha de subida.
+        filesWithMetadata.sort((a, b) => String(b.fechaCarga).localeCompare(String(a.fechaCarga)) || b.timeCreated - a.timeCreated);
 
         const controlStats = document.getElementById('controlStats');
         if (controlStats) {
@@ -494,7 +594,7 @@ async function loadFilesFromFirebase() {
     }
 }
 
-function renderFileSelectOptions(files) { const container = document.getElementById("fileListContainer"); container.innerHTML = files.map(file => `<div class="card file-card mb-2" style="border-radius: 12px;"><div class="card-body d-flex justify-content-between align-items-center p-3"><div><i class="bi bi-file-earmark-excel-fill me-2 text-success fs-4"></i><span class="fw-bold">${file.name}</span></div><button class="btn btn-pill btn-pill-sm btn-select">Seleccionar</button></div></div>`).join(''); container.querySelectorAll('.btn-select').forEach((button, index) => { button.addEventListener('click', () => { AppState.selectedFileData = files[index]; document.getElementById("selectedFileFeedback").textContent = `Archivo seleccionado: ${files[index].name}`; document.getElementById("confirmFileSelection").disabled = false; container.querySelectorAll('.file-card').forEach(card => card.style.border = "1px solid var(--gris-medio)"); button.closest('.file-card').style.border = "2px solid var(--rosa-principal)"; }); }); }
+function renderFileSelectOptions(files) { const container = document.getElementById("fileListContainer"); container.innerHTML = files.map(file => `<div class="card file-card mb-2" style="border-radius: 12px;"><div class="card-body d-flex justify-content-between align-items-center p-3"><div><i class="bi bi-file-earmark-excel-fill me-2 text-success fs-4"></i><span class="fw-bold">${file.name}</span>${file.fechaCarga ? `<small class="d-block text-muted"><i class="bi bi-calendar-event me-1"></i>Fecha de carga: ${formatFechaCarga(file.fechaCarga)}</small>` : ''}</div><button class="btn btn-pill btn-pill-sm btn-select">Seleccionar</button></div></div>`).join(''); container.querySelectorAll('.btn-select').forEach((button, index) => { button.addEventListener('click', () => { AppState.selectedFileData = files[index]; document.getElementById("selectedFileFeedback").textContent = `Archivo seleccionado: ${files[index].name}`; document.getElementById("confirmFileSelection").disabled = false; container.querySelectorAll('.file-card').forEach(card => card.style.border = "1px solid var(--gris-medio)"); button.closest('.file-card').style.border = "2px solid var(--rosa-principal)"; }); }); }
 
 async function renderFilesManagement(files) {
     if (!files.length) return;
@@ -505,11 +605,11 @@ async function renderFilesManagement(files) {
         // Obtenemos la URL de descarga para cada archivo
         const downloadUrl = await file.ref.getDownloadURL();
         
-        const fileSize = file.ref.metadata?.size;
+        const fileSize = file.size;
         const formattedSize = fileSize ? `${(fileSize / 1024).toFixed(1)} KB` : 'N/A';
 
         const dateOptions = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-        const formattedDate = file.timeCreated.toLocaleDateString('es-MX', dateOptions);
+        const formattedDate = (file.fechaCarga ? `Carga: ${formatFechaCarga(file.fechaCarga)}<br>` : '') + `Subido: ${file.timeCreated.toLocaleDateString('es-MX', dateOptions)}`;
 
         return `
         <tr class="align-middle animate__animated animate__fadeIn">
@@ -616,30 +716,60 @@ async function renderFilesManagement(files) {
     });
 }
 async function handleFileUpload(file) {
-    const { isConfirmed } = await Swal.fire({
+    // 1. Validamos que el archivo tenga las columnas del archivo base ALMACEN PDIS.
+    let parsed;
+    try {
+        parsed = parseBaseWorkbook(await file.arrayBuffer());
+    } catch (error) {
+        console.error('No se pudo leer el Excel:', error);
+        return showAlert('error', 'Archivo inválido', 'No se pudo leer el Excel seleccionado.', { toast: false, timer: undefined, showConfirmButton: true });
+    }
+    if (!parsed) {
+        return Swal.fire({ icon: 'error', title: 'Formato incorrecto', html: `El archivo debe tener las columnas del archivo base <strong>ALMACEN PDIS</strong>:<br><small>${PDIS_BASE_COLUMNS.join(', ')}</small>` });
+    }
+    if (!parsed.rows.length) {
+        return Swal.fire({ icon: 'warning', title: 'Archivo vacío', text: 'El archivo no tiene filas con SKU o descripción.' });
+    }
+
+    // 2. Pedimos la fecha de carga que se agregará a cada fila (FECHA_CARGA).
+    const { value: fechaCarga, isConfirmed } = await Swal.fire({
         title: '¿Subir este archivo?',
-        text: `Se cargará "${file.name}" como un nuevo reporte de rechazos.`,
+        html: `Se cargará <strong>${file.name}</strong> con <strong>${parsed.rows.length.toLocaleString('es-MX')}</strong> artículos.` +
+            (parsed.missing.length ? `<div class="alert alert-warning small mt-3 mb-0">Columnas faltantes (se dejarán vacías): ${parsed.missing.join(', ')}</div>` : '') +
+            `<label class="form-label fw-semibold mt-3 mb-1" for="swal-fecha-carga">Fecha de carga</label>`,
+        input: 'date',
+        inputValue: todayISO(),
+        inputAttributes: { id: 'swal-fecha-carga', max: todayISO() },
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'Sí, subir'
+        confirmButtonText: 'Sí, subir',
+        cancelButtonText: 'Cancelar',
+        inputValidator: value => (/^\d{4}-\d{2}-\d{2}$/.test(value || '') ? undefined : 'Selecciona la fecha de carga.')
     });
 
     if (isConfirmed) {
-        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-        const newFileName = `PDIS_${timestamp}.xlsx`;
+        // 3. Construimos el archivo normalizado: columnas base + FECHA_CARGA, ID_PDIS, Status, Auditor y Fotos.
+        const rows = buildPdisRows(parsed.rows, fechaCarga);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows, { header: [...PDIS_BASE_COLUMNS, ...PDIS_EXTRA_COLUMNS] }), PDIS_SHEET);
+        const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+        const hora = new Date().toTimeString().slice(0, 8).replace(/:/g, '');
+        const newFileName = `PDIS_${fechaCarga}_${hora}.xlsx`;
         const fileRef = storage.ref(`uploads/${newFileName}`);
 
-        // --- INICIO DEL CAMBIO CLAVE ---
-        // Preparamos los metadatos personalizados con la fecha de subida original.
+        // Metadatos: fecha real de subida, fecha de carga elegida y archivo origen.
         const metadata = {
             customMetadata: {
                 'version': '1',
-                'originalUploadDate': new Date().toISOString() // "Tatuamos" la fecha
+                'originalUploadDate': new Date().toISOString(),
+                'fechaCarga': fechaCarga,
+                'originalName': file.name.slice(0, 200),
+                'rows': String(rows.length)
             }
         };
-        // --- FIN DEL CAMBIO CLAVE ---
 
-        const uploadTask = fileRef.put(file, metadata); // Subimos el archivo con los nuevos metadatos
+        const uploadTask = fileRef.put(blob, metadata);
 
         Swal.fire({
             title: 'Subiendo archivo...',
@@ -706,7 +836,7 @@ function choosePhoto(rowIndex) {
             return;
         }
 
-        const remision = remisionData.Remisión || `evidencia_${Date.now()}`;
+        const remision = rowKey(remisionData) || `evidencia_${Date.now()}`;
         const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '');
         const filename = `uploads/evidencias/${remision}_${cleanFileName}`;
         const storageRef = storage.ref(filename);
@@ -750,7 +880,7 @@ function choosePhoto(rowIndex) {
     fileInput.click();
 }
 
-function deletePhoto(rowIndex) { Swal.fire({ title: '¿Estás seguro?', text: "La foto de evidencia se eliminará permanentemente.", icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--rojo-peligro)', cancelButtonColor: 'var(--gris-oscuro)', confirmButtonText: 'Sí, ¡Eliminar!', cancelButtonText: 'Cancelar' }).then((result) => { if (result.isConfirmed) { const photoUrl = AppState.rechazosGlobal[rowIndex].Fotos; if (photoUrl && photoUrl.startsWith('https://firebasestorage.googleapis.com')) { const photoRef = storage.refFromURL(photoUrl); photoRef.delete().catch(err => console.error("Error al borrar de Storage:", err)); } const remision = AppState.rechazosGlobal[rowIndex].Remisión; AppState.rechazosGlobal[rowIndex].Fotos = ""; updatePhotoPreview(rowIndex, ""); queueChange(remision, 'Fotos', ''); Swal.fire('¡Eliminada!', 'La foto ha sido eliminada.', 'success'); } }); }
+function deletePhoto(rowIndex) { Swal.fire({ title: '¿Estás seguro?', text: "La foto de evidencia se eliminará permanentemente.", icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--rojo-peligro)', cancelButtonColor: 'var(--gris-oscuro)', confirmButtonText: 'Sí, ¡Eliminar!', cancelButtonText: 'Cancelar' }).then((result) => { if (result.isConfirmed) { const photoUrl = AppState.rechazosGlobal[rowIndex].Fotos; if (photoUrl && photoUrl.startsWith('https://firebasestorage.googleapis.com')) { const photoRef = storage.refFromURL(photoUrl); photoRef.delete().catch(err => console.error("Error al borrar de Storage:", err)); } const remision = rowKey(AppState.rechazosGlobal[rowIndex]); AppState.rechazosGlobal[rowIndex].Fotos = ""; updatePhotoPreview(rowIndex, ""); queueChange(remision, 'Fotos', ''); Swal.fire('¡Eliminada!', 'La foto ha sido eliminada.', 'success'); } }); }
 
 function updatePhotoPreview(rowIndex, url) {
     const previewContainer = document.getElementById(`evidencia-preview-${rowIndex}`);
@@ -810,17 +940,17 @@ async function loadRechazosFile(secciones) {
         const response = await fetch(url);
         const data = await response.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets["Rechazos"];
-        
-        if (!sheet) return showAlert("error", "Error de Formato", "No existe la hoja 'Rechazos' en el Excel.");
-        
+        const sheet = workbook.Sheets[getPdisSheetName(workbook)];
+
+        if (!sheet) return showAlert("error", "Error de Formato", "No se encontró la hoja de datos en el Excel.");
+
         AppState.allRechazosEnExcel = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
         const updatesMap = new Map(Object.entries(AppState.pendingChanges));
         if (updatesMap.size > 0) {
             console.log("Aplicando cambios pendientes a los datos cargados...");
             AppState.allRechazosEnExcel.forEach(row => {
-                const remision = row.Remisión?.toString();
+                const remision = rowKey(row);
                 if (remision && updatesMap.has(remision)) {
                     const updates = updatesMap.get(remision);
                     Object.assign(row, updates);
@@ -833,10 +963,11 @@ async function loadRechazosFile(secciones) {
         if (AppState.isAdmin) {
             renderBossFilter(rechazosFiltrados);
             if (adminBossFilter) {
-                rechazosFiltrados = rechazosFiltrados.filter(row => fixEncoding(row["Jefatura"]) === adminBossFilter);
+                rechazosFiltrados = rechazosFiltrados.filter(row => pdisView(row).jefe === adminBossFilter);
             }
         } else if (secciones.length > 0) {
-            rechazosFiltrados = rechazosFiltrados.filter(row => row.Sección && secciones.includes(row.Sección.toString().trim()));
+            const seccionesNorm = secciones.map(normSeccion);
+            rechazosFiltrados = rechazosFiltrados.filter(row => { const s = normSeccion(pdisView(row).seccion); return s && seccionesNorm.includes(s); });
         }
         
         // Todos los usuarios pueden enfocar su trabajo por jefatura, pero
@@ -849,8 +980,8 @@ async function loadRechazosFile(secciones) {
         showAlert("error", "Error de Carga", "No se pudo procesar el archivo 'rechazos.xlsx'.");
     }
 }
-function renderBossFilter(allRechazos) { const container = document.getElementById("bossFilterContainer"); const jefesUnicos = [...new Set(allRechazos.map(r => fixEncoding(r["Jefatura"])).filter(Boolean))]; container.innerHTML = `<h5><i class="bi bi-person-video3 me-2"></i>Filtrar por Jefatura</h5><select class="form-select" id="bossFilterSelect"><option value="">Mostrar Todas</option>${jefesUnicos.map(j => `<option value="${j}">${j}</option>`).join('')}</select>`; const select = document.getElementById('bossFilterSelect'); select.value = adminBossFilter; select.addEventListener("change", (e) => { adminBossFilter = e.target.value; const filtrados = adminBossFilter ? AppState.allRechazosEnExcel.filter(row => fixEncoding(row["Jefatura"]) === adminBossFilter) : AppState.allRechazosEnExcel; renderRechazos(filtrados); }); }
-function renderRechazos(rechazosData) { const container = document.getElementById("rechazosContainer"); AppState.rechazosGlobal = rechazosData.map((item, index) => ({ ...item, _rowIndex: index, Comentarios: item.Comentarios || "", Fotos: item.Fotos || "" })); if (!rechazosData.length) { container.innerHTML = `<div class="alert alert-info text-center"><i class="bi bi-info-circle-fill"></i> No hay reportes que coincidan con tu filtro actual.</div>`; return; } container.innerHTML = `<div class="accordion" id="rechazosAccordion">${AppState.rechazosGlobal.map(renderRechazoItem).join('')}</div>`; AppState.rechazosGlobal.forEach((rechazo, i) => { loadDynamicImage(rechazo.Sku, rechazo.Sección, `imgContainer-${rechazo.Sku}-${i}`); updatePhotoPreview(rechazo._rowIndex, rechazo.Fotos); }); }
+function renderBossFilter(allRechazos) { const container = document.getElementById("bossFilterContainer"); const jefesUnicos = [...new Set(allRechazos.map(r => pdisView(r).jefe).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')); container.innerHTML = `<h5><i class="bi bi-person-video3 me-2"></i>Filtrar por Jefatura</h5><select class="form-select" id="bossFilterSelect"><option value="">Mostrar Todas</option>${jefesUnicos.map(j => `<option value="${j}">${j}</option>`).join('')}</select>`; const select = document.getElementById('bossFilterSelect'); select.value = adminBossFilter; select.addEventListener("change", (e) => { adminBossFilter = e.target.value; const filtrados = adminBossFilter ? allRechazos.filter(row => pdisView(row).jefe === adminBossFilter) : allRechazos; renderRechazos(filtrados); }); }
+function renderRechazos(rechazosData) { const container = document.getElementById("rechazosContainer"); AppState.rechazosGlobal = rechazosData.map((item, index) => ({ ...item, _rowIndex: index, Comentarios: item.Comentarios || "", Fotos: item.Fotos || "" })); if (!rechazosData.length) { container.innerHTML = `<div class="alert alert-info text-center"><i class="bi bi-info-circle-fill"></i> No hay reportes que coincidan con tu filtro actual.</div>`; return; } container.innerHTML = `<div class="accordion" id="rechazosAccordion">${AppState.rechazosGlobal.map(renderRechazoItem).join('')}</div>`; AppState.rechazosGlobal.forEach((rechazo, i) => { const v = pdisView(rechazo); loadDynamicImage(v.sku, v.seccion, `imgContainer-${i}`); updatePhotoPreview(rechazo._rowIndex, rechazo.Fotos); }); }
 
 // ===== SECCIÓN MODIFICADA (INICIO) =====
 // Se ajusta la función para renderizar el ícono de comentario correcto desde el inicio.
@@ -858,14 +989,31 @@ function renderRechazos(rechazosData) { const container = document.getElementByI
 // Clase visual de la etiqueta de estado (acepta nombres actuales y anteriores)
 function pdiStatusClass(status) { const c = String(status || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim(); if (!c || c === "sin estado") return "pdi-st-pend"; if (c.includes("mal estado") || c.includes("merma")) return "pdi-st-mal"; if (c.includes("no encontr")) return "pdi-st-no"; if (c.includes("buen estado") || c.includes("si encontrada") || c.includes("exhibicion")) return "pdi-st-buen"; return "pdi-st-pend"; }
 function renderRechazoItem(rechazo, i) {
-    const { _rowIndex, Remisión, Sku, Sección } = rechazo;
-    const fecha = parseExcelDate(rechazo["Fecha y Hora Rechazo"]) || "N/A";
-    const descripcionSku = fixEncoding(rechazo["Descripción Sku"]) || "N/A";
-    const piezas = fixEncoding(rechazo.Piezas) || "N/A";
-    const jefatura = fixEncoding(rechazo.Jefatura) || "N/A";
-    const usuarioRechazo = fixEncoding(rechazo["Usuario de Rechazo"]) || "N/A";
-    const user = AppState.usuariosData.find(u => u.Usuarios && u.Usuarios.toString().trim().toLowerCase() === usuarioRechazo.toLowerCase());
-    const usuarioName = user?.Nombre || usuarioRechazo;
+    const { _rowIndex } = rechazo;
+    const v = pdisView(rechazo);
+    const Sku = v.sku;
+    const Sección = v.seccion || "N/A";
+    const Remisión = v.isLegacy ? v.key : (Sku || v.key);
+    const fecha = v.fecha || "N/A";
+    const descripcionSku = v.desc || "N/A";
+    const piezas = v.piezas === "" || v.piezas == null ? "N/A" : fixEncoding(v.piezas);
+    const jefatura = v.jefe || "N/A";
+    const usuarioRechazo = v.usuario || "";
+    const user = usuarioRechazo ? AppState.usuariosData.find(u => u.Usuarios && u.Usuarios.toString().trim().toLowerCase() === usuarioRechazo.toLowerCase()) : null;
+    const usuarioName = v.isLegacy ? (user?.Nombre || usuarioRechazo || "N/A") : jefatura;
+    const money = n => { const x = Number(String(n).replace(/[$,\s]/g, '')); return n === '' || isNaN(x) ? (n || 'N/A') : x.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }); };
+    const extra = (label, ...names) => { const val = fixEncoding(pickField(rechazo, ...names)); return [label, val === '' ? 'N/A' : val]; };
+    const extraRows = v.isLegacy ? [] : [
+        ['bi-info-square', ...extra('Estatus', 'ESTATUS')],
+        ['bi-eye', ...extra('Visibles', 'VISIBLES')],
+        ['bi-clock-history', ...extra('Último movimiento', 'ULT_MOV')],
+        ['bi-hourglass-split', ...extra('Días antigüedad', 'DÍAS ANTIGÜEDAD', 'DIAS ANTIGUEDAD')],
+        ['bi-calendar-range', ...extra('Antigüedad', 'ANT_DIA_MES')],
+        ['bi-box', ...extra('Envase', 'ENVASE')],
+        ['bi-diagram-3', ...extra('Dirección', 'DIR_DES')],
+        ['bi-shop', ...extra('Negs. piso', 'NEGS_PISO')],
+        ['bi-cash-coin', 'Costo total', money(pickField(rechazo, 'COSTO_TOTAL'))]
+    ];
 
     const estadosPosibles = ["Sin Estado", "Sí encontrada", "No encontrada", "Encontrada en exhibición", "Encontrada Merma"];
     const estadoActual = rechazo.Status || "Sin Estado";
@@ -936,11 +1084,12 @@ function renderRechazoItem(rechazo, i) {
                             </div>
                         </div>
                         <div class="details-list-container border rounded-3 p-2 bg-light">
-                            ${createDetailRow('bi-upc-scan', 'SKU', Sku)}
-                            ${createDetailRow('bi-box-seam', 'Piezas', piezas)}
-                            ${createDetailRow('bi-calendar-event', 'Fecha', fecha)}
+                            ${createDetailRow('bi-upc-scan', 'SKU', Sku || 'N/A')}
+                            ${createDetailRow('bi-box-seam', v.isLegacy ? 'Piezas' : 'Inventario', piezas)}
+                            ${createDetailRow('bi-calendar-event', v.isLegacy ? 'Fecha' : 'Fecha de carga', fecha)}
                             ${createDetailRow('bi-tag-fill', 'Sección', Sección)}
-                            ${createDetailRow('bi-person-workspace', 'Jefatura', jefatura)}
+                            ${createDetailRow('bi-person-workspace', v.isLegacy ? 'Jefatura' : 'Jefe', jefatura)}
+                            ${extraRows.map(([icon, label, value]) => createDetailRow(icon, label, value)).join('')}
                         </div>
                         <div class="mt-3">
                             <label for="status-${_rowIndex}" class="form-label fw-bold text-dark">
@@ -957,7 +1106,7 @@ function renderRechazoItem(rechazo, i) {
                     <div class="col-12 col-lg-5">
                         <div class="evidence-section">
                             <h6 class="mb-2 fw-bold text-dark"><i class="bi bi-camera-fill me-2"></i>Evidencia</h6>
-                            <div id="imgContainer-${Sku}-${i}" class="product-image-container mb-2 w-100 d-flex justify-content-center"></div>
+                            <div id="imgContainer-${i}"class="product-image-container mb-2 w-100 d-flex justify-content-center"></div>
                             <div id="evidencia-preview-${_rowIndex}" class="evidence-preview-container w-100"></div>
                         </div>
                     </div>
@@ -1022,7 +1171,7 @@ async function generarDashboard(dateRange = null) {
             const url = await fileRef.getDownloadURL();
             const data = await (await fetch(url)).arrayBuffer();
             const workbook = XLSX.read(data, { type: "array" });
-            const sheet = workbook.Sheets["Rechazos"];
+            const sheet = workbook.Sheets[getPdisSheetName(workbook)];
             if (sheet) {
                 // Acumula los datos de todos los archivos en un solo arreglo.
                 todosLosRechazosHistoricos.push(...XLSX.utils.sheet_to_json(sheet, { defval: "" }));
@@ -1055,7 +1204,7 @@ async function generarDashboard(dateRange = null) {
             };
 
             datosParaDashboard = todosLosRechazosHistoricos.filter(rechazo => {
-                const fechaRechazo = _parseDateForCompare(rechazo["Fecha y Hora Rechazo"]);
+                const fechaRechazo = _parseDateForCompare(pdisView(rechazo).fechaCargaRaw);
                 if (!fechaRechazo) return false;
                 
                 // Compara si la fecha del rechazo está dentro del rango seleccionado.
@@ -1096,12 +1245,13 @@ async function generarDashboard(dateRange = null) {
 
 function agregarDatosPorJefatura(rechazos) {
     const stats = {};
-    const estadosPosibles = ["Sí encontrada", "No encontrada", "Encontrada en exhibición", "Encontrada Merma", "Sin Estado"];
+    const estadosPosibles = ["Encontrada buen estado", "Encontrada mal estado", "Sí encontrada", "No encontrada", "Encontrada en exhibición", "Encontrada Merma", "Sin Estado"];
 
     rechazos.forEach(rechazo => {
-        const jefatura = fixEncoding(rechazo.Jefatura) || "Sin Asignar";
+        const view = pdisView(rechazo);
+        const jefatura = view.jefe || "Sin Asignar";
         const estado = rechazo.Status || "Sin Estado";
-        const piezas = Number(rechazo.Piezas) || 0;
+        const piezas = Number(view.piezas) || 0;
 
         if (!stats[jefatura]) {
             stats[jefatura] = { totalReportes: 0, totalPiezas: 0, statusCounts: {}, statusPieces: {} };
@@ -1161,7 +1311,7 @@ async function generarDashboardAuditores() {
             const url = await fileRef.getDownloadURL();
             const data = await (await fetch(url)).arrayBuffer();
             const workbook = XLSX.read(data, { type: "array" });
-            const sheet = workbook.Sheets["Rechazos"];
+            const sheet = workbook.Sheets[getPdisSheetName(workbook)];
             if (sheet) {
                 todosLosRechazosHistoricos.push(...XLSX.utils.sheet_to_json(sheet, { defval: "" }));
             }
@@ -1367,7 +1517,7 @@ function renderDashboardUI(dataConRendimiento, dateRange) {
             // --- Pestaña 3: Tabla de Datos (La lógica no cambia) ---
             const tablaContainer = document.getElementById('tabla');
             const maxPiezas = Math.max(...dataConRendimiento.map(item => item.totalPiezas));
-            tablaContainer.innerHTML = `<div class="dashboard-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Jefatura</th><th class="text-center">Sí Encontrada</th><th class="text-center">No Encontrada</th><th class="text-center">Exhibición</th><th class="text-center">Merma</th><th class="text-center">Total Piezas</th></tr></thead><tbody>${dataConRendimiento.map(item => `<tr><td class="fw-bold">${item.jefe}</td><td class="text-center">${item.statusCounts['Sí encontrada'].toLocaleString()}</td><td class="text-center">${item.statusCounts['No encontrada'].toLocaleString()}</td><td class="text-center">${item.statusCounts['Encontrada en exhibición'].toLocaleString()}</td><td class="text-center">${item.statusCounts['Encontrada Merma'].toLocaleString()}</td><td class="text-center fw-bolder" style="background-color: ${obtenerColorParaValor(item.totalPiezas, maxPiezas)};">${item.totalPiezas.toLocaleString()}</td></tr>`).join('')}</tbody></table></div></div>`;
+            tablaContainer.innerHTML = `<div class="dashboard-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Jefatura</th><th class="text-center">Buen estado</th><th class="text-center">Mal estado</th><th class="text-center">No encontrada</th><th class="text-center">Sin estado</th><th class="text-center">Total Piezas</th></tr></thead><tbody>${dataConRendimiento.map(item => `<tr><td class="fw-bold">${item.jefe}</td><td class="text-center">${(item.statusCounts['Encontrada buen estado'] + item.statusCounts['Sí encontrada'] + item.statusCounts['Encontrada en exhibición']).toLocaleString()}</td><td class="text-center">${(item.statusCounts['Encontrada mal estado'] + item.statusCounts['Encontrada Merma']).toLocaleString()}</td><td class="text-center">${item.statusCounts['No encontrada'].toLocaleString()}</td><td class="text-center">${item.statusCounts['Sin Estado'].toLocaleString()}</td><td class="text-center fw-bolder" style="background-color: ${obtenerColorParaValor(item.totalPiezas, maxPiezas)};">${item.totalPiezas.toLocaleString()}</td></tr>`).join('')}</tbody></table></div></div>`;
         }
     });
 }

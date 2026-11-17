@@ -474,3 +474,13 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - Se agregó una franja visible de resultados VCM con los cuatro conceptos para que el análisis sea entendible para jefes y gerencias.
 - Se corrigió el enriquecimiento del Dashboard: el catálogo de `Complementos/Jefatura.json` se combina con `datosMaestros/secciones` sin perder datos, y las secciones del Excel VCM ahora resuelven correctamente su jefatura, departamento, gerente y asistente.
 - El catálogo de 182 secciones se cargó en Firebase en `datosMaestros/secciones`. El filtro visual se etiqueta como `Jefatura` y se alimenta con los jefes resueltos desde ese catálogo.
+
+### Gestor PDIS: archivo base ALMACEN PDIS 2026-11-17
+
+- `Complementos/ALMACEN PDIS _Liverpool_Tabla.xlsx` es el **archivo base** del Gestor de PDIS (ignorado en git porque trae datos reales). Los archivos se suben con sus mismas columnas: `JEFE`, `SKU`, `DESCRIPCION`, `SECCION`, `ESTATUS`, `VISIBLES`, `ULT_MOV`, `DÍAS ANTIGÜEDAD`, `ANT_DIA_MES`, `ENVASE`, `DIR_DES`, `INVENTARIO`, `NEGS_PISO`, `COSTO_TOTAL`.
+- `_archivado/Rechazos/Plantilla_ALMACEN_PDIS.xlsx` es la plantilla descargable (encabezados y una fila de ejemplo ficticia).
+- Al subir, el Gestor busca la hoja y la fila de encabezados (no importa el nombre de la hoja), exige `JEFE`, `SKU`, `DESCRIPCION` y `SECCION`, avisa de las columnas faltantes y pide la **fecha de carga** (por defecto, hoy).
+- El archivo guardado en Storage `uploads/PDIS_<fecha>_<hora>.xlsx` tiene la hoja `PDIS` con las columnas base más `FECHA_CARGA` (AAAA-MM-DD, para filtrar), `ID_PDIS` (`AAAAMMDD-0001`, llave única por fila; sustituye a `Remisión`), `Status`, `Auditor` y `Fotos`. Los metadatos guardan `fechaCarga`, `originalName`, `rows`, `version` y `originalUploadDate`.
+- La lista de archivos se ordena por fecha de carga y la muestra. El dashboard por rango de fechas del Gestor y el Dashboard PDIS usan `FECHA_CARGA` como fecha del registro.
+- Equivalencias con el formato anterior: `JEFE` = Jefatura, `INVENTARIO` = Piezas, `DESCRIPCION` = Descripción Sku. Los archivos anteriores (hoja `Rechazos`, llave `Remisión`) se siguen leyendo.
+- El filtro por sección de usuarios no administradores ignora ceros a la izquierda (`0550` = `550`).

@@ -73,14 +73,17 @@ function parseFecha(v) {
 }
 
 function normRow(r, file) {
-    const fecha = parseFecha(pick(r, 'Fecha y Hora Rechazo', 'Fecha', 'Fecha Rechazo'));
+    // Formato nuevo (archivo base ALMACEN PDIS): JEFE, SKU, DESCRIPCION, SECCION,
+    // INVENTARIO, FECHA_CARGA e ID_PDIS. Formato anterior: hoja "Rechazos".
+    const fechaCarga = String(pick(r, 'FECHA_CARGA') || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const fecha = fechaCarga ? new Date(+fechaCarga[1], +fechaCarga[2] - 1, +fechaCarga[3]) : parseFecha(pick(r, 'Fecha y Hora Rechazo', 'Fecha', 'Fecha Rechazo'));
     return {
-        remision: String(pick(r, 'Remisión', 'Remision')).trim(),
+        remision: String(pick(r, 'Remisión', 'Remision', 'ID_PDIS')).trim(),
         sku: String(pick(r, 'Sku', 'SKU')).trim(),
         desc: String(pick(r, 'Descripción Sku', 'Descripcion Sku', 'Descripción', 'Descripcion')).trim(),
         seccion: String(pick(r, 'Sección', 'Seccion') || '—').trim(),
-        jefatura: String(pick(r, 'Jefatura') || '').trim() || NO_BOSS,
-        piezas: toNum(pick(r, 'Piezas')),
+        jefatura: String(pick(r, 'Jefatura', 'JEFE') || '').trim() || NO_BOSS,
+        piezas: toNum(pick(r, 'Piezas', 'INVENTARIO')),
         usuario: String(pick(r, 'Usuario de Rechazo', 'Usuario')).trim(),
         auditor: String(pick(r, 'Auditor')).trim(),
         comentarios: String(pick(r, 'Comentarios')).trim(),
@@ -143,7 +146,7 @@ async function readRows(files) {
         try {
             const res = await fetch(await file.ref.getDownloadURL());
             const book = XLSX.read(await res.arrayBuffer(), { type: 'array' });
-            const sheet = book.Sheets.Rechazos || book.Sheets[book.SheetNames[0]];
+            const sheet = book.Sheets.PDIS || book.Sheets.Rechazos || book.Sheets[book.SheetNames[0]];
             const json = sheet ? XLSX.utils.sheet_to_json(sheet, { defval: '' }) : [];
             file.count = json.length;
             json.forEach(r => rows.push(normRow(r, file)));
