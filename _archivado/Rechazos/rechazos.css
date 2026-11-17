@@ -232,3 +232,65 @@ body.ui-unificado.rechazos-page {
 .rechazos-page .badge.pdi-st-mal  { background: #FEF3E2 !important; color: #A85A05 !important; border-color: #F8D9A8 !important; }
 .rechazos-page .badge.pdi-st-no   { background: #FDECEC !important; color: #B91C1C !important; border-color: #F7C7C7 !important; }
 .rechazos-page .badge.pdi-st-pend { background: #F3EEF1 !important; color: #6D5B66 !important; border-color: #E4D5DE !important; }
+
+/* Detalle de artículo PDIS (formato ALMACEN PDIS) */
+.rechazos-page .accordion-body.pdi-detail { padding: 1.25rem !important; }
+.rechazos-page .pdi-detail-grid { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.rechazos-page .pdi-media { display: flex; flex-direction: column; gap: .75rem; position: sticky; top: 80px; }
+.rechazos-page .pdi-product-image { aspect-ratio: 1 / 1; min-height: 0 !important; width: 100%; padding: 1rem !important; background: #fff !important; overflow: hidden; }
+.rechazos-page .pdi-product-image .pdi-product-img { width: 100%; height: 100%; object-fit: contain; border: 0; padding: 0; border-radius: 8px; }
+.rechazos-page .pdi-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+.rechazos-page .pdi-links a { display: flex; align-items: center; justify-content: center; gap: .3rem; padding: .45rem .3rem; border: 1px solid var(--rechazos-line); border-radius: 10px; background: #fff; color: var(--rechazos-ink); font-size: .74rem; font-weight: 700; text-decoration: none; white-space: nowrap; transition: border-color .2s, color .2s; }
+.rechazos-page .pdi-links a:hover { border-color: var(--rechazos-pink); color: var(--rechazos-pink); }
+.rechazos-page .pdi-info { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.rechazos-page .pdi-eyebrow { display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .06em; color: var(--rechazos-pink); text-transform: uppercase; }
+.rechazos-page .pdi-desc { margin: .2rem 0 0; font-size: 1.15rem; font-weight: 800; color: var(--rechazos-ink); line-height: 1.3; overflow-wrap: anywhere; }
+.rechazos-page .pdi-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; }
+.rechazos-page .pdi-kpi { padding: .75rem .85rem; border: 1px solid var(--rechazos-line); border-radius: 12px; background: #fff; min-width: 0; }
+.rechazos-page .pdi-kpi span { display: flex; align-items: center; gap: .35rem; font-size: .72rem; color: var(--rechazos-muted); font-weight: 600; }
+.rechazos-page .pdi-kpi span i { color: var(--rechazos-pink); }
+.rechazos-page .pdi-kpi strong { display: block; margin-top: .25rem; font-size: 1.1rem; font-weight: 800; color: var(--rechazos-ink); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.rechazos-page .pdi-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; border: 1px solid var(--rechazos-line); border-radius: 12px; background: #fff; overflow: hidden; }
+.rechazos-page .pdi-facts > div { padding: .6rem .85rem; border-bottom: 1px solid var(--rechazos-line); min-width: 0; }
+.rechazos-page .pdi-facts > div:nth-child(odd) { border-right: 1px solid var(--rechazos-line); }
+.rechazos-page .pdi-facts dt { font-size: .7rem; font-weight: 600; color: var(--rechazos-muted); text-transform: uppercase; letter-spacing: .03em; }
+.rechazos-page .pdi-facts dd { margin: .1rem 0 0; font-size: .88rem; font-weight: 700; color: var(--rechazos-ink); overflow-wrap: anywhere; }
+.rechazos-page .pdi-status-box .form-label,
+.rechazos-page .pdi-evidence h6 { font-weight: 800; color: var(--rechazos-ink); font-size: .9rem; display: flex; align-items: center; gap: .4rem; margin-bottom: .5rem; }
+.rechazos-page .pdi-evidence .evidence-placeholder { min-height: 110px !important; padding: 1rem !important; }
+
+@media (max-width: 991px) {
+    .rechazos-page .pdi-detail-grid { grid-template-columns: 1fr; }
+    .rechazos-page .pdi-media { position: static; }
+    .rechazos-page .pdi-product-image { max-width: 320px; margin: 0 auto; }
+    .rechazos-page .pdi-links { max-width: 320px; margin: 0 auto; width: 100%; }
+}
+@media (max-width: 576px) {
+    .rechazos-page .accordion-body.pdi-detail { padding: .85rem !important; }
+    .rechazos-page .pdi-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rechazos-page .pdi-facts { grid-template-columns: 1fr; }
+    .rechazos-page .pdi-facts > div:nth-child(odd) { border-right: 0; }
+}
+
+/* Filtros de la lista de reportes */
+.rechazos-page .pdi-filters { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: .75rem; padding: 1rem; border: 1px solid var(--rechazos-line); border-radius: 14px; background: #fff; }
+.rechazos-page .pdi-filter { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+.rechazos-page .pdi-filter label { font-size: .72rem; font-weight: 700; color: var(--rechazos-muted); text-transform: uppercase; letter-spacing: .04em; display: flex; align-items: center; gap: .35rem; margin: 0; }
+.rechazos-page .pdi-filter label i { color: var(--rechazos-pink); }
+.rechazos-page .pdi-filter .form-select,
+.rechazos-page .pdi-filter .form-control { border: 1px solid var(--rechazos-line); border-radius: 10px; font-size: .88rem; font-weight: 600; color: var(--rechazos-ink); min-height: 40px; }
+.rechazos-page .pdi-filter .form-select:focus,
+.rechazos-page .pdi-filter .form-control:focus { border-color: var(--rechazos-pink); box-shadow: 0 0 0 3px rgba(230, 0, 126, .15); }
+.rechazos-page .pdi-filter .form-select.is-active { border-color: var(--rechazos-pink); background-color: #FFF2F9; }
+.rechazos-page .pdi-filters-foot { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; margin-top: .6rem; padding: 0 .25rem; }
+.rechazos-page .pdi-filter-count { font-size: .82rem; color: var(--rechazos-muted); }
+.rechazos-page .pdi-filter-count strong { color: var(--rechazos-ink); }
+.rechazos-page .pdi-filter-clear { border: 0; background: transparent; color: var(--rechazos-pink); font-size: .82rem; font-weight: 700; padding: .2rem .4rem; border-radius: 8px; }
+.rechazos-page .pdi-filter-clear:hover { background: #FFF2F9; }
+@media (max-width: 991px) {
+    .rechazos-page .pdi-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rechazos-page .pdi-filter-search { grid-column: 1 / -1; }
+}
+@media (max-width: 576px) {
+    .rechazos-page .pdi-filters { grid-template-columns: 1fr; padding: .85rem; }
+}

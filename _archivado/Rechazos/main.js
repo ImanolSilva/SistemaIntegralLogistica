@@ -33,7 +33,6 @@ const AppState = {
     pendingChanges: {},
     isSyncing: false
 };
-let adminBossFilter = "";
 const autoSaveTimers = {};
 const PENDING_DB_NAME = 'pdisPendingChanges';
 
@@ -353,16 +352,18 @@ function loadDynamicImage(sku, seccion, containerId) {
 
     container.innerHTML = `<div class="d-flex align-items-center justify-content-center" style="height: 150px;"><div class="spinner-border text-secondary" role="status"></div></div>`;
 
-    const imageUrl = `https://ss${seccion}.liverpool.com.mx/lg/${sku}.jpg`;
+    // Liverpool sirve la imagen por SKU en su CDN (ss628 funciona para todos los SKU);
+    // la sección no forma parte del host. Se intenta tamaño xl y luego lg.
+    const skuLimpio = String(sku || '').trim();
 
     const fallbackImageHTML = `<div class="product-image-empty"><i class="bi bi-image"></i><strong>Imagen no disponible</strong><span>No encontramos una imagen para este SKU</span><a href="https://www.liverpool.com.mx/tienda/busca?busqueda=${encodeURIComponent(sku || '')}" target="_blank" rel="noopener"><i class="bi bi-search"></i> Buscar en Liverpool</a></div>`;
 
-    const imageCandidates = [imageUrl].filter(Boolean);
+    const imageCandidates = skuLimpio ? [`https://ss628.liverpool.com.mx/xl/${encodeURIComponent(skuLimpio)}.jpg`, `https://ss628.liverpool.com.mx/lg/${encodeURIComponent(skuLimpio)}.jpg`] : [];
+    if (!imageCandidates.length) { container.innerHTML = fallbackImageHTML; return; }
     const img = new Image();
     let imageIndex = 0;
-    img.src = imageCandidates[imageIndex];
-    img.className = "img-fluid rounded";
-    img.style.maxHeight = "200px";
+    img.className = "pdi-product-img";
+    img.alt = skuLimpio;
 
     img.onload = () => {
         container.innerHTML = '';
@@ -374,6 +375,7 @@ function loadDynamicImage(sku, seccion, containerId) {
         if (imageIndex < imageCandidates.length) { img.src = imageCandidates[imageIndex]; return; }
         container.innerHTML = fallbackImageHTML;
     };
+    img.src = imageCandidates[imageIndex];
 }
 
 async function loadStaticExcelFiles() { try { const [userResponse, relResponse] = await Promise.all([fetch("../ExcelReferencia/ArchivosExcel/Usuarios.xlsx"), fetch("../ExcelReferencia/ArchivosExcel/relaciones.xlsx")]); if (!userResponse.ok) console.error("No se encontró Usuarios.xlsx"); const userBlob = await userResponse.blob(); const userData = await userBlob.arrayBuffer(); const userWorkbook = XLSX.read(userData, { type: "array" }); const userSheet = userWorkbook.Sheets["Usuarios"]; if (userSheet) AppState.usuariosData = XLSX.utils.sheet_to_json(userSheet, { defval: "" }); if (!relResponse.ok) console.error("No se encontró relaciones.xlsx"); const relBlob = await relResponse.blob(); const relData = await relBlob.arrayBuffer(); const relWorkbook = XLSX.read(relData, { type: "array" }); const relSheet = relWorkbook.Sheets["Usuarios"]; if (relSheet) AppState.relacionesData = XLSX.utils.sheet_to_json(relSheet); } catch (error) { console.error("Error al cargar archivos estáticos:", error); showAlert("error", "Error Crítico", "No se pudieron cargar los archivos de configuración."); } }
@@ -960,28 +962,99 @@ async function loadRechazosFile(secciones) {
 
         let rechazosFiltrados = AppState.allRechazosEnExcel;
 
-        if (AppState.isAdmin) {
-            renderBossFilter(rechazosFiltrados);
-            if (adminBossFilter) {
-                rechazosFiltrados = rechazosFiltrados.filter(row => pdisView(row).jefe === adminBossFilter);
-            }
-        } else if (secciones.length > 0) {
+        if (!AppState.isAdmin && secciones.length > 0) {
             const seccionesNorm = secciones.map(normSeccion);
             rechazosFiltrados = rechazosFiltrados.filter(row => { const s = normSeccion(pdisView(row).seccion); return s && seccionesNorm.includes(s); });
         }
-        
-        // Todos los usuarios pueden enfocar su trabajo por jefatura, pero
-        // únicamente dentro del conjunto de PDIS que ya tienen permitido ver.
-        renderBossFilter(rechazosFiltrados);
-        renderRechazos(rechazosFiltrados);
+
+        // Los filtros de la lista (jefatura, sección, estado y búsqueda) trabajan
+        // únicamente dentro del conjunto de PDIS que el usuario tiene permitido ver.
+        const oldBoss = document.getElementById("bossFilterContainer");
+        if (oldBoss) oldBoss.innerHTML = "";
+        renderListFilters(rechazosFiltrados);
 
     } catch (error) {
         console.error("Error al cargar rechazos.xlsx:", error);
         showAlert("error", "Error de Carga", "No se pudo procesar el archivo 'rechazos.xlsx'.");
     }
 }
-function renderBossFilter(allRechazos) { const container = document.getElementById("bossFilterContainer"); const jefesUnicos = [...new Set(allRechazos.map(r => pdisView(r).jefe).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')); container.innerHTML = `<h5><i class="bi bi-person-video3 me-2"></i>Filtrar por Jefatura</h5><select class="form-select" id="bossFilterSelect"><option value="">Mostrar Todas</option>${jefesUnicos.map(j => `<option value="${j}">${j}</option>`).join('')}</select>`; const select = document.getElementById('bossFilterSelect'); select.value = adminBossFilter; select.addEventListener("change", (e) => { adminBossFilter = e.target.value; const filtrados = adminBossFilter ? allRechazos.filter(row => pdisView(row).jefe === adminBossFilter) : allRechazos; renderRechazos(filtrados); }); }
-function renderRechazos(rechazosData) { const container = document.getElementById("rechazosContainer"); AppState.rechazosGlobal = rechazosData.map((item, index) => ({ ...item, _rowIndex: index, Comentarios: item.Comentarios || "", Fotos: item.Fotos || "" })); if (!rechazosData.length) { container.innerHTML = `<div class="alert alert-info text-center"><i class="bi bi-info-circle-fill"></i> No hay reportes que coincidan con tu filtro actual.</div>`; return; } container.innerHTML = `<div class="accordion" id="rechazosAccordion">${AppState.rechazosGlobal.map(renderRechazoItem).join('')}</div>`; AppState.rechazosGlobal.forEach((rechazo, i) => { const v = pdisView(rechazo); loadDynamicImage(v.sku, v.seccion, `imgContainer-${i}`); updatePhotoPreview(rechazo._rowIndex, rechazo.Fotos); }); }
+/*****************************************************
+ * ========== FILTROS DE LA LISTA ==========
+ *****************************************************/
+const ListFilters = { base: [], jefe: '', seccion: '', estado: '', q: '' };
+const ESTADO_FILTROS = [['pdi-st-pend', 'Sin estado'], ['pdi-st-buen', 'Encontrada buen estado'], ['pdi-st-mal', 'Encontrada mal estado'], ['pdi-st-no', 'No encontrada']];
+function escAttr(t) { return String(t ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
+function renderListFilters(baseRows) {
+    ListFilters.base = baseRows;
+    const box = document.getElementById('listFiltersContainer');
+    if (!box) { renderRechazos(baseRows); return; }
+    box.innerHTML = `
+        <div class="pdi-filters">
+            <div class="pdi-filter pdi-filter-search">
+                <label for="flt-q"><i class="bi bi-search"></i> Buscar</label>
+                <input id="flt-q" type="search" class="form-control" placeholder="SKU o descripción" autocomplete="off">
+            </div>
+            <div class="pdi-filter">
+                <label for="flt-jefe"><i class="bi bi-person-workspace"></i> Jefatura</label>
+                <select id="flt-jefe" class="form-select"></select>
+            </div>
+            <div class="pdi-filter">
+                <label for="flt-seccion"><i class="bi bi-tag-fill"></i> Sección</label>
+                <select id="flt-seccion" class="form-select"></select>
+            </div>
+            <div class="pdi-filter">
+                <label for="flt-estado"><i class="bi bi-check-circle-fill"></i> Estado</label>
+                <select id="flt-estado" class="form-select"></select>
+            </div>
+        </div>
+        <div class="pdi-filters-foot">
+            <span id="flt-count" class="pdi-filter-count"></span>
+            <button type="button" id="flt-clear" class="pdi-filter-clear"><i class="bi bi-x-circle"></i> Limpiar filtros</button>
+        </div>`;
+    const q = document.getElementById('flt-q');
+    q.value = ListFilters.q;
+    let t;
+    q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { ListFilters.q = q.value; applyListFilters(); }, 250); });
+    document.getElementById('flt-jefe').addEventListener('change', e => { ListFilters.jefe = e.target.value; ListFilters.seccion = ''; applyListFilters(); });
+    document.getElementById('flt-seccion').addEventListener('change', e => { ListFilters.seccion = e.target.value; applyListFilters(); });
+    document.getElementById('flt-estado').addEventListener('change', e => { ListFilters.estado = e.target.value; applyListFilters(); });
+    document.getElementById('flt-clear').addEventListener('click', () => { Object.assign(ListFilters, { jefe: '', seccion: '', estado: '', q: '' }); q.value = ''; applyListFilters(); });
+    applyListFilters();
+}
+function fillFilterSelect(id, items, allLabel, current) {
+    const el = document.getElementById(id);
+    if (!el) return '';
+    el.innerHTML = `<option value="">${allLabel}</option>` + items.map(([value, label, n]) => `<option value="${escAttr(value)}">${escAttr(label)} (${n.toLocaleString('es-MX')})</option>`).join('');
+    el.value = items.some(([value]) => value === current) ? current : '';
+    el.classList.toggle('is-active', !!el.value);
+    return el.value;
+}
+function applyListFilters() {
+    const base = ListFilters.base;
+    const views = base.map(row => ({ row, v: pdisView(row), st: pdiStatusClass(row.Status) }));
+    const q = normKey(ListFilters.q);
+    const byJefe = x => !ListFilters.jefe || x.v.jefe === ListFilters.jefe;
+    const bySec = x => !ListFilters.seccion || x.v.seccion === ListFilters.seccion;
+    const byEst = x => !ListFilters.estado || x.st === ListFilters.estado;
+    const byQ = x => !q || normKey(`${x.v.sku} ${x.v.desc}`).includes(q);
+    const count = (list, keyFn) => { const m = new Map(); list.forEach(x => { const k = keyFn(x); m.set(k, (m.get(k) || 0) + 1); }); return m; };
+
+    // Cada lista de opciones se calcula con los demás filtros aplicados.
+    const jefes = count(views.filter(x => bySec(x) && byEst(x) && byQ(x)), x => x.v.jefe);
+    ListFilters.jefe = fillFilterSelect('flt-jefe', [...jefes].filter(([k]) => k).sort((x, y) => x[0].localeCompare(y[0], 'es')).map(([k, n]) => [k, k, n]), 'Todas las jefaturas', ListFilters.jefe);
+    const secs = count(views.filter(x => byJefe(x) && byEst(x) && byQ(x)), x => x.v.seccion);
+    ListFilters.seccion = fillFilterSelect('flt-seccion', [...secs].sort((x, y) => String(x[0]).localeCompare(String(y[0]), 'es', { numeric: true })).map(([k, n]) => [k, k || 'Sin sección', n]), 'Todas las secciones', ListFilters.seccion);
+    const ests = count(views.filter(x => byJefe(x) && bySec(x) && byQ(x)), x => x.st);
+    ListFilters.estado = fillFilterSelect('flt-estado', ESTADO_FILTROS.filter(([k]) => ests.has(k)).map(([k, label]) => [k, label, ests.get(k)]), 'Todos los estados', ListFilters.estado);
+
+    const result = views.filter(x => byJefe(x) && bySec(x) && byEst(x) && byQ(x)).map(x => x.row);
+    const countEl = document.getElementById('flt-count');
+    if (countEl) countEl.innerHTML = `Mostrando <strong>${result.length.toLocaleString('es-MX')}</strong> de ${base.length.toLocaleString('es-MX')} artículos`;
+    const clearBtn = document.getElementById('flt-clear');
+    if (clearBtn) clearBtn.hidden = !(ListFilters.jefe || ListFilters.seccion || ListFilters.estado || ListFilters.q);
+    renderRechazos(result);
+}
+function renderRechazos(rechazosData) { const container = document.getElementById("rechazosContainer"); rechazosData.forEach((item, index) => { item._rowIndex = index; item.Comentarios = item.Comentarios || ""; item.Fotos = item.Fotos || ""; }); AppState.rechazosGlobal = rechazosData; if (!rechazosData.length) { container.innerHTML = `<div class="alert alert-info text-center"><i class="bi bi-info-circle-fill"></i> No hay reportes que coincidan con tu filtro actual.</div>`; return; } container.innerHTML = `<div class="accordion" id="rechazosAccordion">${AppState.rechazosGlobal.map(renderRechazoItem).join('')}</div>`; AppState.rechazosGlobal.forEach(rechazo => updatePhotoPreview(rechazo._rowIndex, rechazo.Fotos)); /* La imagen del producto se descarga solo al abrir el artículo. */ const accordion = document.getElementById('rechazosAccordion'); accordion.addEventListener('show.bs.collapse', e => { const index = Number(String(e.target.id).replace('collapse-', '')); const box = document.getElementById(`imgContainer-${index}`); if (!box || box.dataset.loaded) return; box.dataset.loaded = '1'; const v = pdisView(AppState.rechazosGlobal[index]); loadDynamicImage(v.sku, v.seccion, box.id); }); }
 
 // ===== SECCIÓN MODIFICADA (INICIO) =====
 // Se ajusta la función para renderizar el ícono de comentario correcto desde el inicio.
@@ -1043,15 +1116,15 @@ function renderRechazoItem(rechazo, i) {
     const googleUrlSku = `https://www.google.com/search?q=${encodeURIComponent(googleQuerySku)}`;
     const googleUrlDesc = descripcionSku && descripcionSku !== "N/A" ? `https://www.google.com/search?q=${encodeURIComponent(descripcionSku)}` : "#";
     
-    const createDetailRow = (icon, label, value) => `
-        <div class="detail-row d-flex justify-content-between align-items-center py-2 px-1 flex-wrap">
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi ${icon} text-secondary me-2" title="${label}"></i>
-                <span class="text-muted small">${label}</span>
-            </div>
-            <strong class="text-dark text-end small">${value}</strong>
-        </div>
-    `;
+    const esc = t => String(t ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    const extraMap = Object.fromEntries(extraRows.map(([, label, value]) => [label, value]));
+    const kpis = v.isLegacy
+        ? [['bi-box-seam', 'Piezas', piezas], ['bi-tag-fill', 'Sección', Sección], ['bi-calendar-event', 'Fecha', fecha], ['bi-person', 'Usuario', usuarioName]]
+        : [['bi-box-seam', 'Inventario', piezas], ['bi-cash-coin', 'Costo total', extraMap['Costo total']], ['bi-hourglass-split', 'Días antigüedad', extraMap['Días antigüedad']], ['bi-tag-fill', 'Sección', Sección]];
+    const infoRows = v.isLegacy
+        ? [['Jefatura', jefatura]]
+        : [['Jefe', jefatura], ['Fecha de carga', fecha], ['Último movimiento', extraMap['Último movimiento']], ['Antigüedad', extraMap['Antigüedad']],
+           ['Estatus', extraMap['Estatus']], ['Visibles', extraMap['Visibles']], ['Envase', extraMap['Envase']], ['Dirección', extraMap['Dirección']], ['Negs. piso', extraMap['Negs. piso']]];
 
     return `
     <div class="accordion-item report-card shadow-sm mb-3 rounded-4 border-0" id="item-${_rowIndex}">
@@ -1059,42 +1132,36 @@ function renderRechazoItem(rechazo, i) {
             <button class="accordion-button collapsed px-2 py-2 d-flex flex-row align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${_rowIndex}">
                 <span class="badge rounded-pill me-2 pdi-status ${pdiStatusClass(estadoActual)}">${estadoActual}</span>
                 <div class="report-summary flex-grow-1 d-flex flex-column flex-md-row align-items-md-center gap-2">
-                    <span class="sku-title fw-semibold" title="${descripcionSku}">${descripcionSku}</span>
-                    <span class="user-info text-muted small"><i class="bi bi-person"></i> ${usuarioName}</span>
+                    <span class="sku-title fw-semibold" title="${esc(descripcionSku)}">${esc(descripcionSku)}</span>
+                    <span class="user-info text-muted small"><i class="bi bi-person"></i> ${esc(usuarioName)}</span>
                 </div>
-                <span class="ms-2 badge bg-dark rounded-pill">${Remisión}</span>
+                <span class="ms-2 badge bg-dark rounded-pill">${esc(Remisión)}</span>
             </button>
         </h2>
         <div id="collapse-${_rowIndex}" class="accordion-collapse collapse" data-bs-parent="#rechazosAccordion">
-            <div class="accordion-body px-2 py-3">
-                <div class="row g-3">
-                    <div class="col-12 col-lg-7">
-                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-info-circle me-2"></i>Detalles del Rechazo</h5>
-                            <div class="d-flex gap-2">
-                                <a href="${liverpoolUrl}" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill d-flex align-items-center gap-1" title="Ver producto en Liverpool">
-                                    <i class="bi bi-box-arrow-up-right"></i> <span class="d-none d-md-inline">Ver en Liverpool</span>
-                                </a>
-                                <a href="${googleUrlSku}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill d-flex align-items-center gap-1" title="Buscar en Google por SKU">
-                                    <i class="bi bi-google"></i> <span class="d-none d-md-inline">Google SKU</span>
-                                </a>
-                                <a href="${googleUrlDesc}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill d-flex align-items-center gap-1" title="Buscar en Google por descripción">
-                                    <i class="bi bi-google"></i> <span class="d-none d-md-inline">Google Descripción</span>
-                                </a>
-                            </div>
+            <div class="accordion-body pdi-detail">
+                <div class="pdi-detail-grid">
+                    <aside class="pdi-media">
+                        <div id="imgContainer-${i}" class="product-image-container pdi-product-image"></div>
+                        <div class="pdi-links">
+                            <a href="${liverpoolUrl}" target="_blank" rel="noopener" title="Ver producto en Liverpool"><i class="bi bi-box-arrow-up-right"></i> Liverpool</a>
+                            <a href="${googleUrlSku}" target="_blank" rel="noopener" title="Buscar en Google por SKU"><i class="bi bi-google"></i> SKU</a>
+                            <a href="${googleUrlDesc}" target="_blank" rel="noopener" title="Buscar en Google por descripción"><i class="bi bi-google"></i> Descripción</a>
                         </div>
-                        <div class="details-list-container border rounded-3 p-2 bg-light">
-                            ${createDetailRow('bi-upc-scan', 'SKU', Sku || 'N/A')}
-                            ${createDetailRow('bi-box-seam', v.isLegacy ? 'Piezas' : 'Inventario', piezas)}
-                            ${createDetailRow('bi-calendar-event', v.isLegacy ? 'Fecha' : 'Fecha de carga', fecha)}
-                            ${createDetailRow('bi-tag-fill', 'Sección', Sección)}
-                            ${createDetailRow('bi-person-workspace', v.isLegacy ? 'Jefatura' : 'Jefe', jefatura)}
-                            ${extraRows.map(([icon, label, value]) => createDetailRow(icon, label, value)).join('')}
+                    </aside>
+                    <section class="pdi-info">
+                        <div class="pdi-info-head">
+                            <span class="pdi-eyebrow">SKU ${esc(Sku || 'N/A')}</span>
+                            <h5 class="pdi-desc">${esc(descripcionSku)}</h5>
                         </div>
-                        <div class="mt-3">
-                            <label for="status-${_rowIndex}" class="form-label fw-bold text-dark">
-                                <i class="bi bi-check-circle-fill"></i> Estado del Rechazo:
-                            </label>
+                        <div class="pdi-kpis">
+                            ${kpis.map(([icon, label, value]) => `<div class="pdi-kpi"><span><i class="bi ${icon}"></i>${label}</span><strong>${esc(value)}</strong></div>`).join('')}
+                        </div>
+                        <dl class="pdi-facts">
+                            ${infoRows.map(([label, value]) => `<div><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join('')}
+                        </dl>
+                        <div class="pdi-status-box">
+                            <label for="status-${_rowIndex}" class="form-label"><i class="bi bi-check-circle-fill"></i> Estado del PDIS</label>
                             <div class="status-picker status-${estadoActual.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}">
                                 <span class="status-picker-icon"><i class="bi bi-circle-fill"></i></span>
                                 <select id="status-${_rowIndex}" class="form-select status-select rounded-3 shadow-sm" data-row-index="${_rowIndex}">
@@ -1102,14 +1169,11 @@ function renderRechazoItem(rechazo, i) {
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-12 col-lg-5">
-                        <div class="evidence-section">
-                            <h6 class="mb-2 fw-bold text-dark"><i class="bi bi-camera-fill me-2"></i>Evidencia</h6>
-                            <div id="imgContainer-${i}"class="product-image-container mb-2 w-100 d-flex justify-content-center"></div>
+                        <div class="pdi-evidence">
+                            <h6><i class="bi bi-camera-fill"></i> Evidencia</h6>
                             <div id="evidencia-preview-${_rowIndex}" class="evidence-preview-container w-100"></div>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
         </div>

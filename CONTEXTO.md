@@ -484,3 +484,5 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - La lista de archivos se ordena por fecha de carga y la muestra. El dashboard por rango de fechas del Gestor y el Dashboard PDIS usan `FECHA_CARGA` como fecha del registro.
 - Equivalencias con el formato anterior: `JEFE` = Jefatura, `INVENTARIO` = Piezas, `DESCRIPCION` = Descripción Sku. Los archivos anteriores (hoja `Rechazos`, llave `Remisión`) se siguen leyendo.
 - El filtro por sección de usuarios no administradores ignora ceros a la izquierda (`0550` = `550`).
+- 2026-11-17: el detalle de cada artículo se rediseñó (foto grande, tarjetas de Inventario/Costo/Días/Sección y datos en dos columnas). La imagen se pide siempre por SKU a `https://ss628.liverpool.com.mx/xl/{SKU}.jpg` (respaldo `lg`) y solo al abrir el artículo; antes usaba la sección en el host (`ss0625`), que no existe.
+- 2026-11-17: la "Lista de Reportes" tiene filtros por jefatura, sección, estado y búsqueda por SKU/descripción, con conteos por opción. Sustituyen al filtro de jefatura del panel de control. Funcionan solo sobre los PDIS que el usuario puede ver.
