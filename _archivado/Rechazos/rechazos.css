@@ -294,3 +294,11 @@ body.ui-unificado.rechazos-page {
 @media (max-width: 576px) {
     .rechazos-page .pdi-filters { grid-template-columns: 1fr; padding: .85rem; }
 }
+
+/* Acciones de cada archivo (Eliminar solo para administradores) */
+.rechazos-page .file-card-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+.rechazos-page .file-card .card-body { gap: .75rem; }
+@media (max-width: 576px) {
+    .rechazos-page .file-card .card-body { flex-wrap: wrap; }
+    .rechazos-page .file-card-actions { width: 100%; justify-content: flex-end; }
+}

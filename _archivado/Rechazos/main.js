@@ -596,7 +596,32 @@ async function loadFilesFromFirebase() {
     }
 }
 
-function renderFileSelectOptions(files) { const container = document.getElementById("fileListContainer"); container.innerHTML = files.map(file => `<div class="card file-card mb-2" style="border-radius: 12px;"><div class="card-body d-flex justify-content-between align-items-center p-3"><div><i class="bi bi-file-earmark-excel-fill me-2 text-success fs-4"></i><span class="fw-bold">${file.name}</span>${file.fechaCarga ? `<small class="d-block text-muted"><i class="bi bi-calendar-event me-1"></i>Fecha de carga: ${formatFechaCarga(file.fechaCarga)}</small>` : ''}</div><button class="btn btn-pill btn-pill-sm btn-select">Seleccionar</button></div></div>`).join(''); container.querySelectorAll('.btn-select').forEach((button, index) => { button.addEventListener('click', () => { AppState.selectedFileData = files[index]; document.getElementById("selectedFileFeedback").textContent = `Archivo seleccionado: ${files[index].name}`; document.getElementById("confirmFileSelection").disabled = false; container.querySelectorAll('.file-card').forEach(card => card.style.border = "1px solid var(--gris-medio)"); button.closest('.file-card').style.border = "2px solid var(--rosa-principal)"; }); }); }
+function renderFileSelectOptions(files) { const container = document.getElementById("fileListContainer"); container.innerHTML = files.map(file => `<div class="card file-card mb-2" style="border-radius: 12px;"><div class="card-body d-flex justify-content-between align-items-center p-3"><div><i class="bi bi-file-earmark-excel-fill me-2 text-success fs-4"></i><span class="fw-bold">${file.name}</span>${file.fechaCarga ? `<small class="d-block text-muted"><i class="bi bi-calendar-event me-1"></i>Fecha de carga: ${formatFechaCarga(file.fechaCarga)}</small>` : ''}</div><div class="file-card-actions">${AppState.isAdmin ? `<button type="button" class="btn btn-pill btn-pill-sm btn-delete file-delete-btn" data-filename="${file.name}" title="Eliminar archivo"><i class="bi bi-trash3-fill"></i> Eliminar</button>` : ''}<button class="btn btn-pill btn-pill-sm btn-select">Seleccionar</button></div></div></div>`).join(''); container.querySelectorAll('.file-delete-btn').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); confirmDeletePdisFile(e.currentTarget.dataset.filename); })); container.querySelectorAll('.btn-select').forEach((button, index) => { button.addEventListener('click', () => { AppState.selectedFileData = files[index]; document.getElementById("selectedFileFeedback").textContent = `Archivo seleccionado: ${files[index].name}`; document.getElementById("confirmFileSelection").disabled = false; container.querySelectorAll('.file-card').forEach(card => card.style.border = "1px solid var(--gris-medio)"); button.closest('.file-card').style.border = "2px solid var(--rosa-principal)"; }); }); }
+
+// Elimina un archivo PDIS de Storage. Solo administradores (también lo exige storage.rules).
+async function confirmDeletePdisFile(fileName) {
+    if (!AppState.isAdmin || !fileName) return;
+    const { isConfirmed } = await Swal.fire({
+        title: '¿Eliminar archivo?',
+        text: `El archivo "${fileName}" se borrará permanentemente. Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef5350',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+    if (!isConfirmed) return;
+    Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+        await storage.ref(`uploads/${fileName}`).delete();
+        showAlert("success", "Eliminado", "El archivo ha sido eliminado.");
+        setTimeout(() => location.reload(), 1500);
+    } catch (error) {
+        console.error('No se pudo eliminar el archivo:', error);
+        showAlert("error", "Error", "No se pudo eliminar el archivo.");
+    }
+}
 
 async function renderFilesManagement(files) {
     if (!files.length) return;
@@ -687,34 +712,8 @@ async function renderFilesManagement(files) {
             </div>
         </div>`;
 
-    document.querySelectorAll('.admin-delete-btn').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            const fileName = e.currentTarget.dataset.filename;
-            const fileRef = storage.ref(`uploads/${fileName}`);
-
-            const { isConfirmed } = await Swal.fire({
-                title: '¿Estás seguro?',
-                text: `El archivo "${fileName}" se borrará permanentemente. Esta acción no se puede deshacer.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: 'var(--rojo-peligro)',
-                cancelButtonColor: 'var(--gris-oscuro)',
-                confirmButtonText: 'Sí, ¡Eliminar!',
-                cancelButtonText: 'Cancelar'
-            });
-
-
-            if (isConfirmed) {
-                Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                try {
-                    await fileRef.delete();
-                    showAlert("success", "Eliminado", "El archivo ha sido eliminado.");
-                    setTimeout(() => location.reload(), 1500);
-                } catch (error) {
-                    showAlert("error", "Error", "No se pudo eliminar el archivo.");
-                }
-            }
-        });
+    document.querySelectorAll('#filesManagementContainer .admin-delete-btn').forEach(button => {
+        button.addEventListener('click', e => confirmDeletePdisFile(e.currentTarget.dataset.filename));
     });
 }
 async function handleFileUpload(file) {
@@ -925,7 +924,8 @@ function enforcePdiStatuses() {
 /*****************************************************
  * ========== LÓGICA DE VISUALIZACIÓN DE DATOS ==========
  *****************************************************/
-async function loadRechazosFileBasedOnRole() { if (!AppState.relacionesData) { return showAlert("error", "Error de datos", "No se pudo cargar la información de relaciones."); } let secciones = []; if (!AppState.isAdmin) { const correoUsuario = auth.currentUser.email; const usuarioData = AppState.relacionesData.filter(row => row.Correo === correoUsuario); if (usuarioData.length === 0) { return showAlert("error", "Acceso denegado", "No se encontró información para este usuario."); } usuarioData.forEach(row => { for (const key in row) { if (key.toLowerCase().includes('sección') && row[key]) { secciones = secciones.concat(row[key].toString().split(',').map(s => s.trim())); } } }); secciones = [...new Set(secciones.filter(Boolean))]; } loadRechazosFile(secciones); }
+// Los usuarios con acceso al Gestor (pocos) ven todos los PDIS y filtran desde la lista.
+async function loadRechazosFileBasedOnRole() { loadRechazosFile([]); }
 async function loadRechazosFile(secciones) {
     try {
         const archivoRechazosRef = AppState.selectedFileData?.ref;
