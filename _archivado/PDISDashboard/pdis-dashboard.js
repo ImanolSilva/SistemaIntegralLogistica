@@ -607,7 +607,7 @@ $('btn-export').addEventListener('click', () => {
     const sheet = (list, name) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(list), name);
     sheet(groupAgg(rows, r => r.jefatura).sort((a, b) => (b.loc ?? -1) - (a.loc ?? -1)).map(b => ({ Jefatura: b.key, Registros: b.total, 'Buen estado': b.buen, 'Mal estado': b.mal, 'No encontradas': b.no, Pendientes: b.pend, 'Avance %': r1(b.avance), 'Localización %': b.loc == null ? '' : r1(b.loc) })), 'Jefaturas');
     sheet(groupAgg(rows.filter(r => r.auditor && r.estado !== 'pend'), r => r.auditor).sort((a, b) => b.total - a.total).map(a => ({ Auditor: a.key, Revisados: a.total, 'Buen estado': a.buen, 'Mal estado': a.mal, 'No encontradas': a.no, Piezas: a.piezas, 'Localización %': a.loc == null ? '' : r1(a.loc) })), 'Auditores');
-    sheet(rows.map(r => ({ Archivo: r.file, Remisión: r.remision, SKU: r.sku, Descripción: r.desc, Sección: r.seccion, Jefatura: r.jefatura, Piezas: r.piezas, 'Fecha rechazo': r.fecha ? fmtDateTime(r.fecha) : '', 'Usuario rechazo': r.usuario, Auditor: r.auditor, 'Status original': r.statusRaw, Estado: ESTADOS[r.estado].label, Comentarios: r.comentarios })), 'Detalle');
+    sheet(rows.map(r => ({ Archivo: r.file, 'Remisión / ID': r.remision, SKU: r.sku, Descripción: r.desc, Sección: r.seccion, Jefatura: r.jefatura, Piezas: r.piezas, 'Fecha rechazo': r.fecha ? fmtDateTime(r.fecha) : '', 'Usuario rechazo': r.usuario, Auditor: r.auditor, 'Status original': r.statusRaw, Estado: ESTADOS[r.estado].label, Comentarios: r.comentarios })), 'Detalle');
     XLSX.writeFile(wb, `pdis_${new Date().toISOString().slice(0, 10)}.xlsx`);
 });
 

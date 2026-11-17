@@ -31,7 +31,9 @@ const AppState = {
     isAdmin: false,
     fileVersion: "1",
     pendingChanges: {},
-    isSyncing: false
+    isSyncing: false,
+    sheetName: '',
+    sheetHeader: []
 };
 const autoSaveTimers = {};
 const PENDING_DB_NAME = 'pdisPendingChanges';
@@ -68,11 +70,6 @@ function queueChange(remision, field, value) {
     savePendingChangesOffline();
     updateSyncStatus('pending');
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const pdisList = document.getElementById('rechazosContainer');
-    if (pdisList) new MutationObserver(enforcePdiStatuses).observe(pdisList, { childList: true, subtree: true });
-});
 
 async function loadPendingChanges() {
     let savedChanges = localStorage.getItem('pendingChanges');
@@ -151,17 +148,29 @@ async function syncPendingChanges(isAutoSave = false) {
            throw new Error("Conflicto de versiones. Por favor, recarga la página para obtener los cambios más recientes.");
         }
 
-        const url = await fileRef.getDownloadURL();
-        const response = await fetch(url);
-        const data = await response.arrayBuffer();
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = getPdisSheetName(workbook);
-        const sheet = workbook.Sheets[sheetName];
-        if (!sheet) throw new Error("No se encontró la hoja de datos en el archivo.");
+        // Si el archivo es del formato PDIS y la versión del servidor es la que
+        // tenemos en memoria, se reconstruye desde los datos locales sin volver
+        // a descargarlo. Los archivos anteriores (hoja Rechazos) se descargan.
+        let workbook, sheetName, excelData;
+        const useLocal = AppState.sheetName === PDIS_SHEET && AppState.sheetHeader.length > 0 && AppState.allRechazosEnExcel.length > 0;
+        if (useLocal) {
+            sheetName = PDIS_SHEET;
+            const header = [...new Set([...AppState.sheetHeader, 'Status', 'Auditor', 'Fotos'])];
+            excelData = AppState.allRechazosEnExcel.map(r => Object.fromEntries(header.map(h => [h, r[h] ?? ''])));
+            workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet([]), sheetName);
+        } else {
+            const url = await fileRef.getDownloadURL();
+            const response = await fetch(url);
+            const data = await response.arrayBuffer();
+            workbook = XLSX.read(data, { type: "array" });
+            sheetName = getPdisSheetName(workbook);
+            const sheet = workbook.Sheets[sheetName];
+            if (!sheet) throw new Error("No se encontró la hoja de datos en el archivo.");
+            excelData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        }
 
-        let excelData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-        let hasChanges = false;
+        let hasChanges = useLocal;
         const updatesMap = new Map(Object.entries(AppState.pendingChanges));
         excelData.forEach(row => {
             const remision = rowKey(row);
@@ -206,7 +215,7 @@ async function syncPendingChanges(isAutoSave = false) {
         await fileRef.put(newBlob, newMetadata); // Guardamos el archivo con los metadatos actualizados
         
         AppState.fileVersion = newVersion;
-        AppState.allRechazosEnExcel = excelData;
+        if (!useLocal) AppState.allRechazosEnExcel = excelData;
         AppState.pendingChanges = {};
         clearPendingChangesOffline();
         
@@ -276,7 +285,14 @@ function getPdisSheetName(workbook) {
     return workbook.SheetNames[0];
 }
 // Vista normalizada de una fila, sin importar si viene del formato nuevo o del anterior.
+const pdisViewCache = new WeakMap();
 function pdisView(row) {
+    if (row && typeof row === 'object' && pdisViewCache.has(row)) return pdisViewCache.get(row);
+    const view = buildPdisView(row);
+    if (row && typeof row === 'object') pdisViewCache.set(row, view);
+    return view;
+}
+function buildPdisView(row) {
     const isLegacy = !pickField(row, 'ID_PDIS') && !!pickField(row, 'Remisión');
     return {
         key: rowKey(row),
@@ -629,8 +645,6 @@ async function renderFilesManagement(files) {
     const container = document.getElementById("filesManagementContainer");
 
     const filesHTML = await Promise.all(files.map(async file => {
-        // Obtenemos la URL de descarga para cada archivo
-        const downloadUrl = await file.ref.getDownloadURL();
         
         const fileSize = file.size;
         const formattedSize = fileSize ? `${(fileSize / 1024).toFixed(1)} KB` : 'N/A';
@@ -666,12 +680,12 @@ async function renderFilesManagement(files) {
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2" href="${downloadUrl}" target="_blank" download="${file.name}">
+                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 file-download-btn" data-filename="${file.name}">
                     <i class="bi bi-download"></i> Descargar
-                    </a>
+                    </button>
                 </li>
                 <li>
-                    <button class="dropdown-item d-flex align-items-center gap-2" onclick="navigator.clipboard.writeText('${downloadUrl}'); showAlert('success', '¡Enlace copiado!')">
+                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 file-copy-btn" data-filename="${file.name}">
                     <i class="bi bi-link-45deg"></i> Copiar enlace
                     </button>
                 </li>
@@ -712,6 +726,13 @@ async function renderFilesManagement(files) {
             </div>
         </div>`;
 
+    const urlOf = name => storage.ref(`uploads/${name}`).getDownloadURL();
+    container.querySelectorAll('.file-download-btn').forEach(btn => btn.addEventListener('click', async e => {
+        try { window.open(await urlOf(e.currentTarget.dataset.filename), '_blank', 'noopener'); } catch { showAlert('error', 'Error', 'No se pudo obtener el archivo.'); }
+    }));
+    container.querySelectorAll('.file-copy-btn').forEach(btn => btn.addEventListener('click', async e => {
+        try { await navigator.clipboard.writeText(await urlOf(e.currentTarget.dataset.filename)); showAlert('success', '¡Enlace copiado!'); } catch { showAlert('error', 'Error', 'No se pudo copiar el enlace.'); }
+    }));
     document.querySelectorAll('#filesManagementContainer .admin-delete-btn').forEach(button => {
         button.addEventListener('click', e => confirmDeletePdisFile(e.currentTarget.dataset.filename));
     });
@@ -908,16 +929,14 @@ function updatePhotoPreview(rowIndex, url) {
     }
 }
 
-// PDIS usa únicamente tres resultados operativos. Se normalizan también los
-// registros antiguos para que no vuelvan a aparecer estados obsoletos.
-function enforcePdiStatuses() {
-    document.querySelectorAll('.status-select').forEach(select => {
-        if (select.options.length === 3 && [...select.options].every((option, index) => option.value === ['Encontrada buen estado', 'Encontrada mal estado', 'No encontrada'][index])) return;
-        const current = select.value;
-        const normalized = current === 'Sí encontrada' || current === 'Encontrada en exhibición' ? 'Encontrada buen estado' : current === 'Encontrada Merma' ? 'Encontrada mal estado' : current;
-        select.innerHTML = ['Encontrada buen estado', 'Encontrada mal estado', 'No encontrada'].map(value => `<option value="${value}">${value}</option>`).join('');
-        select.value = ['Encontrada buen estado', 'Encontrada mal estado', 'No encontrada'].includes(normalized) ? normalized : 'No encontrada';
-    });
+// PDIS usa únicamente tres resultados operativos. Los estados antiguos se
+// muestran con su equivalente actual.
+const PDI_ESTADOS = ['Encontrada buen estado', 'Encontrada mal estado', 'No encontrada'];
+function normalizePdiStatus(status) {
+    const v = String(status || '').trim();
+    if (v === 'Sí encontrada' || v === 'Encontrada en exhibición') return 'Encontrada buen estado';
+    if (v === 'Encontrada Merma') return 'Encontrada mal estado';
+    return PDI_ESTADOS.includes(v) ? v : '';
 }
 
 
@@ -942,10 +961,12 @@ async function loadRechazosFile(secciones) {
         const response = await fetch(url);
         const data = await response.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets[getPdisSheetName(workbook)];
+        AppState.sheetName = getPdisSheetName(workbook);
+        const sheet = workbook.Sheets[AppState.sheetName];
 
         if (!sheet) return showAlert("error", "Error de Formato", "No se encontró la hoja de datos en el Excel.");
 
+        AppState.sheetHeader = (XLSX.utils.sheet_to_json(sheet, { header: 1, range: 0, defval: '' })[0] || []).map(String).filter(Boolean);
         AppState.allRechazosEnExcel = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
         const updatesMap = new Map(Object.entries(AppState.pendingChanges));
@@ -1054,131 +1075,176 @@ function applyListFilters() {
     if (clearBtn) clearBtn.hidden = !(ListFilters.jefe || ListFilters.seccion || ListFilters.estado || ListFilters.q);
     renderRechazos(result);
 }
-function renderRechazos(rechazosData) { const container = document.getElementById("rechazosContainer"); rechazosData.forEach((item, index) => { item._rowIndex = index; item.Comentarios = item.Comentarios || ""; item.Fotos = item.Fotos || ""; }); AppState.rechazosGlobal = rechazosData; if (!rechazosData.length) { container.innerHTML = `<div class="alert alert-info text-center"><i class="bi bi-info-circle-fill"></i> No hay reportes que coincidan con tu filtro actual.</div>`; return; } container.innerHTML = `<div class="accordion" id="rechazosAccordion">${AppState.rechazosGlobal.map(renderRechazoItem).join('')}</div>`; AppState.rechazosGlobal.forEach(rechazo => updatePhotoPreview(rechazo._rowIndex, rechazo.Fotos)); /* La imagen del producto se descarga solo al abrir el artículo. */ const accordion = document.getElementById('rechazosAccordion'); accordion.addEventListener('show.bs.collapse', e => { const index = Number(String(e.target.id).replace('collapse-', '')); const box = document.getElementById(`imgContainer-${index}`); if (!box || box.dataset.loaded) return; box.dataset.loaded = '1'; const v = pdisView(AppState.rechazosGlobal[index]); loadDynamicImage(v.sku, v.seccion, box.id); }); }
+const LIST_PAGE_SIZE = 40;
+let listObserver = null;
+function renderRechazos(rechazosData) {
+    const container = document.getElementById("rechazosContainer");
+    rechazosData.forEach((item, index) => { item._rowIndex = index; item.Comentarios = item.Comentarios || ""; item.Fotos = item.Fotos || ""; });
+    AppState.rechazosGlobal = rechazosData;
+    if (listObserver) { listObserver.disconnect(); listObserver = null; }
+    if (!rechazosData.length) {
+        container.innerHTML = `<div class="alert alert-info text-center"><i class="bi bi-info-circle-fill"></i> No hay reportes que coincidan con tu filtro actual.</div>`;
+        return;
+    }
+    // Solo se dibujan bloques de LIST_PAGE_SIZE encabezados; el resto se agrega
+    // al acercarse al final o con "Mostrar más". El detalle se arma al abrirlo.
+    container.innerHTML = `<div class="accordion" id="rechazosAccordion"></div><div class="pdi-list-more" id="listMore"></div>`;
+    const accordion = document.getElementById('rechazosAccordion');
+    const more = document.getElementById('listMore');
+    let shown = 0;
+    const renderMore = () => {
+        const next = rechazosData.slice(shown, shown + LIST_PAGE_SIZE);
+        if (!next.length) return;
+        accordion.insertAdjacentHTML('beforeend', next.map(row => renderRechazoItem(row, row._rowIndex)).join(''));
+        shown += next.length;
+        const left = rechazosData.length - shown;
+        more.innerHTML = left > 0 ? `<button type="button" class="pdi-more-btn"><i class="bi bi-chevron-down"></i> Mostrar más (${left.toLocaleString('es-MX')} restantes)</button>` : '';
+    };
+    more.addEventListener('click', e => { if (e.target.closest('.pdi-more-btn')) renderMore(); });
+    if ('IntersectionObserver' in window) {
+        listObserver = new IntersectionObserver(entries => { if (entries.some(en => en.isIntersecting)) renderMore(); }, { rootMargin: '400px 0px' });
+        listObserver.observe(more);
+    }
+    accordion.addEventListener('show.bs.collapse', e => {
+        const index = Number(String(e.target.id).replace('collapse-', ''));
+        const body = document.getElementById(`body-${index}`);
+        const row = rechazosData[index];
+        if (!body || !row || body.dataset.ready) return;
+        body.dataset.ready = '1';
+        body.innerHTML = renderRechazoItem(row, index, 'body');
+        updatePhotoPreview(index, row.Fotos);
+        const v = pdisView(row);
+        loadDynamicImage(v.sku, v.seccion, `imgContainer-${index}`);
+    });
+    renderMore();
+}
 
 // ===== SECCIÓN MODIFICADA (INICIO) =====
 // Se ajusta la función para renderizar el ícono de comentario correcto desde el inicio.
 // ===== INICIO DE LA FUNCIÓN ACTUALIZADA =====
 // Clase visual de la etiqueta de estado (acepta nombres actuales y anteriores)
 function pdiStatusClass(status) { const c = String(status || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim(); if (!c || c === "sin estado") return "pdi-st-pend"; if (c.includes("mal estado") || c.includes("merma")) return "pdi-st-mal"; if (c.includes("no encontr")) return "pdi-st-no"; if (c.includes("buen estado") || c.includes("si encontrada") || c.includes("exhibicion")) return "pdi-st-buen"; return "pdi-st-pend"; }
-function renderRechazoItem(rechazo, i) {
+const escHTML = t => String(t ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const formatMoneyMX = n => { const x = Number(String(n ?? '').replace(/[$,\s]/g, '')); return n === '' || n == null || isNaN(x) ? 'N/A' : x.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }); };
+function initialsOf(name) { return String(name || '').split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || '?'; }
+function ageTone(days) { const d = Number(days); if (!isFinite(d) || days === '') return 'neutral'; return d <= 60 ? 'good' : d <= 120 ? 'warn' : 'bad'; }
+function cleanAgeLabel(v) { const t = String(v || '').replace(/^[A-Z]\)\s*/i, '').trim().toLowerCase(); return t ? t.charAt(0).toUpperCase() + t.slice(1) : ''; }
+
+// Encabezado del artículo (lo único que se dibuja en la lista).
+function renderRechazoItem(rechazo, i, mode = 'header') {
+    if (mode === 'body') return renderRechazoBody(rechazo, i);
     const { _rowIndex } = rechazo;
     const v = pdisView(rechazo);
-    const Sku = v.sku;
-    const Sección = v.seccion || "N/A";
-    const Remisión = v.isLegacy ? v.key : (Sku || v.key);
-    const fecha = v.fecha || "N/A";
-    const descripcionSku = v.desc || "N/A";
-    const piezas = v.piezas === "" || v.piezas == null ? "N/A" : fixEncoding(v.piezas);
-    const jefatura = v.jefe || "N/A";
-    const usuarioRechazo = v.usuario || "";
-    const user = usuarioRechazo ? AppState.usuariosData.find(u => u.Usuarios && u.Usuarios.toString().trim().toLowerCase() === usuarioRechazo.toLowerCase()) : null;
-    const usuarioName = v.isLegacy ? (user?.Nombre || usuarioRechazo || "N/A") : jefatura;
-    const money = n => { const x = Number(String(n).replace(/[$,\s]/g, '')); return n === '' || isNaN(x) ? (n || 'N/A') : x.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }); };
-    const extra = (label, ...names) => { const val = fixEncoding(pickField(rechazo, ...names)); return [label, val === '' ? 'N/A' : val]; };
-    const extraRows = v.isLegacy ? [] : [
-        ['bi-info-square', ...extra('Estatus', 'ESTATUS')],
-        ['bi-eye', ...extra('Visibles', 'VISIBLES')],
-        ['bi-clock-history', ...extra('Último movimiento', 'ULT_MOV')],
-        ['bi-hourglass-split', ...extra('Días antigüedad', 'DÍAS ANTIGÜEDAD', 'DIAS ANTIGUEDAD')],
-        ['bi-calendar-range', ...extra('Antigüedad', 'ANT_DIA_MES')],
-        ['bi-box', ...extra('Envase', 'ENVASE')],
-        ['bi-diagram-3', ...extra('Dirección', 'DIR_DES')],
-        ['bi-shop', ...extra('Negs. piso', 'NEGS_PISO')],
-        ['bi-cash-coin', 'Costo total', money(pickField(rechazo, 'COSTO_TOTAL'))]
-    ];
-
-    const estadosPosibles = ["Sin Estado", "Sí encontrada", "No encontrada", "Encontrada en exhibición", "Encontrada Merma"];
     const estadoActual = rechazo.Status || "Sin Estado";
-
-    const statusColors = {
-        "Sí encontrada": "var(--verde-exito)",
-        "No encontrada": "var(--rojo-peligro)",
-        "Encontrada en exhibición": "var(--azul-info)",
-        "Encontrada Merma": "#ff9800",
-        "Sin Estado": "var(--gris-oscuro)"
-    };
-    
-    const opcionesHTML = estadosPosibles.map(opt => 
-        `<option value="${opt}" ${estadoActual === opt ? 'selected' : ''}>${opt}</option>`
-    ).join('');
-
-    let liverpoolUrl = "#";
-    if (/^\d{10,}$/.test(Sku)) {
-        liverpoolUrl = `https://www.liverpool.com.mx/tienda/pdp/producto/${Sku}`;
-    } else if (Sku && Sku.toString().trim() !== "") {
-        liverpoolUrl = `https://www.liverpool.com.mx/tienda/busca?busqueda=${encodeURIComponent(Sku)}`;
-    } else if (descripcionSku && descripcionSku !== "N/A") {
-        liverpoolUrl = `https://www.liverpool.com.mx/tienda/busca?busqueda=${encodeURIComponent(descripcionSku)}`;
+    const descripcion = v.desc || "N/A";
+    let subtitulo = v.jefe || "N/A";
+    if (v.isLegacy) {
+        const user = v.usuario ? AppState.usuariosData.find(u => u.Usuarios && u.Usuarios.toString().trim().toLowerCase() === v.usuario.toLowerCase()) : null;
+        subtitulo = user?.Nombre || v.usuario || "N/A";
     }
-
-    let googleQuerySku = Sku && Sku.toString().trim() !== "" ? Sku : descripcionSku;
-    const googleUrlSku = `https://www.google.com/search?q=${encodeURIComponent(googleQuerySku)}`;
-    const googleUrlDesc = descripcionSku && descripcionSku !== "N/A" ? `https://www.google.com/search?q=${encodeURIComponent(descripcionSku)}` : "#";
-    
-    const esc = t => String(t ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-    const extraMap = Object.fromEntries(extraRows.map(([, label, value]) => [label, value]));
-    const kpis = v.isLegacy
-        ? [['bi-box-seam', 'Piezas', piezas], ['bi-tag-fill', 'Sección', Sección], ['bi-calendar-event', 'Fecha', fecha], ['bi-person', 'Usuario', usuarioName]]
-        : [['bi-box-seam', 'Inventario', piezas], ['bi-cash-coin', 'Costo total', extraMap['Costo total']], ['bi-hourglass-split', 'Días antigüedad', extraMap['Días antigüedad']], ['bi-tag-fill', 'Sección', Sección]];
-    const infoRows = v.isLegacy
-        ? [['Jefatura', jefatura]]
-        : [['Jefe', jefatura], ['Fecha de carga', fecha], ['Último movimiento', extraMap['Último movimiento']], ['Antigüedad', extraMap['Antigüedad']],
-           ['Estatus', extraMap['Estatus']], ['Visibles', extraMap['Visibles']], ['Envase', extraMap['Envase']], ['Dirección', extraMap['Dirección']], ['Negs. piso', extraMap['Negs. piso']]];
-
+    const etiqueta = v.isLegacy ? v.key : (v.sku || v.key);
     return `
     <div class="accordion-item report-card shadow-sm mb-3 rounded-4 border-0" id="item-${_rowIndex}">
         <h2 class="accordion-header" id="heading-${_rowIndex}">
             <button class="accordion-button collapsed px-2 py-2 d-flex flex-row align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${_rowIndex}">
-                <span class="badge rounded-pill me-2 pdi-status ${pdiStatusClass(estadoActual)}">${estadoActual}</span>
+                <span class="badge rounded-pill me-2 pdi-status ${pdiStatusClass(estadoActual)}">${escHTML(estadoActual)}</span>
                 <div class="report-summary flex-grow-1 d-flex flex-column flex-md-row align-items-md-center gap-2">
-                    <span class="sku-title fw-semibold" title="${esc(descripcionSku)}">${esc(descripcionSku)}</span>
-                    <span class="user-info text-muted small"><i class="bi bi-person"></i> ${esc(usuarioName)}</span>
+                    <span class="sku-title fw-semibold" title="${escHTML(descripcion)}">${escHTML(descripcion)}</span>
+                    <span class="user-info text-muted small"><i class="bi bi-person"></i> ${escHTML(subtitulo)}</span>
                 </div>
-                <span class="ms-2 badge bg-dark rounded-pill">${esc(Remisión)}</span>
+                <span class="ms-2 badge bg-dark rounded-pill">${escHTML(etiqueta)}</span>
             </button>
         </h2>
         <div id="collapse-${_rowIndex}" class="accordion-collapse collapse" data-bs-parent="#rechazosAccordion">
-            <div class="accordion-body pdi-detail">
-                <div class="pdi-detail-grid">
-                    <aside class="pdi-media">
-                        <div id="imgContainer-${i}" class="product-image-container pdi-product-image"></div>
-                        <div class="pdi-links">
-                            <a href="${liverpoolUrl}" target="_blank" rel="noopener" title="Ver producto en Liverpool"><i class="bi bi-box-arrow-up-right"></i> Liverpool</a>
-                            <a href="${googleUrlSku}" target="_blank" rel="noopener" title="Buscar en Google por SKU"><i class="bi bi-google"></i> SKU</a>
-                            <a href="${googleUrlDesc}" target="_blank" rel="noopener" title="Buscar en Google por descripción"><i class="bi bi-google"></i> Descripción</a>
-                        </div>
-                    </aside>
-                    <section class="pdi-info">
-                        <div class="pdi-info-head">
-                            <span class="pdi-eyebrow">SKU ${esc(Sku || 'N/A')}</span>
-                            <h5 class="pdi-desc">${esc(descripcionSku)}</h5>
-                        </div>
-                        <div class="pdi-kpis">
-                            ${kpis.map(([icon, label, value]) => `<div class="pdi-kpi"><span><i class="bi ${icon}"></i>${label}</span><strong>${esc(value)}</strong></div>`).join('')}
-                        </div>
-                        <dl class="pdi-facts">
-                            ${infoRows.map(([label, value]) => `<div><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join('')}
-                        </dl>
-                        <div class="pdi-status-box">
-                            <label for="status-${_rowIndex}" class="form-label"><i class="bi bi-check-circle-fill"></i> Estado del PDIS</label>
-                            <div class="status-picker status-${estadoActual.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}">
-                                <span class="status-picker-icon"><i class="bi bi-circle-fill"></i></span>
-                                <select id="status-${_rowIndex}" class="form-select status-select rounded-3 shadow-sm" data-row-index="${_rowIndex}">
-                                ${opcionesHTML}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="pdi-evidence">
-                            <h6><i class="bi bi-camera-fill"></i> Evidencia</h6>
-                            <div id="evidencia-preview-${_rowIndex}" class="evidence-preview-container w-100"></div>
-                        </div>
-                    </section>
+            <div class="accordion-body pdi-detail" id="body-${_rowIndex}"></div>
+        </div>
+    </div>`;
+}
+
+// Detalle del artículo: se arma solo cuando se abre.
+function renderRechazoBody(rechazo, i) {
+    const { _rowIndex } = rechazo;
+    const v = pdisView(rechazo);
+    const sku = v.sku;
+    const descripcion = v.desc || "N/A";
+    const piezas = v.piezas === "" || v.piezas == null ? "N/A" : fixEncoding(v.piezas);
+    const field = (...names) => { const val = fixEncoding(pickField(rechazo, ...names)); return val === '' ? 'N/A' : val; };
+
+    const estadoActual = rechazo.Status || "Sin Estado";
+    const estadoSelect = normalizePdiStatus(rechazo.Status);
+    const opcionesHTML = (estadoSelect ? '' : '<option value="" selected disabled>Selecciona un estado…</option>') +
+        PDI_ESTADOS.map(opt => `<option value="${opt}" ${estadoSelect === opt ? 'selected' : ''}>${opt}</option>`).join('');
+
+    const liverpoolUrl = /^\d{10,}$/.test(sku) ? `https://www.liverpool.com.mx/tienda/pdp/producto/${sku}`
+        : `https://www.liverpool.com.mx/tienda/busca?busqueda=${encodeURIComponent(sku || descripcion)}`;
+    const googleUrlSku = `https://www.google.com/search?q=${encodeURIComponent(sku || descripcion)}`;
+    const googleUrlDesc = `https://www.google.com/search?q=${encodeURIComponent(descripcion)}`;
+
+    let kpis, tags, facts, persona;
+    if (v.isLegacy) {
+        kpis = [['bi-box-seam', 'Piezas', piezas, 'blue'], ['bi-calendar-event', 'Fecha', v.fecha || 'N/A', 'pink'], ['bi-tag-fill', 'Sección', v.seccion || 'N/A', 'violet']];
+        tags = [];
+        facts = [['bi-person-badge', 'Usuario de rechazo', v.usuario || 'N/A']];
+        persona = ['Jefatura', v.jefe || 'N/A'];
+    } else {
+        const dias = pickField(rechazo, 'DÍAS ANTIGÜEDAD', 'DIAS ANTIGUEDAD');
+        const tone = ageTone(dias);
+        const antiguedad = cleanAgeLabel(pickField(rechazo, 'ANT_DIA_MES'));
+        kpis = [
+            ['bi-box-seam', 'Inventario', piezas, 'blue'],
+            ['bi-cash-coin', 'Costo total', formatMoneyMX(pickField(rechazo, 'COSTO_TOTAL')), 'green'],
+            ['bi-hourglass-split', 'Días antigüedad', dias === '' ? 'N/A' : dias, tone]
+        ];
+        tags = [['bi-tag-fill', `Sección ${v.seccion || 'N/A'}`, 'neutral']];
+        if (antiguedad) tags.push(['bi-calendar-range', antiguedad, tone]);
+        facts = [
+            ['bi-calendar-check', 'Fecha de carga', v.fecha || 'N/A'],
+            ['bi-clock-history', 'Último movimiento', field('ULT_MOV')],
+            ['bi-info-circle', 'Estatus', field('ESTATUS')]
+        ];
+        persona = ['Jefe', v.jefe || 'N/A'];
+    }
+
+    return `<div class="pdi-detail-grid">
+        <aside class="pdi-media">
+            <div id="imgContainer-${i}" class="product-image-container pdi-product-image"></div>
+            <div class="pdi-links">
+                <a href="${liverpoolUrl}" target="_blank" rel="noopener" title="Ver producto en Liverpool"><i class="bi bi-bag-heart-fill"></i> Liverpool</a>
+                <a href="${googleUrlSku}" target="_blank" rel="noopener" title="Buscar en Google por SKU"><i class="bi bi-google"></i> SKU</a>
+                <a href="${googleUrlDesc}" target="_blank" rel="noopener" title="Buscar en Google por descripción"><i class="bi bi-search"></i> Nombre</a>
+            </div>
+        </aside>
+        <section class="pdi-info">
+            <header class="pdi-info-head">
+                <span class="pdi-eyebrow"><i class="bi bi-upc-scan"></i> SKU ${escHTML(sku || 'N/A')}</span>
+                <h5 class="pdi-desc">${escHTML(descripcion)}</h5>
+                ${tags.length ? `<div class="pdi-tags">${tags.map(([icon, text, tone]) => `<span class="pdi-tag tone-${tone}"><i class="bi ${icon}"></i>${escHTML(text)}</span>`).join('')}</div>` : ''}
+            </header>
+            <div class="pdi-kpis">
+                ${kpis.map(([icon, label, value, tone]) => `<div class="pdi-kpi tone-${tone}"><span class="pdi-kpi-icon"><i class="bi ${icon}"></i></span><div><small>${label}</small><strong>${escHTML(value)}</strong></div></div>`).join('')}
+            </div>
+            <div class="pdi-person">
+                <span class="pdi-avatar">${escHTML(initialsOf(persona[1]))}</span>
+                <div><small>${persona[0]}</small><strong>${escHTML(persona[1])}</strong></div>
+            </div>
+            <ul class="pdi-facts">
+                ${facts.map(([icon, label, value]) => `<li><span class="pdi-fact-icon"><i class="bi ${icon}"></i></span><div><small>${label}</small><strong>${escHTML(value)}</strong></div></li>`).join('')}
+            </ul>
+            <div class="pdi-status-box">
+                <label for="status-${_rowIndex}" class="form-label"><i class="bi bi-clipboard-check-fill"></i> Estado del PDIS</label>
+                <div class="status-picker status-${estadoActual.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}">
+                    <span class="status-picker-icon"><i class="bi bi-circle-fill"></i></span>
+                    <select id="status-${_rowIndex}" class="form-select status-select rounded-3 shadow-sm" data-row-index="${_rowIndex}">
+                    ${opcionesHTML}
+                    </select>
                 </div>
             </div>
-        </div>
-    </div>
-    `;
+            <div class="pdi-evidence">
+                <h6><i class="bi bi-camera-fill"></i> Evidencia</h6>
+                <div id="evidencia-preview-${_rowIndex}" class="evidence-preview-container w-100"></div>
+            </div>
+        </section>
+    </div>`;
 }
 
 async function generarDashboardPorRango() {
