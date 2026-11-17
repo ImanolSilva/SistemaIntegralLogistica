@@ -477,6 +477,7 @@ function renderChartTendencia() {
 // ── TARJETAS POR JEFATURA ────────────────────────────────────────────────────
 // Localizado sobre el total de artículos: (buen + mal) / total. Los pendientes
 // cuentan como aún no localizados, así 1 revisado de 58 no aparece como 100%.
+const titleCase = t => String(t || '').toLowerCase().replace(/(^|[\s-])([a-záéíóúñü])/g, (m, sep, ch) => sep + ch.toUpperCase());
 const locTotal = g => g.total ? (g.buen + g.mal) / g.total * 100 : 0;
 const stackBar = g => {
     const w = n => g.total ? (n / g.total * 100).toFixed(2) : 0;
@@ -496,23 +497,30 @@ function renderBossCards() {
         const tone = b.key === NO_BOSS || !b.revisados ? 'none' : toneOf(b.locT);
         const status = !b.revisados ? 'Sin revisar' : b.pend ? 'En revisión' : ({ good: 'Buen nivel', warn: 'Atención', bad: 'Crítico' })[tone];
         const worst = groupAgg(b.rows.filter(r => r.estado === 'no'), r => r.seccion).sort((x, y) => y.total - x.total)[0];
-        const foot = b.pend ? `<i class="bi bi-hourglass-split"></i> <strong>${fmt(b.pend)}</strong> pendientes de revisar (${pctTxt(100 - b.avance)})`
-            : worst ? `<i class="bi bi-exclamation-triangle-fill"></i> Más no encontradas: <strong>Sección ${esc(worst.key)}</strong> (${fmt(worst.total)})`
-            : `<i class="bi bi-check-circle-fill"></i> Todo revisado y localizado`;
-        return `<button type="button" class="db-area${F.boss.value === b.key ? ' is-active' : ''}" data-tone="${tone}" data-boss="${esc(b.key)}" title="Ver detalle por sección">
-            <div class="db-area-head">
+        const nSecs = uniq(b.rows.map(r => r.seccion)).length;
+        const foot = worst ? `<i class="bi bi-exclamation-triangle-fill"></i> Más no encontradas: <strong>Secc. ${esc(worst.key)}</strong>`
+            : !b.pend ? `<i class="bi bi-check-circle-fill"></i> Todo revisado` : `<i class="bi bi-hourglass-split"></i> ${pctTxt(100 - b.avance)} por revisar`;
+        return `<button type="button" class="db-area pdb-card${F.boss.value === b.key ? ' is-active' : ''}" data-tone="${tone}" data-boss="${esc(b.key)}" title="Ver detalle por sección">
+            <div class="pdb-top">
                 <span class="db-area-rank">${b.key === NO_BOSS ? '?' : i + 1}</span>
-                <div><div class="db-area-name">${esc(b.key)}</div><div class="db-area-meta">${fmt(b.total)} artículos · ${uniq(b.rows.map(r => r.seccion)).length} secciones · ${pctTxt(b.avance)} revisado</div></div>
-                <div class="db-area-pct"><strong>${pctTxt(b.locT)}</strong><small>Localizado · ${status}</small></div>
+                <div class="pdb-id">
+                    <div class="pdb-name" title="${esc(b.key)}">${esc(titleCase(b.key))}</div>
+                    <div class="pdb-meta"><span><i class="bi bi-box-seam"></i>${fmt(b.total)} artículos</span><span><i class="bi bi-grid-3x3-gap"></i>${fmt(nSecs)} ${nSecs === 1 ? 'sección' : 'secciones'}</span></div>
+                </div>
+            </div>
+            <div class="pdb-metric">
+                <div class="pdb-value"><strong>${pctTxt(b.locT)}</strong><small>Localizado</small></div>
+                <span class="pdb-pill">${status}</span>
             </div>
             ${stackBar(b)}
-            <div class="db-area-stats">
-                <div class="db-area-stat"><b style="color:var(--ok)">${fmt(b.buen)}</b><small>Buen</small></div>
-                <div class="db-area-stat sobr"><b>${fmt(b.mal)}</b><small>Mal</small></div>
-                <div class="db-area-stat falt"><b>${fmt(b.no)}</b><small>No enc.</small></div>
-                <div class="db-area-stat"><b>${fmt(b.pend)}</b><small>Pend.</small></div>
+            <div class="pdb-progress"><span>${pctTxt(b.avance)} revisado</span><span>${fmt(b.pend)} pendientes</span></div>
+            <div class="pdb-stats">
+                <div class="pdb-stat s-buen"><b>${fmt(b.buen)}</b><small>Buen</small></div>
+                <div class="pdb-stat s-mal"><b>${fmt(b.mal)}</b><small>Mal</small></div>
+                <div class="pdb-stat s-no"><b>${fmt(b.no)}</b><small>No enc.</small></div>
+                <div class="pdb-stat s-pend"><b>${fmt(b.pend)}</b><small>Pend.</small></div>
             </div>
-            <div class="db-area-foot">${foot}<span class="db-area-more">Ver secciones <i class="bi bi-chevron-right"></i></span></div>
+            <div class="pdb-foot"><span class="pdb-foot-info">${foot}</span><span class="pdb-more">Ver secciones <i class="bi bi-chevron-right"></i></span></div>
         </button>`;
     }).join('');
     box.querySelectorAll('.db-area').forEach(el => el.addEventListener('click', () => openBossDetail(el.dataset.boss)));
