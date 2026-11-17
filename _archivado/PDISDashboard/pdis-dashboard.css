@@ -59,3 +59,39 @@
 }
 @media (max-width: 1024px) { .pdis-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px)  { .pdis-filters { grid-template-columns: 1fr; } }
+
+/* Barra apilada: buen / mal / no encontradas / pendientes sobre el total */
+.db-stack { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: #F1E7EC; margin: .8rem 0 .75rem; gap: 1px; }
+.db-stack span { display: block; height: 100%; }
+.db-stack .s-buen { background: var(--ok); }
+.db-stack .s-mal { background: var(--warn); }
+.db-stack .s-no { background: var(--bad); }
+.db-stack .s-pend { background: #D9CDD4; }
+.db-area { cursor: pointer; }
+.db-area-pct small { white-space: nowrap; }
+.db-area-more { margin-left: auto; font-weight: 700; color: var(--rosa, #E6007E); white-space: nowrap; }
+.db-area-more i { color: inherit !important; }
+
+/* Detalle por sección de una jefatura */
+.db-boss-modal .modal-content { border: 0; border-radius: 20px; }
+.db-boss-modal .modal-header { align-items: flex-start; border-bottom: 1px solid #F1E7EC; padding: 1.1rem 1.25rem; }
+.db-boss-eyebrow { display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #E6007E; }
+.db-boss-modal .modal-title { font-weight: 800; margin: .15rem 0; overflow-wrap: anywhere; }
+.db-boss-sub { font-size: .8rem; color: var(--txt2); }
+.db-boss-chips { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .6rem; }
+.db-boss-chip { padding: .7rem .8rem; border-radius: 14px; background: #F8F4F6; border: 1px solid #F1E7EC; min-width: 0; }
+.db-boss-chip small { display: block; font-size: .7rem; font-weight: 700; color: var(--txt2); }
+.db-boss-chip strong { display: block; font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.db-boss-chip.loc { background: #FFEAF5; border-color: #FBD0E6; } .db-boss-chip.loc strong { color: #E6007E; }
+.db-boss-chip.buen strong { color: var(--ok); } .db-boss-chip.mal strong { color: var(--warn); } .db-boss-chip.no strong { color: var(--bad); }
+.db-boss-note { font-size: .76rem; color: var(--txt2); margin: .8rem 0; }
+.db-boss-progress { min-width: 140px; }
+.db-boss-progress .db-stack { margin: 0 0 .25rem; }
+.db-boss-progress small { font-size: .7rem; color: var(--txt2); }
+.db-boss-loc { display: inline-block; padding: .15rem .55rem; border-radius: 99px; font-weight: 800; background: #F4EEF2; color: var(--txt2); }
+.db-boss-loc[data-tone="good"] { background: var(--ok-soft); color: var(--ok); }
+.db-boss-loc[data-tone="warn"] { background: var(--warn-soft); color: var(--warn); }
+.db-boss-loc[data-tone="bad"] { background: var(--bad-soft); color: var(--bad); }
+.db-boss-modal .modal-footer { border-top: 1px solid #F1E7EC; }
+@media (max-width: 991px) { .db-boss-chips { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .db-boss-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

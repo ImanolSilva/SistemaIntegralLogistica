@@ -502,3 +502,4 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - `storage.rules`: cualquier usuario con sesión puede subir evidencias (solo imágenes, máximo 10 MB).
 - **Requiere desplegar reglas:** `firebase deploy --only firestore:rules,storage`.
 - Prueba 2026-11-17 con `Complementos/ALMACEN PDIS _Liverpool_Tabla.xlsx`: 996 filas, sin columnas faltantes; el Dashboard PDIS leyó 12 jefaturas, 46 secciones, 1,027 piezas, todas con SKU, jefatura y fecha de carga, y aplicó los estados en vivo simulados.
+- 2026-11-17, Dashboard PDIS: el porcentaje de cada tarjeta de jefatura ahora es **Localizado** = (buen + mal estado) ÷ total de artículos; antes era sobre los revisados, así que 1 revisado de 58 marcaba 100%. La barra muestra la proporción de buen/mal/no encontradas/pendientes. Al pulsar la tarjeta se abre el detalle por sección (artículos, piezas, estados, avance y localizado) con un botón para filtrar el dashboard por esa jefatura.

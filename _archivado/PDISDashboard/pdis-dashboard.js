@@ -475,36 +475,105 @@ function renderChartTendencia() {
 }
 
 // ── TARJETAS POR JEFATURA ────────────────────────────────────────────────────
+// Localizado sobre el total de artículos: (buen + mal) / total. Los pendientes
+// cuentan como aún no localizados, así 1 revisado de 58 no aparece como 100%.
+const locTotal = g => g.total ? (g.buen + g.mal) / g.total * 100 : 0;
+const stackBar = g => {
+    const w = n => g.total ? (n / g.total * 100).toFixed(2) : 0;
+    return `<div class="db-stack" role="img" aria-label="Buen ${g.buen}, mal ${g.mal}, no encontradas ${g.no}, pendientes ${g.pend}">
+        <span class="s-buen" style="width:${w(g.buen)}%"></span><span class="s-mal" style="width:${w(g.mal)}%"></span><span class="s-no" style="width:${w(g.no)}%"></span><span class="s-pend" style="width:${w(g.pend)}%"></span></div>`;
+};
+
 function renderBossCards() {
     // Ignora el filtro de jefatura para poder comparar y alternar entre ellas
     const rows = State.rows.filter(r => (!F.file.value || r.file === F.file.value) && (!F.auditor.value || r.auditor === F.auditor.value) && (!F.status.value || r.estado === F.status.value));
-    const bosses = groupAgg(rows, r => r.jefatura).sort((a, b) => (a.key === NO_BOSS) - (b.key === NO_BOSS) || (b.loc ?? -1) - (a.loc ?? -1) || b.total - a.total);
+    const bosses = groupAgg(rows, r => r.jefatura).map(b => ({ ...b, locT: locTotal(b) }))
+        .sort((a, b) => (a.key === NO_BOSS) - (b.key === NO_BOSS) || b.locT - a.locT || b.avance - a.avance || b.total - a.total);
+    State.bossRows = rows;
     const box = $('boss-cards');
     if (!bosses.length) { box.innerHTML = '<div class="db-empty" style="grid-column:1/-1">Sin datos por jefatura</div>'; return; }
     box.innerHTML = bosses.map((b, i) => {
-        const tone = b.key === NO_BOSS ? 'none' : b.loc == null ? 'none' : toneOf(b.loc);
-        const status = b.loc == null ? 'Sin revisar' : ({ good: 'Buen nivel', warn: 'Atención', bad: 'Crítico' })[tone] || 'Sin asignar';
+        const tone = b.key === NO_BOSS || !b.revisados ? 'none' : toneOf(b.locT);
+        const status = !b.revisados ? 'Sin revisar' : b.pend ? 'En revisión' : ({ good: 'Buen nivel', warn: 'Atención', bad: 'Crítico' })[tone];
         const worst = groupAgg(b.rows.filter(r => r.estado === 'no'), r => r.seccion).sort((x, y) => y.total - x.total)[0];
         const foot = b.pend ? `<i class="bi bi-hourglass-split"></i> <strong>${fmt(b.pend)}</strong> pendientes de revisar (${pctTxt(100 - b.avance)})`
             : worst ? `<i class="bi bi-exclamation-triangle-fill"></i> Más no encontradas: <strong>Sección ${esc(worst.key)}</strong> (${fmt(worst.total)})`
             : `<i class="bi bi-check-circle-fill"></i> Todo revisado y localizado`;
-        return `<button type="button" class="db-area${F.boss.value === b.key ? ' is-active' : ''}" data-tone="${tone}" data-boss="${esc(b.key)}">
+        return `<button type="button" class="db-area${F.boss.value === b.key ? ' is-active' : ''}" data-tone="${tone}" data-boss="${esc(b.key)}" title="Ver detalle por sección">
             <div class="db-area-head">
                 <span class="db-area-rank">${b.key === NO_BOSS ? '?' : i + 1}</span>
-                <div><div class="db-area-name">${esc(b.key)}</div><div class="db-area-meta">${fmt(b.total)} registros · ${uniq(b.rows.map(r => r.seccion)).length} secciones · ${pctTxt(b.avance)} revisado</div></div>
-                <div class="db-area-pct"><strong>${b.loc == null ? '—' : pctTxt(b.loc)}</strong><small>${status}</small></div>
+                <div><div class="db-area-name">${esc(b.key)}</div><div class="db-area-meta">${fmt(b.total)} artículos · ${uniq(b.rows.map(r => r.seccion)).length} secciones · ${pctTxt(b.avance)} revisado</div></div>
+                <div class="db-area-pct"><strong>${pctTxt(b.locT)}</strong><small>Localizado · ${status}</small></div>
             </div>
-            <div class="db-area-bar"><span style="width:${Math.min(b.loc ?? 0, 100)}%"></span><i style="left:${REF}%"></i></div>
+            ${stackBar(b)}
             <div class="db-area-stats">
                 <div class="db-area-stat"><b style="color:var(--ok)">${fmt(b.buen)}</b><small>Buen</small></div>
                 <div class="db-area-stat sobr"><b>${fmt(b.mal)}</b><small>Mal</small></div>
                 <div class="db-area-stat falt"><b>${fmt(b.no)}</b><small>No enc.</small></div>
                 <div class="db-area-stat"><b>${fmt(b.pend)}</b><small>Pend.</small></div>
             </div>
-            <div class="db-area-foot">${foot}</div>
+            <div class="db-area-foot">${foot}<span class="db-area-more">Ver secciones <i class="bi bi-chevron-right"></i></span></div>
         </button>`;
     }).join('');
-    box.querySelectorAll('.db-area').forEach(el => el.addEventListener('click', () => toggleFilter(F.boss, el.dataset.boss)));
+    box.querySelectorAll('.db-area').forEach(el => el.addEventListener('click', () => openBossDetail(el.dataset.boss)));
+}
+
+// Detalle por sección de una jefatura (ventana emergente).
+function openBossDetail(boss) {
+    const rows = (State.bossRows || State.rows).filter(r => r.jefatura === boss);
+    if (!rows.length) return;
+    const t = agg(rows);
+    const secs = groupAgg(rows, r => r.seccion).map(g => ({ ...g, locT: locTotal(g) }))
+        .sort((a, b) => b.total - a.total || String(a.key).localeCompare(String(b.key), 'es', { numeric: true }));
+    let modal = $('bossDetailModal');
+    if (!modal) {
+        document.body.insertAdjacentHTML('beforeend', `<div class="modal fade db-boss-modal" id="bossDetailModal" tabindex="-1" aria-labelledby="bossDetailTitle" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-md-down"><div class="modal-content" id="bossDetailContent"></div></div></div>`);
+        modal = $('bossDetailModal');
+    }
+    const chip = (cls, label, value) => `<div class="db-boss-chip ${cls}"><small>${label}</small><strong>${value}</strong></div>`;
+    $('bossDetailContent').innerHTML = `
+        <div class="modal-header">
+            <div>
+                <span class="db-boss-eyebrow"><i class="bi bi-person-workspace"></i> Jefatura</span>
+                <h5 class="modal-title" id="bossDetailTitle">${esc(boss)}</h5>
+                <div class="db-boss-sub">${fmt(t.total)} artículos · ${fmt(secs.length)} secciones · ${fmt(t.piezas)} piezas</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+            <div class="db-boss-chips">
+                ${chip('loc', 'Localizado', pctTxt(locTotal(t)))}
+                ${chip('rev', 'Revisado', pctTxt(t.avance))}
+                ${chip('buen', 'Buen estado', fmt(t.buen))}
+                ${chip('mal', 'Mal estado', fmt(t.mal))}
+                ${chip('no', 'No encontradas', fmt(t.no))}
+                ${chip('pend', 'Pendientes', fmt(t.pend))}
+            </div>
+            <p class="db-boss-note"><i class="bi bi-info-circle"></i> <strong>Localizado</strong> = (buen + mal estado) ÷ total de artículos. <strong>Revisado</strong> = artículos con estado ÷ total.</p>
+            <div class="db-table-wrap">
+                <table class="db-table db-boss-table">
+                    <thead><tr><th>Sección</th><th class="num">Artículos</th><th class="num">Piezas</th><th class="num">Buen</th><th class="num">Mal</th><th class="num">No enc.</th><th class="num">Pend.</th><th>Avance</th><th class="num">Localizado</th></tr></thead>
+                    <tbody>${secs.map(g => `<tr>
+                        <td data-label="Sección"><strong>${esc(g.key)}</strong></td>
+                        <td data-label="Artículos" class="num">${fmt(g.total)}</td>
+                        <td data-label="Piezas" class="num">${fmt(g.piezas)}</td>
+                        <td data-label="Buen" class="num" style="color:var(--ok)">${fmt(g.buen)}</td>
+                        <td data-label="Mal" class="num" style="color:var(--warn)">${fmt(g.mal)}</td>
+                        <td data-label="No enc." class="num" style="color:var(--bad)">${fmt(g.no)}</td>
+                        <td data-label="Pend." class="num">${fmt(g.pend)}</td>
+                        <td data-label="Avance"><div class="db-boss-progress">${stackBar(g)}<small>${pctTxt(g.avance)} revisado</small></div></td>
+                        <td data-label="Localizado" class="num"><span class="db-boss-loc" data-tone="${g.revisados ? toneOf(g.locT) : 'none'}">${pctTxt(g.locT)}</span></td>
+                    </tr>`).join('')}</tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="db-btn" id="bossDetailFilter"><i class="bi bi-funnel-fill"></i> ${F.boss.value === boss ? 'Quitar filtro de esta jefatura' : 'Filtrar dashboard por esta jefatura'}</button>
+        </div>`;
+    const instance = bootstrap.Modal.getOrCreateInstance(modal);
+    $('bossDetailFilter').onclick = () => { instance.hide(); toggleFilter(F.boss, boss); };
+    instance.show();
 }
 
 // ── TABLA AUDITORES ──────────────────────────────────────────────────────────
