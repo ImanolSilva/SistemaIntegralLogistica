@@ -1063,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         $('tbody-articulos').innerHTML = arts.map(a => `<tr>
                 <td data-label="Artículo"><span class="db-mono">${esc(a.key)}</span></td>
-                <td data-label="Descripción">${esc(truncate(a.desc || '—', 48))}</td>
+                <td data-label="Descripción">${esc(a.desc || '—')}</td>
                 <td data-label="Área">${areaCell(a.area)}</td>
                 <td data-label="Contenedores" class="num">${fmt(a.conts)}</td>
                 <td data-label="Piezas" class="num">${fmt(a.pz)}</td>

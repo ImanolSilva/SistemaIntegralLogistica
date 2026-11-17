@@ -472,3 +472,37 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
     .db-panel-head h3 { font-size:.88rem; }
     .db-panel-sub { font-size:.7rem; }
 }
+
+/* Tablas completas: nada se corta con "…". En pantallas medianas la tabla se
+   desplaza dentro de su panel; en celular se muestra como tarjetas. */
+.db-table thead th, .db-table tbody td { overflow: visible; text-overflow: clip; }
+.db-table tbody td .db-status, .db-table tbody td .db-mono, .db-table tbody td .db-noarea { overflow: visible; text-overflow: clip; white-space: normal; }
+.db-table td .db-share { min-width: 0; }
+.db-share small { flex-shrink: 0; white-space: nowrap; }
+@media (min-width: 761px) {
+    .db-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .db-table thead th { white-space: normal; line-height: 1.25; vertical-align: bottom; hyphens: none; overflow-wrap: normal; word-break: normal; }
+    .db-table tbody td { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+    #table-secciones { min-width: 920px; }
+    #table-contenedores { min-width: 1020px; }
+    #table-articulos { min-width: 960px; }
+    #table-auditores { min-width: 720px; }
+    #table-detalle { min-width: 1100px; }
+    .db-share { min-width: 0; }
+}
+@media (max-width: 760px) {
+    .db-table td { overflow: visible; }
+    .db-table td::before { flex: 0 1 auto; max-width: 48%; white-space: normal; }
+    .db-table td .db-share { flex: 1 1 auto; width: auto; min-width: 0; justify-content: flex-end; }
+    .db-table td .db-share .db-share-bar { min-width: 48px; max-width: 120px; }
+}
+@media (max-width: 760px) {
+    .db-table tbody td { white-space: normal; }
+    .db-table tbody td > * { min-width: 0; }
+    /* Textos largos a todo el ancho de la tarjeta */
+    .db-table td[data-label="Descripción"], .db-table td[data-label="Área"], .db-table td[data-label="Jefatura"],
+    .db-table td[data-label="Peso en faltantes"], .db-table td[data-label="Secciones"], .db-table td[data-label="Áreas"] { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+    .db-table td::before { white-space: nowrap; word-break: keep-all; overflow-wrap: normal; max-width: none; letter-spacing: .02em; }
+}

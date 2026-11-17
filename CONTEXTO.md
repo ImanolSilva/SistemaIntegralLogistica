@@ -518,3 +518,10 @@ Correcciones hechas:
 - Favicon estático en las páginas principales y en Pendientes (evita el 404 de `/favicon.ico`).
 
 Resultado: 42/42 verificaciones de flujo PDIS (subida, lista, filtros, estados en vivo entre dos auditores, protección, evidencia, guardado al Excel, archivo anterior, Dashboard PDIS y detalle por sección) y todas las páginas sin errores de JavaScript ni scroll horizontal en celular. `ExcelManifiestos/Secciones.xlsx` ya no se usa: Manifiestos (`buildSeccionToJefeMap`) y Reportes (`loadJefaturaCatalog`) leen la relación sección → jefe de `Complementos/Jefatura.json`, registrando cada sección con y sin ceros a la izquierda (550 = 0550). Probado: 375 claves cargadas y sin errores.
+
+### Tablas completas 2026-11-17
+
+- `Dashboard/styles.css` ya no corta encabezados ni celdas con "…": los encabezados hacen salto de línea y, en pantallas medianas, cada tabla se desplaza dentro de su panel (anchos mínimos por tabla). En celular las tarjetas muestran etiquetas completas y los textos largos (Descripción, Área, Jefatura, Peso en faltantes) ocupan todo el ancho.
+- El Dashboard de resultados muestra la descripción completa del artículo (antes se recortaba a 48 caracteres).
+- Dashboard PDIS: la tabla de detalle tiene etiquetas para celular, anchos por columna, ID y SKU sin partir, fecha sin hora cuando es fecha de carga y comentarios completos; el detalle por sección de una jefatura se desplaza en horizontal si no cabe.
+- Verificado con un detector automático de contenido cortado en 1440, 1280, 1024, 820 y 390 px: sin cortes.

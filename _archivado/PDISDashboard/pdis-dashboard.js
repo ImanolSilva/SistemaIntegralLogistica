@@ -620,16 +620,16 @@ function renderDetalle() {
     const start = (State.det.page - 1) * PAGE_SIZE;
     $('det-count').textContent = `${fmt(list.length)} de ${fmt(rows.length)} registros`;
     $('tbody-detalle').innerHTML = list.slice(start, start + PAGE_SIZE).map(r => `<tr>
-            <td><span class="db-mono">${esc(r.remision || '—')}</span></td>
-            <td><span class="db-mono">${esc(r.sku || '—')}</span></td>
-            <td><span class="pdis-desc" title="${esc(r.desc)}">${esc(r.desc || '—')}</span>${r.comentarios ? `<span class="sub" title="${esc(r.comentarios)}"><i class="bi bi-chat-left-text"></i> ${esc(truncate(r.comentarios, 40))}</span>` : ''}</td>
-            <td>${esc(r.seccion)}</td>
-            <td>${r.jefatura === NO_BOSS ? `<span class="db-noarea"><i class="bi bi-exclamation-triangle-fill"></i>${NO_BOSS}</span>` : esc(r.jefatura)}</td>
-            <td class="num">${fmt(r.piezas)}</td>
-            <td>${r.fecha ? fmtDateTime(r.fecha) : '—'}</td>
-            <td>${esc(r.usuario || '—')}</td>
-            <td>${esc(r.auditor || '—')}</td>
-            <td><span class="db-status ${r.estado}" title="${esc(r.statusRaw || 'Sin estado')}"><i class="bi ${ESTADOS[r.estado].icon}"></i>${ESTADOS[r.estado].label}</span></td>
+            <td data-label="Remisión / ID"><span class="db-mono">${esc(r.remision || '—')}</span></td>
+            <td data-label="SKU"><span class="db-mono">${esc(r.sku || '—')}</span></td>
+            <td data-label="Descripción"><span class="pdis-desc" title="${esc(r.desc)}">${esc(r.desc || '—')}</span>${r.comentarios ? `<span class="sub" title="${esc(r.comentarios)}"><i class="bi bi-chat-left-text"></i> ${esc(r.comentarios)}</span>` : ''}</td>
+            <td data-label="Sección">${esc(r.seccion)}</td>
+            <td data-label="Jefatura">${r.jefatura === NO_BOSS ? `<span class="db-noarea"><i class="bi bi-exclamation-triangle-fill"></i>${NO_BOSS}</span>` : esc(r.jefatura)}</td>
+            <td data-label="Piezas" class="num">${fmt(r.piezas)}</td>
+            <td data-label="Fecha">${r.fecha ? (r.fecha.getHours() || r.fecha.getMinutes() ? fmtDateTime(r.fecha) : fmtDate(r.fecha)) : '—'}</td>
+            <td data-label="Usuario rechazo">${esc(r.usuario || '—')}</td>
+            <td data-label="Auditor">${esc(r.auditor || '—')}</td>
+            <td data-label="Estado"><span class="db-status ${r.estado}" title="${esc(r.statusRaw || 'Sin estado')}"><i class="bi ${ESTADOS[r.estado].icon}"></i>${ESTADOS[r.estado].label}</span></td>
         </tr>`).join('') || '<tr><td colspan="10" class="empty">Ningún registro coincide con la búsqueda</td></tr>';
     markSort('table-detalle', State.det);
     renderPager(list.length, pages);
