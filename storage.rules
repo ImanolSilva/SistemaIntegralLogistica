@@ -12,9 +12,11 @@ service firebase.storage {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
+    // Evidencias PDIS: cualquier auditor con sesión sube fotos (solo imágenes, máximo 10 MB).
     match /uploads/evidencias/{fileName} {
       allow read: if signedIn();
-      allow write, delete: if isAdmin();
+      allow create, update: if signedIn() && request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+      allow delete: if signedIn();
     }
     match /uploads/{fileName} {
       allow read: if signedIn();

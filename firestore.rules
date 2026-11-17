@@ -64,6 +64,23 @@ service cloud.firestore {
       allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid && request.resource.data.ownerUid == request.auth.uid);
       allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid);
     }
+    // Estados PDIS en vivo por archivo. Cada artículo solo lo modifica quien lo
+    // capturó o un administrador. El historial solo se agrega, nunca se edita.
+    match /pdisEstados/{fileId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+      match /items/{itemId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && request.resource.data.auditorUid == request.auth.uid;
+        allow update: if isAdmin() || (signedIn() && resource.data.auditorUid == request.auth.uid && request.resource.data.auditorUid == request.auth.uid);
+        allow delete: if isAdmin();
+      }
+      match /historial/{entryId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
     match /{document=**} {
       allow read, write: if false;
     }

@@ -33,7 +33,11 @@ const AppState = {
     pendingChanges: {},
     isSyncing: false,
     sheetName: '',
-    sheetHeader: []
+    sheetHeader: [],
+    liveStates: new Map(),   // key -> datos de Firestore (pdisEstados/{archivo}/items)
+    rowByKey: new Map(),
+    liveUnsub: null,
+    liveOk: false
 };
 const autoSaveTimers = {};
 const PENDING_DB_NAME = 'pdisPendingChanges';
@@ -144,15 +148,15 @@ async function syncPendingChanges(isAutoSave = false) {
         const originalUploadDate = (currentMetadata.customMetadata && currentMetadata.customMetadata.originalUploadDate) || currentMetadata.timeCreated;
         // --- FIN DEL CAMBIO CLAVE ---
 
-        if (serverVersion !== AppState.fileVersion) {
-           throw new Error("Conflicto de versiones. Por favor, recarga la página para obtener los cambios más recientes.");
-        }
+        // Si otra persona guardó antes, se descarga la versión del servidor y se
+        // combinan los cambios (ya no se muestra "Conflicto de versiones").
+        const sameVersion = serverVersion === AppState.fileVersion;
 
         // Si el archivo es del formato PDIS y la versión del servidor es la que
         // tenemos en memoria, se reconstruye desde los datos locales sin volver
         // a descargarlo. Los archivos anteriores (hoja Rechazos) se descargan.
         let workbook, sheetName, excelData;
-        const useLocal = AppState.sheetName === PDIS_SHEET && AppState.sheetHeader.length > 0 && AppState.allRechazosEnExcel.length > 0;
+        const useLocal = sameVersion && AppState.sheetName === PDIS_SHEET && AppState.sheetHeader.length > 0 && AppState.allRechazosEnExcel.length > 0;
         if (useLocal) {
             sheetName = PDIS_SHEET;
             const header = [...new Set([...AppState.sheetHeader, 'Status', 'Auditor', 'Fotos'])];
@@ -171,6 +175,14 @@ async function syncPendingChanges(isAutoSave = false) {
         }
 
         let hasChanges = useLocal;
+        // Los estados capturados en vivo (Firestore) por cualquier auditor también se escriben al Excel.
+        excelData.forEach(row => {
+            const live = AppState.liveStates.get(rowKey(row));
+            if (!live) return;
+            ['Status', 'Auditor', 'Fotos'].forEach(field => {
+                if (field in live && (row[field] ?? '') !== (live[field] ?? '')) { row[field] = live[field] ?? ''; hasChanges = true; }
+            });
+        });
         const updatesMap = new Map(Object.entries(AppState.pendingChanges));
         excelData.forEach(row => {
             const remision = rowKey(row);
@@ -235,6 +247,156 @@ async function syncPendingChanges(isAutoSave = false) {
             Swal.close();
         }
     }
+}
+
+/*****************************************************
+ * ========== ESTADOS EN VIVO (FIRESTORE) ==========
+ * Cada cambio de estado/foto se guarda en pdisEstados/{archivo}/items/{ID}
+ * y todos los auditores lo reciben al instante con onSnapshot. Cada cambio
+ * también deja un registro en pdisEstados/{archivo}/historial.
+ * El Excel se actualiza cuando guarda un administrador (Storage solo admite
+ * escrituras de administradores) y el Dashboard PDIS combina ambos.
+ *****************************************************/
+function pdisFileId(name) { return String(name || AppState.selectedFileData?.name || 'pdis').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 140); }
+function pdisItemId(key) { return String(key).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 140); }
+function pdisFileDoc(name) { return db.collection('pdisEstados').doc(pdisFileId(name)); }
+
+function setLiveIndicator(state) {
+    const el = document.getElementById('liveIndicator');
+    if (!el) return;
+    const map = { on: ['is-on', 'En vivo'], off: ['is-off', 'Sin conexión en vivo'], wait: ['is-wait', 'Conectando…'] };
+    const [cls, text] = map[state] || map.wait;
+    el.className = `pdi-live ${cls}`;
+    el.innerHTML = `<span class="pdi-live-dot"></span>${text}`;
+}
+
+function stopLiveStates() {
+    if (AppState.liveUnsub) { AppState.liveUnsub(); AppState.liveUnsub = null; }
+}
+
+// Aplica en pantalla el estado de una fila sin volver a dibujar la lista.
+function paintRowState(row) {
+    const idx = row._rowIndex;
+    if (idx == null || AppState.rechazosGlobal[idx] !== row) return;
+    const estado = row.Status || 'Sin Estado';
+    const badge = document.querySelector(`#heading-${idx} .pdi-status`);
+    if (badge) { badge.className = 'badge rounded-pill me-2 pdi-status ' + pdiStatusClass(estado); badge.textContent = estado; }
+    const select = document.getElementById(`status-${idx}`);
+    if (select && document.activeElement !== select) {
+        const value = normalizePdiStatus(row.Status);
+        if (value) { select.querySelector('option[value=""]')?.remove(); select.value = value; }
+        const picker = select.closest('.status-picker');
+        if (picker) picker.className = `status-picker status-${estado.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`;
+    }
+    const preview = document.getElementById(`evidencia-preview-${idx}`);
+    if (preview && preview.dataset.url !== (row.Fotos || '')) updatePhotoPreview(idx, row.Fotos || '');
+    const item = document.getElementById(`item-${idx}`);
+    if (item) { item.classList.remove('pdi-flash'); void item.offsetWidth; item.classList.add('pdi-flash'); }
+}
+
+// Se suscribe a los estados del archivo. Resuelve cuando llega la primera foto de datos.
+function startLiveStates() {
+    stopLiveStates();
+    AppState.liveStates = new Map();
+    AppState.rowByKey = new Map(AppState.allRechazosEnExcel.map(r => [rowKey(r), r]));
+    setLiveIndicator('wait');
+    return new Promise(resolve => {
+        let first = true;
+        const done = () => { if (first) { first = false; resolve(); } };
+        setTimeout(done, 5000);
+        try {
+            AppState.liveUnsub = pdisFileDoc().collection('items').onSnapshot(snap => {
+                const myUid = auth.currentUser?.uid;
+                let others = 0;
+                snap.docChanges().forEach(change => {
+                    if (change.type === 'removed') return;
+                    const d = change.doc.data();
+                    const key = String(d.key ?? '');
+                    const row = AppState.rowByKey.get(key);
+                    AppState.liveStates.set(key, d);
+                    if (!row) return;
+                    if ('Status' in d) row.Status = d.Status || '';
+                    if ('Auditor' in d) row.Auditor = d.Auditor || '';
+                    if ('Fotos' in d) row.Fotos = d.Fotos || '';
+                    if (!first) { paintRowState(row); if (d.auditorUid !== myUid && !snap.metadata.hasPendingWrites) others++; }
+                });
+                AppState.liveOk = true;
+                setLiveIndicator('on');
+                if (others) showAlert('info', others === 1 ? 'Un artículo actualizado por otro auditor' : `${others} artículos actualizados por otros auditores`, '', { timer: 2200 });
+                done();
+            }, error => {
+                console.error('Estados en vivo no disponibles:', error);
+                AppState.liveOk = false;
+                setLiveIndicator('off');
+                done();
+            });
+        } catch (error) {
+            console.error('No se pudo iniciar el modo en vivo:', error);
+            setLiveIndicator('off');
+            done();
+        }
+    });
+}
+
+// Guarda un cambio en vivo. Respeta la protección: solo quien capturó el
+// artículo o un administrador puede modificarlo. Devuelve true, false o 'error'.
+async function saveLiveState(row, fields) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Sin sesión');
+    const key = rowKey(row);
+    const ref = pdisFileDoc().collection('items').doc(pdisItemId(key));
+    const auditor = user.displayName || user.email;
+    const data = { key, sku: pdisView(row).sku, ...fields, Auditor: auditor, auditorEmail: user.email || '', auditorUid: user.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    const anterior = { Status: row.Status || '', Fotos: row.Fotos || '', Auditor: row.Auditor || '' };
+    const log = () => pdisFileDoc().collection('historial').add({
+        key, sku: data.sku, descripcion: pdisView(row).desc, cambio: fields, anterior,
+        auditor, email: user.email || '', uid: user.uid, archivo: AppState.selectedFileData?.name || '',
+        at: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(err => console.warn('No se pudo registrar el historial:', err));
+    try {
+        if (!navigator.onLine) { ref.set(data, { merge: true }); log(); return true; } // Firestore lo envía al reconectar
+        const ok = await db.runTransaction(async tx => {
+            const snap = await tx.get(ref);
+            const owner = snap.exists ? snap.data().auditorUid : '';
+            if (owner && owner !== user.uid && !AppState.isAdmin) return false;
+            tx.set(ref, data, { merge: true });
+            return true;
+        });
+        if (ok) log();
+        return ok;
+    } catch (error) {
+        console.error('No se pudo guardar en vivo:', error);
+        return 'error';
+    }
+}
+
+// Programa la escritura al Excel (solo administradores pueden escribir en Storage).
+function scheduleExcelSync(row, fields, delay = 4000) {
+    if (!AppState.isAdmin) return;
+    const key = rowKey(row);
+    Object.entries(fields).forEach(([field, value]) => queueChange(key, field, value));
+    if (autoSaveTimers.excel) clearTimeout(autoSaveTimers.excel);
+    autoSaveTimers.excel = setTimeout(() => syncPendingChanges(true), delay);
+}
+
+// Guarda un cambio: primero en vivo; si el modo en vivo no está disponible,
+// usa el guardado anterior al Excel.
+async function persistRowChange(row, fields) {
+    const user = auth.currentUser;
+    const auditor = user ? (user.displayName || user.email) : '';
+    if (AppState.liveOk) {
+        const result = await saveLiveState(row, fields);
+        if (result === false) return { ok: false, reason: 'protegido' };
+        if (result === true) {
+            Object.assign(row, fields, { Auditor: auditor });
+            scheduleExcelSync(row, { ...fields, Auditor: auditor });
+            return { ok: true };
+        }
+    }
+    if (!AppState.isAdmin) return { ok: false, reason: 'sin-permiso' };
+    Object.assign(row, fields, { Auditor: auditor });
+    scheduleExcelSync(row, { ...fields, Auditor: auditor }, 1500);
+    return { ok: true };
 }
 
 /*****************************************************
@@ -495,55 +657,37 @@ function setupEventListeners() {
         }
     });
     
-    // Listener para el guardado automático de cambios (Estado y Auditor)
+    // Cambio de estado: se guarda en vivo y los demás auditores lo ven al instante.
     document.addEventListener("change", async (e) => {
-        if (e.target.classList.contains("status-select")) {
-            const rowIndex = e.target.dataset.rowIndex;
-            const newStatus = e.target.value;
-            const existingRow = AppState.rechazosGlobal[rowIndex];
-            const currentUser = auth.currentUser;
-            if (existingRow && existingRow.Status && existingRow.Status !== 'Sin Estado' && existingRow.Auditor && currentUser && existingRow.Auditor !== (currentUser.displayName || currentUser.email) && !AppState.isAdmin) {
-                e.target.value = existingRow.Status;
-                showAlert('warning', 'Registro protegido', `Este PDIS ya fue capturado por ${existingRow.Auditor}. Solo esa persona o un administrador puede modificarlo.`);
-                return;
-            }
-
-            if (AppState.rechazosGlobal[rowIndex]) {
-                const remision = rowKey(AppState.rechazosGlobal[rowIndex]);
-                const user = auth.currentUser;
-                if (!user) {
-                    showAlert("error", "Error de Sesión", "No se pudo identificar al usuario. Por favor, recarga la página.");
-                    return;
-                }
-                const auditorName = user.displayName || user.email;
-                const lockGranted = await claimPdiLock(remision, user, newStatus);
-                if (!lockGranted) {
-                    e.target.value = AppState.rechazosGlobal[rowIndex].Status || 'No encontrada';
-                    showAlert('warning', 'PDIS protegido', 'Otro usuario ya reservó este registro. No se puede sobrescribir.');
-                    return;
-                }
-
-                AppState.rechazosGlobal[rowIndex].Status = newStatus;
-                AppState.rechazosGlobal[rowIndex].Auditor = auditorName;
-
-                queueChange(remision, 'Status', newStatus);
-                queueChange(remision, 'Auditor', auditorName);
-                
-                const headerBadge = document.querySelector(`#heading-${rowIndex} .badge`);
-                if(headerBadge) {
-                    const statusColors = { "Sí encontrada": "var(--verde-exito)", "No encontrada": "var(--rojo-peligro)", "Encontrada en exhibición": "var(--azul-info)", "Encontrada Merma": "#ff9800", "Sin Estado": "var(--gris-oscuro)" };
-                    headerBadge.style.backgroundColor = ''; headerBadge.className = 'badge rounded-pill me-2 pdi-status ' + pdiStatusClass(newStatus);
-                    headerBadge.textContent = newStatus;
-                }
-                const picker = document.querySelector(`#status-${rowIndex}`)?.closest('.status-picker');
-                if (picker) {
-                    picker.className = `status-picker status-${newStatus.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`;
-                }
-
-                if (autoSaveTimers[rowIndex]) clearTimeout(autoSaveTimers[rowIndex]);
-                autoSaveTimers[rowIndex] = setTimeout(() => syncPendingChanges(true), 2000);
-            }
+        if (!e.target.classList.contains("status-select")) return;
+        const select = e.target;
+        const rowIndex = Number(select.dataset.rowIndex);
+        const row = AppState.rechazosGlobal[rowIndex];
+        const user = auth.currentUser;
+        if (!row) return;
+        if (!user) { showAlert("error", "Error de Sesión", "No se pudo identificar al usuario. Recarga la página."); return; }
+        const previous = normalizePdiStatus(row.Status);
+        const revert = () => { if (previous) select.value = previous; else select.selectedIndex = 0; };
+        const myName = user.displayName || user.email;
+        if (!AppState.isAdmin && row.Status && row.Auditor && row.Auditor !== myName && !AppState.liveOk) {
+            revert();
+            showAlert('warning', 'Registro protegido', `Este PDIS ya fue capturado por ${row.Auditor}. Solo esa persona o un administrador puede modificarlo.`);
+            return;
         }
+        select.disabled = true;
+        updateSyncStatus('syncing');
+        const result = await persistRowChange(row, { Status: select.value });
+        select.disabled = false;
+        if (!result.ok) {
+            revert();
+            updateSyncStatus('error');
+            showAlert('warning', result.reason === 'protegido' ? 'PDIS protegido' : 'No se pudo guardar',
+                result.reason === 'protegido' ? `Este PDIS ya fue capturado por ${row.Auditor || 'otro auditor'}. Solo esa persona o un administrador puede modificarlo.` : 'El modo en vivo no está disponible. Avisa a un administrador.');
+            return;
+        }
+        select.querySelector('option[value=""]')?.remove();
+        paintRowState(row);
+        updateSyncStatus('synced');
     });
 }
 /*****************************************************
@@ -884,16 +1028,16 @@ function choosePhoto(rowIndex) {
                 showAlert("error", "Error al subir", `No se pudo guardar la evidencia. Código: ${error.code}`);
             },
             () => {
-                uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
-                    AppState.rechazosGlobal[rowIndex].Fotos = downloadURL;
-                    updatePhotoPreview(rowIndex, downloadURL);
-                    queueChange(remision, 'Fotos', downloadURL);
-                    deleteEvidenceDraft(remision);
-                    if (autoSaveTimers[rowIndex]) clearTimeout(autoSaveTimers[rowIndex]);
-                    autoSaveTimers[rowIndex] = setTimeout(() => syncPendingChanges(true), 500);
-
+                uploadTask.snapshot.ref.getDownloadURL().then(async downloadURL => {
+                    const result = await persistRowChange(remisionData, { Fotos: downloadURL });
                     Swal.close();
-                    showAlert('success', '¡Evidencia Guardada!', 'La foto se subió correctamente y se guardará en breve.');
+                    if (!result.ok) {
+                        showAlert('warning', 'No se pudo guardar la evidencia', result.reason === 'protegido' ? 'Este PDIS pertenece a otro auditor.' : 'El modo en vivo no está disponible.');
+                        return;
+                    }
+                    updatePhotoPreview(rowIndex, downloadURL);
+                    deleteEvidenceDraft(remision);
+                    showAlert('success', '¡Evidencia Guardada!', 'La foto ya la ven todos los auditores.');
                 });
             }
         );
@@ -902,11 +1046,12 @@ function choosePhoto(rowIndex) {
     fileInput.click();
 }
 
-function deletePhoto(rowIndex) { Swal.fire({ title: '¿Estás seguro?', text: "La foto de evidencia se eliminará permanentemente.", icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--rojo-peligro)', cancelButtonColor: 'var(--gris-oscuro)', confirmButtonText: 'Sí, ¡Eliminar!', cancelButtonText: 'Cancelar' }).then((result) => { if (result.isConfirmed) { const photoUrl = AppState.rechazosGlobal[rowIndex].Fotos; if (photoUrl && photoUrl.startsWith('https://firebasestorage.googleapis.com')) { const photoRef = storage.refFromURL(photoUrl); photoRef.delete().catch(err => console.error("Error al borrar de Storage:", err)); } const remision = rowKey(AppState.rechazosGlobal[rowIndex]); AppState.rechazosGlobal[rowIndex].Fotos = ""; updatePhotoPreview(rowIndex, ""); queueChange(remision, 'Fotos', ''); Swal.fire('¡Eliminada!', 'La foto ha sido eliminada.', 'success'); } }); }
+function deletePhoto(rowIndex) { Swal.fire({ title: '¿Estás seguro?', text: "La foto de evidencia se eliminará permanentemente.", icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--rojo-peligro)', cancelButtonColor: 'var(--gris-oscuro)', confirmButtonText: 'Sí, ¡Eliminar!', cancelButtonText: 'Cancelar' }).then((result) => { if (result.isConfirmed) { const photoUrl = AppState.rechazosGlobal[rowIndex].Fotos; if (photoUrl && photoUrl.startsWith('https://firebasestorage.googleapis.com')) { const photoRef = storage.refFromURL(photoUrl); photoRef.delete().catch(err => console.error("Error al borrar de Storage:", err)); } persistRowChange(AppState.rechazosGlobal[rowIndex], { Fotos: "" }).then(result => { if (!result.ok) { showAlert('warning', 'No se pudo quitar la evidencia', 'Este PDIS pertenece a otro auditor.'); return; } updatePhotoPreview(rowIndex, ""); Swal.fire('¡Eliminada!', 'La foto ha sido eliminada.', 'success'); }); } }); }
 
 function updatePhotoPreview(rowIndex, url) {
     const previewContainer = document.getElementById(`evidencia-preview-${rowIndex}`);
     if (!previewContainer) return;
+    previewContainer.dataset.url = url || '';
 
     if (url && url.trim() !== "") {
         previewContainer.innerHTML = `
@@ -992,6 +1137,7 @@ async function loadRechazosFile(secciones) {
         // únicamente dentro del conjunto de PDIS que el usuario tiene permitido ver.
         const oldBoss = document.getElementById("bossFilterContainer");
         if (oldBoss) oldBoss.innerHTML = "";
+        await startLiveStates();
         renderListFilters(rechazosFiltrados);
 
     } catch (error) {
@@ -1029,7 +1175,7 @@ function renderListFilters(baseRows) {
             </div>
         </div>
         <div class="pdi-filters-foot">
-            <span id="flt-count" class="pdi-filter-count"></span>
+            <span class="pdi-filters-meta"><span id="liveIndicator" class="pdi-live is-wait"><span class="pdi-live-dot"></span>Conectando…</span><span id="flt-count" class="pdi-filter-count"></span></span>
             <button type="button" id="flt-clear" class="pdi-filter-clear"><i class="bi bi-x-circle"></i> Limpiar filtros</button>
         </div>`;
     const q = document.getElementById('flt-q');
@@ -1041,6 +1187,7 @@ function renderListFilters(baseRows) {
     document.getElementById('flt-estado').addEventListener('change', e => { ListFilters.estado = e.target.value; applyListFilters(); });
     document.getElementById('flt-clear').addEventListener('click', () => { Object.assign(ListFilters, { jefe: '', seccion: '', estado: '', q: '' }); q.value = ''; applyListFilters(); });
     applyListFilters();
+    setLiveIndicator(AppState.liveOk ? 'on' : (AppState.liveUnsub ? 'wait' : 'off'));
 }
 function fillFilterSelect(id, items, allLabel, current) {
     const el = document.getElementById(id);
@@ -1247,6 +1394,18 @@ function renderRechazoBody(rechazo, i) {
     </div>`;
 }
 
+// Aplica a filas de un Excel los estados en vivo guardados en Firestore.
+async function mergeLiveStatesInto(fileName, rows) {
+    try {
+        const snap = await pdisFileDoc(fileName).collection('items').get();
+        if (snap.empty) return rows;
+        const byKey = new Map();
+        snap.forEach(doc => { const d = doc.data(); byKey.set(String(d.key ?? ''), d); });
+        rows.forEach(row => { const d = byKey.get(rowKey(row)); if (!d) return; ['Status', 'Auditor', 'Fotos'].forEach(f => { if (f in d) row[f] = d[f] ?? ''; }); });
+    } catch (error) { console.warn('No se pudieron leer los estados en vivo de', fileName, error); }
+    return rows;
+}
+
 async function generarDashboardPorRango() {
     const fechaInicioStr = document.getElementById('fechaInicio').value; // e.g., "2025-08-01"
     const fechaFinStr = document.getElementById('fechaFin').value;     // e.g., "2025-08-03"
@@ -1304,7 +1463,7 @@ async function generarDashboard(dateRange = null) {
             const sheet = workbook.Sheets[getPdisSheetName(workbook)];
             if (sheet) {
                 // Acumula los datos de todos los archivos en un solo arreglo.
-                todosLosRechazosHistoricos.push(...XLSX.utils.sheet_to_json(sheet, { defval: "" }));
+                todosLosRechazosHistoricos.push(...await mergeLiveStatesInto(fileRef.name, XLSX.utils.sheet_to_json(sheet, { defval: "" })));
             }
         }));
 
@@ -1443,7 +1602,7 @@ async function generarDashboardAuditores() {
             const workbook = XLSX.read(data, { type: "array" });
             const sheet = workbook.Sheets[getPdisSheetName(workbook)];
             if (sheet) {
-                todosLosRechazosHistoricos.push(...XLSX.utils.sheet_to_json(sheet, { defval: "" }));
+                todosLosRechazosHistoricos.push(...await mergeLiveStatesInto(fileRef.name, XLSX.utils.sheet_to_json(sheet, { defval: "" })));
             }
         }));
 

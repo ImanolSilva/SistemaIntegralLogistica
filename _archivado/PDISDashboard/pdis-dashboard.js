@@ -4,6 +4,20 @@
 const pdisConfig = { apiKey: 'AIzaSyD1-ZhYGtJzJFY4WfSUS_lbnzLhzWfT1D8', authDomain: 'sistemaintegrall.firebaseapp.com', projectId: 'sistemaintegrall', storageBucket: 'sistemaintegrall.firebasestorage.app', messagingSenderId: '302291844621', appId: '1:302291844621:web:6ebf1845790bdeabfc1f44' };
 if (!firebase.apps.length) firebase.initializeApp(pdisConfig);
 const storage = firebase.storage();
+const db = firebase.firestore ? firebase.firestore() : null;
+
+// Estados capturados en vivo en el Gestor (pdisEstados/{archivo}/items). Tienen
+// prioridad sobre el Excel, que solo se actualiza cuando guarda un administrador.
+async function liveStatesFor(fileName) {
+    const map = new Map();
+    if (!db) return map;
+    try {
+        const fileId = String(fileName).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 140);
+        const snap = await db.collection('pdisEstados').doc(fileId).collection('items').get();
+        snap.forEach(doc => { const d = doc.data(); map.set(String(d.key ?? ''), d); });
+    } catch (e) { console.warn('Sin estados en vivo para', fileName, e); }
+    return map;
+}
 
 // ── CONSTANTES ───────────────────────────────────────────────────────────────
 const REF = 90;    // referencia de localización
@@ -148,6 +162,11 @@ async function readRows(files) {
             const book = XLSX.read(await res.arrayBuffer(), { type: 'array' });
             const sheet = book.Sheets.PDIS || book.Sheets.Rechazos || book.Sheets[book.SheetNames[0]];
             const json = sheet ? XLSX.utils.sheet_to_json(sheet, { defval: '' }) : [];
+            const live = await liveStatesFor(file.name);
+            if (live.size) json.forEach(r => {
+                const d = live.get(String(pick(r, 'ID_PDIS', 'Remisión', 'Remision')).trim());
+                if (d) ['Status', 'Auditor', 'Fotos'].forEach(f => { if (f in d) r[f] = d[f] ?? ''; });
+            });
             file.count = json.length;
             json.forEach(r => rows.push(normRow(r, file)));
         } catch (e) { console.warn('No se pudo leer', file.name, e); file.error = true; }

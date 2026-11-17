@@ -336,3 +336,15 @@ body.ui-unificado.rechazos-page {
 .rechazos-page .pdi-list-more { display: flex; justify-content: center; padding: .5rem 0 1rem; }
 .rechazos-page .pdi-more-btn { border: 1px solid var(--rechazos-line); background: #fff; color: var(--rechazos-ink); font-weight: 700; font-size: .85rem; border-radius: 999px; padding: .55rem 1.25rem; display: inline-flex; align-items: center; gap: .4rem; }
 .rechazos-page .pdi-more-btn:hover { border-color: var(--rechazos-pink); color: var(--rechazos-pink); }
+
+/* Indicador en vivo y aviso de cambios de otros auditores */
+.rechazos-page .pdi-filters-meta { display: inline-flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.rechazos-page .pdi-live { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .65rem; border-radius: 999px; font-size: .74rem; font-weight: 800; background: #F4EEF2; color: var(--rechazos-muted); }
+.rechazos-page .pdi-live-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.rechazos-page .pdi-live.is-on { background: #E8F7F0; color: #0E9F6E; }
+.rechazos-page .pdi-live.is-on .pdi-live-dot { animation: pdiPulse 1.6s ease-in-out infinite; }
+.rechazos-page .pdi-live.is-off { background: #FDECEC; color: #DC2626; }
+@keyframes pdiPulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.rechazos-page .accordion-item.pdi-flash { animation: pdiFlash 1.2s ease-out; }
+@keyframes pdiFlash { 0% { box-shadow: 0 0 0 3px rgba(230, 0, 126, .45); } 100% { box-shadow: 0 0 0 0 rgba(230, 0, 126, 0); } }
+@media (prefers-reduced-motion: reduce) { .rechazos-page .pdi-live.is-on .pdi-live-dot, .rechazos-page .accordion-item.pdi-flash { animation: none; } }

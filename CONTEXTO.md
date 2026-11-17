@@ -490,3 +490,15 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - 2026-11-17: rendimiento del Gestor PDIS. La lista se dibuja en bloques de 40 (se agregan más al bajar o con "Mostrar más") y el detalle de cada artículo se arma solo al abrirlo. Se quitó el `MutationObserver` que reescribía todos los selectores de estado en cada cambio del DOM; ahora el selector se arma con los tres estados actuales y, si el artículo no tiene estado, con la opción "Selecciona un estado…" (antes no se podía elegir "No encontrada" en un artículo sin estado). `pdisView` se guarda en caché por fila.
 - 2026-11-17: el detalle PDIS ya no muestra Envase, Negs. piso, Dirección ni Visibles. Muestra SKU, descripción, etiquetas de sección y antigüedad (verde ≤60 días, ámbar ≤120, rojo >120), tarjetas con icono (Inventario, Costo total, Días antigüedad), el jefe con sus iniciales y Fecha de carga / Último movimiento / Estatus. El encabezado de la lista se arma por separado (`renderRechazoItem`) y el detalle con `renderRechazoBody` al abrirlo.
 - 2026-11-17: al guardar un estado en un archivo de formato PDIS, si la versión del servidor coincide con la cargada, el archivo se reconstruye desde memoria (`AppState.sheetHeader`) sin volver a descargarlo. Los enlaces de Descargar/Copiar de la gestión de archivos piden la URL solo al pulsarlos.
+
+### Gestor PDIS en vivo 2026-11-17
+
+- Cada cambio de estado o evidencia se guarda en Firestore `pdisEstados/{archivo}/items/{ID_PDIS}` (`Status`, `Auditor`, `auditorEmail`, `auditorUid`, `Fotos`, `updatedAt`). Todos los auditores con el archivo abierto lo reciben al instante (`onSnapshot`): cambia la etiqueta de estado, la tarjeta parpadea y aparece un aviso. Indicador "En vivo" junto al conteo de la lista.
+- Cada cambio deja un registro en `pdisEstados/{archivo}/historial` (quién, cuándo, estado anterior y nuevo). Las reglas solo permiten agregar registros, no editarlos ni borrarlos.
+- Protección: un artículo solo lo modifica quien lo capturó o un administrador (transacción en el cliente y reglas de Firestore). Sustituye a `pdisLocks`, que ya no se usa.
+- El Excel en Storage solo lo pueden escribir administradores: cuando un administrador guarda, el Excel se reescribe con todos los estados en vivo. Si la versión del servidor cambió, se descarga y se combina en lugar de mostrar "Conflicto de versiones".
+- El Dashboard PDIS y los dashboards del Gestor combinan el Excel con los estados en vivo; estos tienen prioridad.
+- Si Firestore no responde (o las reglas no están desplegadas), el Gestor muestra "Sin conexión en vivo": los administradores siguen guardando al Excel y los demás no pueden guardar.
+- `storage.rules`: cualquier usuario con sesión puede subir evidencias (solo imágenes, máximo 10 MB).
+- **Requiere desplegar reglas:** `firebase deploy --only firestore:rules,storage`.
+- Prueba 2026-11-17 con `Complementos/ALMACEN PDIS _Liverpool_Tabla.xlsx`: 996 filas, sin columnas faltantes; el Dashboard PDIS leyó 12 jefaturas, 46 secciones, 1,027 piezas, todas con SKU, jefatura y fecha de carga, y aplicó los estados en vivo simulados.
