@@ -78,7 +78,7 @@ auth.onAuthStateChanged(async(user) => {
 logoutBtn.addEventListener('click', async() => {
     try {
         await auth.signOut();
-        window.location.href = '../Login/login.html';
+        window.location.href = '../../Login/login.html';
     } catch (error) {
         console.error("Error al cerrar sesión:", error);
         Swal.fire({ icon: 'error', title: 'Error al cerrar sesión', text: 'Hubo un problema al cerrar tu sesión.' });

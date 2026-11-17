@@ -113,7 +113,8 @@ function agg(rows) {
     const buen = c.buen || 0, mal = c.mal || 0, no = c.no || 0, pend = c.pend || 0;
     const total = rows.length, revisados = total - pend;
     return { total, buen, mal, no, pend, revisados, piezas: rows.reduce((s, r) => s + r.piezas, 0),
-        loc: revisados ? (buen + mal) / revisados * 100 : null, avance: total ? revisados / total * 100 : 0 };
+        // Localizado sobre el total de artículos (los pendientes cuentan como no localizados).
+        loc: total ? (buen + mal) / total * 100 : null, locRev: revisados ? (buen + mal) / revisados * 100 : null, avance: total ? revisados / total * 100 : 0 };
 }
 
 function groupAgg(rows, fn) {
@@ -281,9 +282,9 @@ function renderHero() {
     animateNumber($('gauge-value'), pct, true);
     const st = $('gauge-status');
     st.dataset.tone = tone;
-    st.innerHTML = tot.loc == null ? 'Sin revisiones' : tone === 'good' ? '<i class="bi bi-check-circle-fill"></i> Buen nivel' : tone === 'warn' ? '<i class="bi bi-exclamation-circle-fill"></i> Requiere atención' : '<i class="bi bi-x-octagon-fill"></i> Crítico';
+    st.innerHTML = !tot.revisados ? 'Sin revisiones' : tone === 'good' ? '<i class="bi bi-check-circle-fill"></i> Buen nivel' : tone === 'warn' ? '<i class="bi bi-exclamation-circle-fill"></i> Requiere atención' : '<i class="bi bi-x-octagon-fill"></i> Crítico';
     $('gauge-ref').textContent = REF + '%';
-    $('gauge-gap').textContent = tot.loc == null ? 'sin registros revisados' : `${fmt(tot.buen + tot.mal)} de ${fmt(tot.revisados)} revisados`;
+    $('gauge-gap').textContent = !tot.total ? 'sin registros' : `${fmt(tot.buen + tot.mal)} de ${fmt(tot.total)} artículos · ${pctTxt(tot.avance)} revisado`;
 }
 
 // ── KPIs ─────────────────────────────────────────────────────────────────────
@@ -308,12 +309,12 @@ function renderKPIs(t) {
 function renderInsights(t) {
     const rows = State.filtered, items = [];
     const bosses = groupAgg(rows, r => r.jefatura).filter(b => b.key !== NO_BOSS);
-    const revBosses = bosses.filter(b => b.loc != null);
+    const revBosses = bosses.filter(b => b.revisados > 0);
 
     if (!t.total) items.push({ tone: 'info', icon: 'bi-funnel', title: 'Sin registros', text: 'No hay registros con los filtros seleccionados.' });
-    else if (t.loc == null) items.push({ tone: 'warn', icon: 'bi-hourglass-split', title: 'Sin revisiones', text: `Los <strong>${fmt(t.total)}</strong> registros siguen pendientes de búsqueda.` });
+    else if (!t.revisados) items.push({ tone: 'warn', icon: 'bi-hourglass-split', title: 'Sin revisiones', text: `Los <strong>${fmt(t.total)}</strong> registros siguen pendientes de búsqueda.` });
     else items.push({ tone: toneOf(t.loc), icon: 'bi-bullseye', title: 'Localización global',
-        text: `Se localizó el <strong>${pctTxt(t.loc)}</strong> de lo revisado (${fmt(t.buen + t.mal)} de ${fmt(t.revisados)}). Referencia: ${REF}%.` });
+        text: `Se localizó el <strong>${pctTxt(t.loc)}</strong> del total (${fmt(t.buen + t.mal)} de ${fmt(t.total)} artículos; ${pctTxt(t.avance)} revisado). Referencia: ${REF}%.` });
 
     if (t.total) items.push({ tone: t.avance >= 100 ? 'good' : t.avance >= 50 ? 'info' : 'warn', icon: 'bi-list-check', title: 'Avance de revisión',
         text: t.pend ? `Falta revisar <strong>${fmt(t.pend)}</strong> registros (${pctTxt(t.pend / t.total * 100)}).` : 'Todos los registros ya tienen estado capturado.' });
@@ -325,7 +326,7 @@ function renderInsights(t) {
     if (revBosses.length > 1) {
         const s = [...revBosses].sort((a, b) => b.loc - a.loc), best = s[0], worst = s[s.length - 1];
         if (best.loc !== worst.loc) {
-            items.push({ tone: 'good', icon: 'bi-trophy-fill', title: 'Mejor jefatura', text: `<strong>${esc(best.key)}</strong> localiza el <strong>${pctTxt(best.loc)}</strong> de lo revisado.` });
+            items.push({ tone: 'good', icon: 'bi-trophy-fill', title: 'Mejor jefatura', text: `<strong>${esc(best.key)}</strong> localiza el <strong>${pctTxt(best.loc)}</strong> de sus artículos.` });
             items.push({ tone: toneOf(worst.loc), icon: 'bi-graph-down-arrow', title: 'Menor localización', text: `<strong>${esc(worst.key)}</strong> con <strong>${pctTxt(worst.loc)}</strong>; ${fmt(worst.no)} no encontradas.` });
         }
     }
@@ -354,7 +355,7 @@ function renderInsights(t) {
 
 // ── SEMÁFORO ─────────────────────────────────────────────────────────────────
 function renderSemaforo(t) {
-    const bosses = groupAgg(State.filtered, r => r.jefatura).filter(b => b.key !== NO_BOSS && b.loc != null);
+    const bosses = groupAgg(State.filtered, r => r.jefatura).filter(b => b.key !== NO_BOSS && b.revisados > 0);
     const c = countBy(bosses, b => toneOf(b.loc));
     $('sem-good').textContent = c.good || 0; $('sem-warn').textContent = c.warn || 0; $('sem-bad').textContent = c.bad || 0;
     $('sem-good-lbl').textContent = `Localización ≥ ${REF}%`; $('sem-warn-lbl').textContent = `Entre ${WARN}% y ${REF}%`; $('sem-bad-lbl').textContent = `Menos de ${WARN}%`;

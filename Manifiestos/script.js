@@ -2424,46 +2424,39 @@
                 return false;
             }
         };
+        // Relación sección → jefe desde Complementos/Jefatura.json (sustituye a
+        // ExcelManifiestos/Secciones.xlsx). Cada sección se registra con y sin
+        // ceros a la izquierda (550, 0550) para coincidir con el manifiesto.
+        async function buildSeccionToJefeMap() {
+            const res = await fetch('../Complementos/Jefatura.json', { cache: 'no-cache' });
+            if (!res.ok) throw new Error(`No se pudo leer Jefatura.json (HTTP ${res.status})`);
+            const json = await res.json();
+            const map = new Map();
+            (json.jefes || []).forEach(item => {
+                const jefe = String(item.jefe || 'Sin Asignar').trim() || 'Sin Asignar';
+                (item.secciones || []).forEach(sec => {
+                    const raw = String(sec.seccion ?? '').trim().toUpperCase();
+                    if (!raw) return;
+                    const keys = new Set([raw]);
+                    if (/^\d+$/.test(raw)) {
+                        const n = String(Number(raw));
+                        keys.add(n); keys.add(n.padStart(3, '0')); keys.add(n.padStart(4, '0'));
+                    }
+                    keys.forEach(k => { if (!map.has(k)) map.set(k, jefe); });
+                });
+            });
+            return map;
+        }
+
         async function loadSeccionToJefeMap() {
             try {
-                const seccionesURL = await storage.ref('ExcelManifiestos/Secciones.xlsx').getDownloadURL();
-                const seccionesBuffer = await (await fetch(seccionesURL)).arrayBuffer();
-                const seccionesWB = XLSX.read(seccionesBuffer, { type: 'array' });
-
-                const findSheetName = (workbook) => {
-                    const possibleNames = ["jefatura sil", "jefaturaa", "secciones"]; // Se añadió "secciones" para mayor robustez
-                    return workbook.SheetNames.find(sheet => possibleNames.includes(sheet.trim().toLowerCase())) || workbook.SheetNames[0];
-                };
-                const sheetName = findSheetName(seccionesWB);
-                if (!sheetName) throw new Error(`No se encontró una hoja de cálculo en Secciones.xlsx.`);
-
-                const worksheet = seccionesWB.Sheets[sheetName];
-                const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-                if (data.length < 1) throw new Error(`La hoja "${sheetName}" está vacía.`);
-
-                let headerRowIndex = -1, seccionIndex = -1, jefaturaIndex = -1;
-                for (let i = 0; i < Math.min(5, data.length); i++) {
-                    const headers = data[i].map(h => String(h || '').trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
-                    const tempSeccionIndex = headers.indexOf('seccion');
-                    const tempJefaturaIndex = headers.indexOf('jefatura');
-                    if (tempSeccionIndex !== -1 && tempJefaturaIndex !== -1) {
-                        headerRowIndex = i; seccionIndex = tempSeccionIndex; jefaturaIndex = tempJefaturaIndex;
-                        break;
-                    }
-                }
-
-                if (headerRowIndex === -1) throw new Error(`No se encontraron las columnas "Seccion" y "Jefatura" en Secciones.xlsx.`);
-
-                for (let i = headerRowIndex + 1; i < data.length; i++) {
-                    const row = data[i];
-                    const seccion = String(row[seccionIndex] || '').trim().toUpperCase();
-                    const jefe = String(row[jefaturaIndex] || 'Sin Asignar').trim();
-                    if (seccion) seccionToJefeMap.set(seccion, jefe);
-                }
-                console.log("SeccionToJefeMap cargado:", seccionToJefeMap);
+                const map = await buildSeccionToJefeMap();
+                seccionToJefeMap.clear();
+                map.forEach((jefe, seccion) => seccionToJefeMap.set(seccion, jefe));
+                console.log("SeccionToJefeMap cargado:", seccionToJefeMap.size, "claves");
             } catch (error) {
                 console.error("Error al cargar SeccionToJefeMap:", error);
-                Swal.fire('Error de Carga', 'No se pudo cargar el archivo de secciones/jefaturas. Las funciones de reporte pueden no ser precisas.', 'error');
+                Swal.fire('Error de Carga', 'No se pudo cargar la relación de secciones y jefaturas (Complementos/Jefatura.json). Las funciones de reporte pueden no ser precisas.', 'error');
             }
         }
         /**
@@ -2712,44 +2705,11 @@
 
             try {
                 // --- Paso 1: Cargar y procesar el archivo de Jefaturas ---
-                const seccionToJefeMap = new Map();
+                let seccionToJefeMap;
                 try {
-                    const seccionesURL = await storage.ref('ExcelManifiestos/Secciones.xlsx').getDownloadURL();
-                    const seccionesBuffer = await (await fetch(seccionesURL)).arrayBuffer();
-                    const seccionesWB = XLSX.read(seccionesBuffer, { type: 'array' });
-
-                    const findSheetName = (workbook) => {
-                        const possibleNames = ["jefatura sil", "jefaturaa"];
-                        return workbook.SheetNames.find(sheet => possibleNames.includes(sheet.trim().toLowerCase())) || workbook.SheetNames[0];
-                    };
-                    const sheetName = findSheetName(seccionesWB);
-                    if (!sheetName) throw new Error(`No se encontró una hoja de cálculo en Secciones.xlsx.`);
-
-                    const worksheet = seccionesWB.Sheets[sheetName];
-                    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-                    if (data.length < 1) throw new Error(`La hoja "${sheetName}" está vacía.`);
-
-                    let headerRowIndex = -1, seccionIndex = -1, jefaturaIndex = -1;
-                    for (let i = 0; i < Math.min(5, data.length); i++) {
-                        const headers = data[i].map(h => String(h || '').trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
-                        const tempSeccionIndex = headers.indexOf('seccion');
-                        const tempJefaturaIndex = headers.indexOf('jefatura');
-                        if (tempSeccionIndex !== -1 && tempJefaturaIndex !== -1) {
-                            headerRowIndex = i; seccionIndex = tempSeccionIndex; jefaturaIndex = tempJefaturaIndex;
-                            break;
-                        }
-                    }
-
-                    if (headerRowIndex === -1) throw new Error(`No se encontraron las columnas "Seccion" y "Jefatura".`);
-
-                    for (let i = headerRowIndex + 1; i < data.length; i++) {
-                        const row = data[i];
-                        const seccion = String(row[seccionIndex] || '').trim().toUpperCase();
-                        const jefe = String(row[jefaturaIndex] || 'Sin Asignar').trim();
-                        if (seccion) seccionToJefeMap.set(seccion, jefe);
-                    }
+                    seccionToJefeMap = await buildSeccionToJefeMap();
                 } catch (error) {
-                    throw new Error("Error al leer Secciones.xlsx: " + error.message);
+                    throw new Error("Error al leer Jefatura.json: " + error.message);
                 }
 
                 // --- Paso 2: Obtener y procesar datos del manifiesto ---

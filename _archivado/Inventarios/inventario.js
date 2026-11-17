@@ -98,7 +98,7 @@ function handleAuthChange(user) {
             allowOutsideClick: false,
             allowEscapeKey: false
         }).then(() => {
-            window.location.href = "../Login/login.html"; // Ajusta la ruta a tu página de login
+            window.location.href = "../../Login/login.html"; // Ajusta la ruta a tu página de login
         });
     } else {
         AppState.currentUser = user;
@@ -147,7 +147,7 @@ function initWizard() {
             .then(() => {
                 console.log("Sesión cerrada exitosamente.");
                 Swal.fire({ icon: "info", title: "Sesión Cerrada", text: "Has cerrado sesión. Redirigiendo al login.", showConfirmButton: false, timer: 1500 })
-                    .then(() => { window.location.href = "../Login/login.html"; });
+                    .then(() => { window.location.href = "../../Login/login.html"; });
             })
             .catch(error => {
                 console.error("Error al cerrar sesión:", error);

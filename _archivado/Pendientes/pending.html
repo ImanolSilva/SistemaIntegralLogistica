@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg">
   <title>Pendiente de Aprobación</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -179,14 +180,14 @@ const firebaseConfig = {
         contactAdminLink.href = `mailto:${adminEmail}?subject=${subject}&body=${body}`;
       } else {
         // Si no hay usuario, redirigir al login
-        window.location.href = "../Login/login.html";
+        window.location.href = "../../Login/login.html";
       }
     });
 
     const handleLogout = async () => {
       try {
         await auth.signOut();
-        window.location.href = "../Login/login.html";
+        window.location.href = "../../Login/login.html";
       } catch (error) {
         console.error("Error al cerrar sesión:", error);
         Swal.fire({

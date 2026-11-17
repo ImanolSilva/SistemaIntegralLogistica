@@ -38,7 +38,7 @@ function handleAuthStateChange(user) {
             text: 'Debes iniciar sesión para ver esta página.',
             confirmButtonText: 'Ir a Login'
         }).then(() => {
-            window.location.href = "../Login/login.html";
+            window.location.href = "../../Login/login.html";
         });
     }
 }
@@ -85,7 +85,7 @@ function displayUserInfo(user) {
  */
 function logout() {
     auth.signOut().then(() => {
-        window.location.href = "../Login/login.html";
+        window.location.href = "../../Login/login.html";
     }).catch(error => {
         console.error("Error al cerrar sesión:", error);
         Swal.fire('Error', 'No se pudo cerrar la sesión.', 'error');

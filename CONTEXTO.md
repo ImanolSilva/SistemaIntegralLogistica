@@ -503,3 +503,18 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 - **Requiere desplegar reglas:** `firebase deploy --only firestore:rules,storage`.
 - Prueba 2026-11-17 con `Complementos/ALMACEN PDIS _Liverpool_Tabla.xlsx`: 996 filas, sin columnas faltantes; el Dashboard PDIS leyó 12 jefaturas, 46 secciones, 1,027 piezas, todas con SKU, jefatura y fecha de carga, y aplicó los estados en vivo simulados.
 - 2026-11-17, Dashboard PDIS: el porcentaje de cada tarjeta de jefatura ahora es **Localizado** = (buen + mal estado) ÷ total de artículos; antes era sobre los revisados, así que 1 revisado de 58 marcaba 100%. La barra muestra la proporción de buen/mal/no encontradas/pendientes. Al pulsar la tarjeta se abre el detalle por sección (artículos, piezas, estados, avance y localizado) con un botón para filtrar el dashboard por esa jefatura.
+- 2026-11-17, Dashboard PDIS: los indicadores generales (medidor, semáforo, hallazgos, gráfica por jefatura, tendencia y exportación) usan el mismo criterio que las tarjetas: **Localización = (buen + mal) ÷ total de artículos**. `agg()` conserva `locRev` (sobre revisados); la tabla de auditores sigue midiendo sobre lo que cada auditor revisó. Las jefaturas sin revisiones no entran al semáforo ni a mejor/peor jefatura.
+
+### Pruebas y correcciones antes de entrega 2026-11-17
+
+Se probó cada módulo en Chrome (escritorio 1366 px y celular 390 px) con un Firebase simulado en memoria (sesión, Firestore compartido entre pestañas y Storage), más revisión de sintaxis de todo el JavaScript, scripts en línea y rutas locales.
+
+Correcciones hechas:
+- **Gestor PDIS, filtro de estado:** las opciones y conteos no se actualizaban al capturar estados (no se podía filtrar por un estado recién puesto). Ahora se recalculan tras cada cambio propio o en vivo (`applyListFilters(false)`), sin volver a dibujar la lista.
+- **Gestor PDIS, guardado al Excel:** si un cambio llegaba mientras otro guardado estaba en curso, se perdía. Ahora solo se quita de la cola lo que ya se guardó (`clearSentChanges`) y se reintenta. Un administrador con el archivo abierto también pasa al Excel lo que capturan los demás.
+- **Gestor PDIS:** se quitó la carga de `ExcelReferencia/…/Usuarios.xlsx` y `relaciones.xlsx`, que ya no existen (daban 404).
+- **Rutas a Login rotas** en `_archivado/` (Gestor PDIS, Pendientes, Bodegas, Configuraciones, Inventarios, Reportes): apuntaban a `_archivado/Login/`. Ahora `../../Login/login.html`.
+- **Manifiestos:** se quitó el script `@sheet/xlsx-style` (404 en el CDN) y se corrigió la ruta de `vfs_fonts.js` (`../_archivado/InfraConfig/libs/`).
+- Favicon estático en las páginas principales y en Pendientes (evita el 404 de `/favicon.ico`).
+
+Resultado: 42/42 verificaciones de flujo PDIS (subida, lista, filtros, estados en vivo entre dos auditores, protección, evidencia, guardado al Excel, archivo anterior, Dashboard PDIS y detalle por sección) y todas las páginas sin errores de JavaScript ni scroll horizontal en celular. `ExcelManifiestos/Secciones.xlsx` ya no se usa: Manifiestos (`buildSeccionToJefeMap`) y Reportes (`loadJefaturaCatalog`) leen la relación sección → jefe de `Complementos/Jefatura.json`, registrando cada sección con y sin ceros a la izquierda (550 = 0550). Probado: 375 claves cargadas y sin errores.

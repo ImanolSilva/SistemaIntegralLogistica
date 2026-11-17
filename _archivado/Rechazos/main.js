@@ -120,10 +120,26 @@ function updateSyncStatus(status) {
     }
 }
 
-async function syncPendingChanges(isAutoSave = false) {
-    if (Object.keys(AppState.pendingChanges).length === 0 || AppState.isSyncing) {
-        return;
+// Quita de la cola solo lo que ya se guardó; si quedan cambios nuevos, programa otro guardado.
+function clearSentChanges(sent) {
+    for (const [key, fields] of Object.entries(sent)) {
+        const pending = AppState.pendingChanges[key];
+        if (!pending) continue;
+        for (const [field, value] of Object.entries(fields)) if (pending[field] === value) delete pending[field];
+        if (!Object.keys(pending).length) delete AppState.pendingChanges[key];
     }
+    if (Object.keys(AppState.pendingChanges).length) {
+        savePendingChangesOffline();
+        setTimeout(() => syncPendingChanges(true), 1500);
+    } else {
+        clearPendingChangesOffline();
+    }
+}
+
+async function syncPendingChanges(isAutoSave = false) {
+    if (Object.keys(AppState.pendingChanges).length === 0) return;
+    // Si ya hay un guardado en curso, se reintenta al terminar para no perder cambios.
+    if (AppState.isSyncing) { setTimeout(() => syncPendingChanges(isAutoSave), 1500); return; }
     AppState.isSyncing = true;
     if (!navigator.onLine) {
         AppState.isSyncing = false;
@@ -183,7 +199,10 @@ async function syncPendingChanges(isAutoSave = false) {
                 if (field in live && (row[field] ?? '') !== (live[field] ?? '')) { row[field] = live[field] ?? ''; hasChanges = true; }
             });
         });
-        const updatesMap = new Map(Object.entries(AppState.pendingChanges));
+        // Se guarda una copia de lo que se envía: los cambios que lleguen mientras
+        // se sube el archivo se conservan para el siguiente guardado.
+        const sent = JSON.parse(JSON.stringify(AppState.pendingChanges));
+        const updatesMap = new Map(Object.entries(sent));
         excelData.forEach(row => {
             const remision = rowKey(row);
             if (remision && updatesMap.has(remision)) {
@@ -199,8 +218,7 @@ async function syncPendingChanges(isAutoSave = false) {
 
         if (!hasChanges) {
              console.log("No se encontraron cambios netos para sincronizar.");
-             AppState.pendingChanges = {};
-             clearPendingChangesOffline();
+             clearSentChanges(sent);
              if (isAutoSave) updateSyncStatus('synced'); else Swal.close();
              AppState.isSyncing = false;
              return;
@@ -227,9 +245,7 @@ async function syncPendingChanges(isAutoSave = false) {
         await fileRef.put(newBlob, newMetadata); // Guardamos el archivo con los metadatos actualizados
         
         AppState.fileVersion = newVersion;
-        if (!useLocal) AppState.allRechazosEnExcel = excelData;
-        AppState.pendingChanges = {};
-        clearPendingChangesOffline();
+        clearSentChanges(sent);
         
         if (isAutoSave) {
             updateSyncStatus('synced');
@@ -318,10 +334,18 @@ function startLiveStates() {
                     if ('Status' in d) row.Status = d.Status || '';
                     if ('Auditor' in d) row.Auditor = d.Auditor || '';
                     if ('Fotos' in d) row.Fotos = d.Fotos || '';
-                    if (!first) { paintRowState(row); if (d.auditorUid !== myUid && !snap.metadata.hasPendingWrites) others++; }
+                    if (!first) {
+                        paintRowState(row);
+                        if (d.auditorUid !== myUid && !snap.metadata.hasPendingWrites) {
+                            others++;
+                            // Un administrador con el archivo abierto también pasa al Excel lo que capturan los demás.
+                            if (AppState.isAdmin) scheduleExcelSync(row, Object.fromEntries(['Status', 'Auditor', 'Fotos'].filter(f => f in d).map(f => [f, d[f] ?? ''])));
+                        }
+                    }
                 });
                 AppState.liveOk = true;
                 setLiveIndicator('on');
+                if (!first) scheduleFilterRefresh();
                 if (others) showAlert('info', others === 1 ? 'Un artículo actualizado por otro auditor' : `${others} artículos actualizados por otros auditores`, '', { timer: 2200 });
                 done();
             }, error => {
@@ -556,7 +580,6 @@ function loadDynamicImage(sku, seccion, containerId) {
     img.src = imageCandidates[imageIndex];
 }
 
-async function loadStaticExcelFiles() { try { const [userResponse, relResponse] = await Promise.all([fetch("../ExcelReferencia/ArchivosExcel/Usuarios.xlsx"), fetch("../ExcelReferencia/ArchivosExcel/relaciones.xlsx")]); if (!userResponse.ok) console.error("No se encontró Usuarios.xlsx"); const userBlob = await userResponse.blob(); const userData = await userBlob.arrayBuffer(); const userWorkbook = XLSX.read(userData, { type: "array" }); const userSheet = userWorkbook.Sheets["Usuarios"]; if (userSheet) AppState.usuariosData = XLSX.utils.sheet_to_json(userSheet, { defval: "" }); if (!relResponse.ok) console.error("No se encontró relaciones.xlsx"); const relBlob = await relResponse.blob(); const relData = await relBlob.arrayBuffer(); const relWorkbook = XLSX.read(relData, { type: "array" }); const relSheet = relWorkbook.Sheets["Usuarios"]; if (relSheet) AppState.relacionesData = XLSX.utils.sheet_to_json(relSheet); } catch (error) { console.error("Error al cargar archivos estáticos:", error); showAlert("error", "Error Crítico", "No se pudieron cargar los archivos de configuración."); } }
 
 /*****************************************************
  * ========== INICIO DE APP Y MANEJO DE EVENTOS ==========
@@ -571,11 +594,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (adminTabNav && AppState.isAdmin) adminTabNav.style.display = 'flex';
             loadPendingChanges();
             setUIForRole(AppState.isAdmin);
-            await loadStaticExcelFiles();
             await loadFilesFromFirebase();
             showSection('file-selection-section');
         } else {
-            window.location.href = "../Login/login.html";
+            window.location.href = "../../Login/login.html";
         }
         preloader.classList.add('hidden');
     });
@@ -687,6 +709,7 @@ function setupEventListeners() {
         }
         select.querySelector('option[value=""]')?.remove();
         paintRowState(row);
+        scheduleFilterRefresh();
         updateSyncStatus('synced');
     });
 }
@@ -1197,7 +1220,8 @@ function fillFilterSelect(id, items, allLabel, current) {
     el.classList.toggle('is-active', !!el.value);
     return el.value;
 }
-function applyListFilters() {
+// render=false solo actualiza las opciones y conteos (tras un cambio de estado) sin volver a dibujar la lista.
+function applyListFilters(render = true) {
     const base = ListFilters.base;
     const views = base.map(row => ({ row, v: pdisView(row), st: pdiStatusClass(row.Status) }));
     const q = normKey(ListFilters.q);
@@ -1213,7 +1237,8 @@ function applyListFilters() {
     const secs = count(views.filter(x => byJefe(x) && byEst(x) && byQ(x)), x => x.v.seccion);
     ListFilters.seccion = fillFilterSelect('flt-seccion', [...secs].sort((x, y) => String(x[0]).localeCompare(String(y[0]), 'es', { numeric: true })).map(([k, n]) => [k, k || 'Sin sección', n]), 'Todas las secciones', ListFilters.seccion);
     const ests = count(views.filter(x => byJefe(x) && bySec(x) && byQ(x)), x => x.st);
-    ListFilters.estado = fillFilterSelect('flt-estado', ESTADO_FILTROS.filter(([k]) => ests.has(k)).map(([k, label]) => [k, label, ests.get(k)]), 'Todos los estados', ListFilters.estado);
+    ListFilters.estado = fillFilterSelect('flt-estado', ESTADO_FILTROS.filter(([k]) => ests.has(k) || k === ListFilters.estado).map(([k, label]) => [k, label, ests.get(k) || 0]), 'Todos los estados', ListFilters.estado);
+    if (!render) return;
 
     const result = views.filter(x => byJefe(x) && bySec(x) && byEst(x) && byQ(x)).map(x => x.row);
     const countEl = document.getElementById('flt-count');
@@ -1221,6 +1246,11 @@ function applyListFilters() {
     const clearBtn = document.getElementById('flt-clear');
     if (clearBtn) clearBtn.hidden = !(ListFilters.jefe || ListFilters.seccion || ListFilters.estado || ListFilters.q);
     renderRechazos(result);
+}
+let filterRefreshTimer = null;
+function scheduleFilterRefresh() {
+    clearTimeout(filterRefreshTimer);
+    filterRefreshTimer = setTimeout(() => { if (ListFilters.base.length) applyListFilters(false); }, 400);
 }
 const LIST_PAGE_SIZE = 40;
 let listObserver = null;

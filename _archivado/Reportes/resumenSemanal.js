@@ -47,6 +47,27 @@ const getProp = (obj, key) => {
 };
 
 // Formats a date to dd/mm/yyyy string
+// Catálogo sección → {jefatura, descripción, asistente} desde Complementos/Jefatura.json
+// (sustituye a ExcelManifiestos/Secciones.xlsx). Cada sección se registra con y sin ceros a la izquierda.
+async function loadJefaturaCatalog() {
+    const res = await fetch('../../Complementos/Jefatura.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`No se pudo leer Jefatura.json (HTTP ${res.status})`);
+    const json = await res.json();
+    const map = new Map();
+    (json.jefes || []).forEach(item => {
+        const jefatura = String(item.jefe || 'Sin Asignar').trim() || 'Sin Asignar';
+        (item.secciones || []).forEach(sec => {
+            const raw = String(sec.seccion ?? '').trim().toUpperCase();
+            if (!raw) return;
+            const info = { jefatura, descripcion: String(sec.departamento || 'Sin Descripción').trim(), asistente: String(sec.asistente || 'N/A').trim() };
+            const keys = new Set([raw]);
+            if (/^\d+$/.test(raw)) { const n = String(Number(raw)); keys.add(n); keys.add(n.padStart(3, '0')); keys.add(n.padStart(4, '0')); }
+            keys.forEach(k => { if (!map.has(k)) map.set(k, info); });
+        });
+    });
+    return map;
+}
+
 function formatFecha(d) {
     if (d instanceof Date && !isNaN(d.getTime())) {
         const dd = String(d.getDate()).padStart(2, "0");
@@ -304,42 +325,9 @@ window.downloadFile = async function (folder, name) {
     try {
         const seccionToJefeMap = new Map();
         try {
-            const seccionesURL = await storage.ref('ExcelManifiestos/Secciones.xlsx').getDownloadURL();
-            const seccionesBuffer = await (await fetch(seccionesURL)).arrayBuffer();
-            const seccionesWB = XLSX.read(seccionesBuffer, { type: 'array' });
-
-            const findSheetName = (workbook) => {
-                const possibleNames = ["jefatura sil", "jefaturaa"];
-                return workbook.SheetNames.find(sheet => possibleNames.includes(sheet.trim().toLowerCase())) || workbook.SheetNames[0];
-            };
-            const sheetName = findSheetName(seccionesWB);
-            if (!sheetName) throw new Error(`No se encontró una hoja de cálculo en Secciones.xlsx.`);
-
-            const worksheet = seccionesWB.Sheets[sheetName];
-            const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-            if (data.length < 1) throw new Error(`La hoja "${sheetName}" está vacía.`);
-
-            let headerRowIndex = -1, seccionIndex = -1, jefaturaIndex = -1;
-            for (let i = 0; i < Math.min(5, data.length); i++) {
-                const headers = data[i].map(h => String(h || '').trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
-                const tempSeccionIndex = headers.indexOf('seccion');
-                const tempJefaturaIndex = headers.indexOf('jefatura');
-                if (tempSeccionIndex !== -1 && tempJefaturaIndex !== -1) {
-                    headerRowIndex = i; seccionIndex = tempSeccionIndex; jefaturaIndex = tempJefaturaIndex;
-                    break;
-                }
-            }
-
-            if (headerRowIndex === -1) throw new Error(`No se encontraron las columnas "Seccion" y "Jefatura" en Secciones.xlsx.`);
-
-            for (let i = headerRowIndex + 1; i < data.length; i++) {
-                const row = data[i];
-                const seccion = String(row[seccionIndex] || '').trim().toUpperCase();
-                const jefe = String(row[jefaturaIndex] || 'Sin Asignar').trim();
-                if (seccion) seccionToJefeMap.set(seccion, jefe);
-            }
+            (await loadJefaturaCatalog()).forEach((info, seccion) => seccionToJefeMap.set(seccion, info.jefatura));
         } catch (error) {
-            throw new Error("Error al leer Secciones.xlsx: " + error.message);
+            throw new Error("Error al leer Jefatura.json: " + error.message);
         }
 
         const manifest = await reconstructManifestDataFromFirebase(manifestoId);
@@ -1586,26 +1574,12 @@ async function generarResumenSemanal() {
     });
 
     try {
-        // 3. Load Secciones.xlsx data
-        seccionesMap = new Map();
+        // 3. Catálogo de secciones (Complementos/Jefatura.json)
         try {
-            const seccionesURL = await storage.ref('ExcelManifiestos/Secciones.xlsx').getDownloadURL();
-            const seccionesBuffer = await (await fetch(seccionesURL)).arrayBuffer();
-            const seccionesWB = XLSX.read(seccionesBuffer, { type: 'array' });
-            const seccionesData = XLSX.utils.sheet_to_json(seccionesWB.Sheets['Jefatura']);
-            seccionesData.forEach(row => {
-                const seccionKey = String(getProp(row, 'Seccion') || '').trim();
-                if (seccionKey) {
-                    seccionesMap.set(seccionKey.toUpperCase(), {
-                        descripcion: String(getProp(row, 'Descripcion') || 'Sin Descripción').trim(),
-                        jefatura: String(getProp(row, 'Jefatura') || 'Sin Asignar').trim(),
-                        asistente: String(getProp(row, 'Asistente de Operaciones') || 'N/A').trim()
-                    });
-                }
-            });
+            seccionesMap = await loadJefaturaCatalog();
         } catch (error) {
-            console.error("Critical error loading 'ExcelManifiestos/Secciones.xlsx':", error);
-            Swal.fire('Error de Archivo', "No se pudo cargar el archivo <b>ExcelManifiestos/Secciones.xlsx</b>. Revisa la consola para más detalles.", 'error');
+            console.error("Error al cargar Complementos/Jefatura.json:", error);
+            Swal.fire('Error de Archivo', "No se pudo cargar <b>Complementos/Jefatura.json</b>. Revisa la consola para más detalles.", 'error');
             return;
         }
 
@@ -2781,7 +2755,7 @@ window.mostrarDetalleFaltantes = (nombreJefe, nombreSeccion) => {
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
         if (!user) {
-            window.location.href = "../Login/login.html"; // Redirect if not authenticated
+            window.location.href = "../../Login/login.html"; // Redirect if not authenticated
             return;
         }
         currentUser = user;
@@ -2800,7 +2774,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const logoutBtn = document.getElementById("logout-btn");
                 if (logoutBtn) {
                     logoutBtn.addEventListener("click", () => {
-                        auth.signOut().then(() => window.location.href = "../Login/login.html")
+                        auth.signOut().then(() => window.location.href = "../../Login/login.html")
                             .catch(e => console.error(e));
                     });
                 }
