@@ -346,7 +346,23 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Sin orderBy: los registros sin uploadedAt también deben aparecer.
             const snap = await db.collection(COLLECTION).get();
-            State.allReportes = snap.docs.map(d => { const data = d.data(); return { id: d.id, ...data, rows: fixDeep(data.rows || []) }; });
+            // Reportes grandes se guardan en varias partes (límite 1 MiB por documento); se reagrupan por chunkGroup.
+            const grouped = {};
+            State.allReportes = [];
+            snap.docs.forEach(d => {
+                const data = d.data();
+                const rows = fixDeep(data.rows || []);
+                if (data.chunkGroup) {
+                    const g = grouped[data.chunkGroup];
+                    if (g) { g.ids.push(d.id); g.parts.push({ part: data.part || 0, rows }); return; }
+                    const entry = { id: d.id, ...data, ids: [d.id], parts: [{ part: data.part || 0, rows }] };
+                    grouped[data.chunkGroup] = entry;
+                    State.allReportes.push(entry);
+                } else {
+                    State.allReportes.push({ id: d.id, ...data, ids: [d.id], rows });
+                }
+            });
+            Object.values(grouped).forEach(e => { e.rows = e.parts.sort((a, b) => a.part - b.part).flatMap(p => p.rows); delete e.parts; });
             State.allReportes.sort((a, b) => (toDate(b.uploadedAt)?.getTime() || 0) - (toDate(a.uploadedAt)?.getTime() || 0));
 
             State.manifestInfo = {};
@@ -1159,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="db-file-meta">${esc(rep.fileName || '—')} · ${d ? fmtDateTime(d) : 'sin fecha'}${rep.uploadedByEmail ? ' · ' + esc(rep.uploadedByEmail) : ''}</div>
                 </div>
                 <div class="db-file-stats">${fmt(rep.rows?.length || 0)} filas<br>${pctTxt(t.pct ?? 0)} exactitud</div>
-                <button class="db-file-del" data-id="${esc(rep.id)}" data-name="${esc(label)}" title="Eliminar"><i class="bi bi-trash3-fill"></i></button>
+                <button class="db-file-del" data-id="${esc((rep.ids || [rep.id]).join(','))}" data-name="${esc(label)}" title="Eliminar"><i class="bi bi-trash3-fill"></i></button>
             </div>`;
         }).join('');
         UI.adminList.querySelectorAll('.db-file-del').forEach(btn => btn.addEventListener('click', () => deleteReporte(btn.dataset.id, btn.dataset.name)));
@@ -1173,7 +1189,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirmed.isConfirmed) return;
         showLoading();
         try {
-            await db.collection(COLLECTION).doc(docId).delete();
+            const batch = db.batch();
+            docId.split(',').filter(Boolean).forEach(id => batch.delete(db.collection(COLLECTION).doc(id)));
+            await batch.commit();
             Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1700, showConfirmButton: false });
             await loadReportes();
         } catch (e) {
@@ -1244,7 +1262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const localExisting = State.allReportes.filter(r => r.manifestoId === manifestoId);
                 if (localExisting.length > 0) {
                     const batch = db.batch();
-                    localExisting.forEach(r => batch.delete(db.collection(COLLECTION).doc(r.id)));
+                    localExisting.forEach(r => (r.ids || [r.id]).forEach(id => batch.delete(db.collection(COLLECTION).doc(id))));
                     await batch.commit();
                 } else {
                     const existing = await db.collection(COLLECTION).where('manifestoId', '==', manifestoId).get();
@@ -1254,7 +1272,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         await batch.commit();
                     }
                 }
-                await db.collection(COLLECTION).add({ manifestoId, fileName: savedName, uploadedBy: State.currentUser.uid, uploadedByEmail: State.currentUser.email, uploadedAt: firebase.firestore.FieldValue.serverTimestamp(), rows: manifestRows });
+                const chunks = chunkRowsBySize(manifestRows);
+                const chunkGroup = chunks.length > 1 ? db.collection(COLLECTION).doc().id : null;
+                const meta = { manifestoId, fileName: savedName, uploadedBy: State.currentUser.uid, uploadedByEmail: State.currentUser.email, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                const batch = db.batch();
+                chunks.forEach((chunk, i) => {
+                    const doc = chunkGroup ? { ...meta, chunkGroup, part: i, parts: chunks.length, rows: chunk } : { ...meta, rows: chunk };
+                    batch.set(db.collection(COLLECTION).doc(), doc);
+                });
+                await batch.commit();
             }
             State.uploadModal.hide();
             Swal.fire({ icon: 'success', title: '¡Listo!', text: isMultiple ? `${manifiestos.length} manifiestos cargados.` : `Manifiesto ${manifiestos[0]} cargado.`, timer: 2300, showConfirmButton: false });
@@ -1266,6 +1292,19 @@ document.addEventListener('DOMContentLoaded', () => {
             UI.btnConfirmUpload.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Subir';
         }
     });
+
+    // Divide filas en bloques de ~700 KB para respetar el límite de 1 MiB por documento de Firestore.
+    function chunkRowsBySize(rows, maxBytes = 700000) {
+        const chunks = [];
+        let cur = [], size = 0;
+        rows.forEach(r => {
+            const s = new Blob([JSON.stringify(r)]).size + 16;
+            if (cur.length && size + s > maxBytes) { chunks.push(cur); cur = []; size = 0; }
+            cur.push(r); size += s;
+        });
+        if (cur.length || !chunks.length) chunks.push(cur);
+        return chunks;
+    }
 
     function showUploadError(msg) {
         if (!msg) { UI.uploadError.style.display = 'none'; return; }
