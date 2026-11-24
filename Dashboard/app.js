@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── CONSTANTES ───────────────────────────────────────────────────────────
     const COLLECTION   = "reportesDashboard";
+    const META_ID      = "_meta";      // documento de control de versión (no es un reporte)
     const DATOS_COLL   = "datosMaestros";
     const DATOS_DOC    = "secciones";
     const COMPLEMENTO_JEFATURA = "../Complementos/Jefatura.json";
@@ -485,17 +486,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── CARGA DE REPORTES ────────────────────────────────────────────────────
-    async function loadReportes() {
-        showLoading();
+    // opts.fresh: leer del servidor (después de subir o borrar). opts.background: sin pantalla de carga.
+    async function loadReportes(opts = {}) {
+        if (!opts.background) showLoading();
         try {
+            // Primero lo que el navegador ya tiene guardado: se muestra al instante sin volver a
+            // descargar todos los reportes. Después se revisa en segundo plano si hubo cambios.
             // Sin orderBy: los registros sin uploadedAt también deben aparecer.
-            const snap = await db.collection(COLLECTION).get();
+            let snap = null, fromCache = false;
+            if (!opts.fresh) {
+                try {
+                    snap = await db.collection(COLLECTION).get({ source: 'cache' });
+                    fromCache = snap.docs.some(d => d.id !== META_ID);
+                } catch (_) { snap = null; }
+            }
+            if (!fromCache) snap = await db.collection(COLLECTION).get(opts.fresh ? { source: 'server' } : undefined);
             // Reportes grandes se guardan en varias partes (límite 1 MiB por documento); se reagrupan por chunkGroup.
             const grouped = {};
             const reportes = [];
             // Se procesa por partes, cediendo el turno al navegador para que la página no se congele.
             let lastYield = performance.now();
             for (const d of snap.docs) {
+                if (d.id === META_ID) continue;
                 if (performance.now() - lastYield > 40) { await yieldToBrowser(); lastYield = performance.now(); }
                 const data = d.data();
                 const rows = prepareRows(data.rows || [], data.manifestoId);
@@ -543,13 +555,35 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFilters({ progressive: true });
             // El texto de búsqueda de contenedores se arma cuando el navegador está libre.
             prebuildContSearch();
+            if (fromCache) checkForUpdates(snap);
         } catch (e) {
             console.error(e);
             UI.noDataState.style.display = 'block';
             UI.dataContent.style.display = 'none';
             UI.noDataState.querySelector('p').innerHTML = `No se pudieron leer los resultados.<br><small>${esc(e.code || e.message || 'Revisa Firebase y vuelve a intentar.')}</small>`;
             Swal.fire({ icon: 'error', title: 'No se pudieron cargar los resultados', text: e.code || e.message || 'Revisa Firebase y vuelve a intentar.' });
-        } finally { hideLoading(); }
+        } finally { if (!opts.background) hideLoading(); }
+    }
+
+    // Documento reportesDashboard/_meta: cambia su versión cada vez que se sube o borra un reporte.
+    // Si la versión del servidor es la misma que la guardada en el navegador, no se descarga nada.
+    async function checkForUpdates(cacheSnap) {
+        try {
+            const cached = cacheSnap.docs.find(d => d.id === META_ID)?.data()?.version || null;
+            const server = await db.collection(COLLECTION).doc(META_ID).get({ source: 'server' });
+            const current = server.exists ? server.data().version : null;
+            if (current && current === cached) return;
+            await loadReportes({ fresh: true, background: true });
+            if (!current) { if (State.isAdmin) await bumpMeta(); return; }
+            Swal.fire({ toast: true, position: 'bottom-end', icon: 'info', title: 'Datos actualizados', timer: 2500, showConfirmButton: false });
+        } catch (e) { console.warn('No se pudo revisar si hay reportes nuevos', e); }
+    }
+
+    function bumpMeta() {
+        return db.collection(COLLECTION).doc(META_ID).set({
+            version: Date.now() + '-' + (State.currentUser?.uid || ''),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
     }
 
     // ── FILTROS ──────────────────────────────────────────────────────────────
@@ -1766,8 +1800,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const batch = db.batch();
             docId.split(',').filter(Boolean).forEach(id => batch.delete(db.collection(COLLECTION).doc(id)));
             await batch.commit();
+            await bumpMeta();
             Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1700, showConfirmButton: false });
-            await loadReportes();
+            await loadReportes({ fresh: true });
         } catch (e) {
             hideLoading();
             Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar.' });
@@ -1881,9 +1916,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 await batch.commit();
             }
+            await bumpMeta();
             State.uploadModal.hide();
             Swal.fire({ icon: 'success', title: '¡Listo!', text: isMultiple ? `${manifiestos.length} manifiestos cargados.` : `Manifiesto ${manifiestos[0]} cargado.`, timer: 2300, showConfirmButton: false });
-            await loadReportes();
+            await loadReportes({ fresh: true });
         } catch (err) {
             console.error(err); showUploadError('Error al subir. Intenta de nuevo.');
         } finally {
@@ -2033,7 +2069,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el._anim) cancelAnimationFrame(el._anim);
         const start = performance.now();
         const step = now => {
-            const p = Math.min((now - start) / duration, 1);
+            // El tiempo del cuadro puede ser anterior a start: se limita a 0..1.
+            const p = Math.min(Math.max((now - start) / duration, 0), 1);
             render(easeOut(p));
             el._anim = p < 1 ? requestAnimationFrame(step) : null;
         };
