@@ -171,11 +171,6 @@
                     <div class="db-kpi-value" id="kpi-piezas">—</div>
                     <div class="db-kpi-sub" id="kpi-piezas-sub">—</div>
                 </article>
-                <article class="db-kpi" data-tone="verde" data-kpi="received" tabindex="0" role="button">
-                    <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-check2-all"></i></span><span class="db-kpi-label">Piezas recibidas</span></div>
-                    <div class="db-kpi-value" id="kpi-recibidas">—</div>
-                    <div class="db-kpi-sub" id="kpi-recibidas-sub">—</div>
-                </article>
                 <article class="db-kpi" data-tone="rojo" data-kpi="missing" tabindex="0" role="button">
                     <div class="db-kpi-top"><span class="db-kpi-icon"><i class="bi bi-dash-circle"></i></span><span class="db-kpi-label">Faltantes</span></div>
                     <div class="db-kpi-value" id="kpi-faltantes">—</div>
@@ -225,7 +220,7 @@
                         <div class="db-sem" data-tone="warn"><span class="db-sem-dot"></span><div><strong id="sem-warn">0</strong><small>En atención (85–95%)</small></div></div>
                         <div class="db-sem" data-tone="bad"><span class="db-sem-dot"></span><div><strong id="sem-bad">0</strong><small>Críticas (&lt; 85%)</small></div></div>
                     </div>
-                    <div class="db-mini-split" id="split-bar" title="Composición de las diferencias"></div>
+                    <div class="db-mini-split" id="split-bar" title="Composición por concepto"></div>
                     <div class="db-mini-legend" id="split-legend"></div>
                 </div>
             </section>
@@ -388,7 +383,7 @@
                 <summary><i class="bi bi-info-circle-fill"></i> ¿Cómo se calculan los indicadores?</summary>
                 <dl>
                     <div><dt>Piezas esperadas (VCM)</dt><dd>Total indicado por VCM: lo que el sistema esperaba recibir.</dd></div>
-                    <div><dt>Piezas recibidas</dt><dd>Total registrado o escaneado en el resultado. La diferencia contra VCM muestra lo pendiente.</dd></div>
+                    <div><dt>Correcto</dt><dd>Piezas de los artículos que llegaron completos (status Correcto).</dd></div>
                     <div><dt>Faltantes</dt><dd>Piezas manifestadas que no se encontraron al recibir.</dd></div>
                     <div><dt>Sobrantes</dt><dd>Piezas que llegaron de más contra lo manifestado (status Sobrante).</dd></div>
                     <div><dt>Adicional</dt><dd>Mercancía que no venía en el manifiesto. Se cuenta aparte: no suma también como sobrante.</dd></div>

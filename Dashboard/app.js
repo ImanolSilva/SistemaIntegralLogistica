@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const PAGE_SIZE = 20;
     const SEARCH_DELAY = 200; // espera de los buscadores (ms)
     const SUGGEST_MAX = 50;   // sugerencias visibles del filtro Contenedor
+    const REDUCED_MOTION = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const EXPORT_DETAIL_MAX = 50000; // más líneas: se pregunta antes de incluir la hoja Detalle
     const NUM_FMT = new Intl.NumberFormat('es-MX');
     // Un solo comparador: localeCompare con opciones crea uno nuevo en cada llamada y es muy lento.
@@ -952,7 +953,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (State.filterCont)          parts.push(`contenedor <strong>${esc(State.filterCont)}</strong>`);
         const scope = parts.length ? `Viendo ${parts.join(' · ')}.` : 'Viendo <strong>todos los reportes</strong> cargados.';
         $('hero-scope').innerHTML = rows.length
-            ? `${scope} VCM esperaba <strong>${fmt(tot.pz)}</strong> piezas; se registraron <strong>${fmt(tot.recibidas)}</strong>, faltan <strong>${fmt(tot.ft)}</strong>, sobran <strong>${fmt(tot.sb)}</strong> y llegaron <strong>${fmt(tot.ad)}</strong> adicionales.`
+            ? `${scope} VCM esperaba <strong>${fmt(tot.pz)}</strong> piezas: <strong>${fmt(tot.correcto)}</strong> correctas, <strong>${fmt(tot.ft)}</strong> faltantes, <strong>${fmt(tot.sb)}</strong> sobrantes y <strong>${fmt(tot.ad)}</strong> adicionales.`
             : 'Todavía no hay resultados para mostrar.';
 
         const last = State.allReportes.find(r => toDate(r.uploadedAt));
@@ -982,7 +983,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── KPIs ─────────────────────────────────────────────────────────────────
     function renderKPIs(sum) {
         const tot = sum.tot, conts = sum.conts;
-        const recibidas = tot.recibidas;
         const faltPct = tot.pz > 0 ? tot.ft / tot.pz * 100 : 0;
         const sobrPct = tot.pz > 0 ? tot.sb / tot.pz * 100 : 0;
         const byEst = countBy(conts, c => c.estado);
@@ -992,9 +992,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         animateNumber($('kpi-piezas'), tot.pz, true);
         $('kpi-piezas-sub').innerHTML = `${fmt(conts.length)} contenedores · ${fmt(tot.lines)} líneas`;
-
-        animateNumber($('kpi-recibidas'), recibidas, true);
-        $('kpi-recibidas-sub').innerHTML = `<b>${pctTxt(tot.pz ? recibidas / tot.pz * 100 : 0)}</b> de lo esperado por VCM`;
 
         animateNumber($('kpi-faltantes'), tot.ft, true);
         $('kpi-faltantes-sub').innerHTML = `<b>${faltPct.toFixed(2)}%</b> del total · ${fmt(contFalt)} contenedores`;
@@ -1013,10 +1010,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         $('kpi-cont-ok').textContent = fmt(conDiferencias);
         $('kpi-cont-ok-sub').innerHTML = `<b>${fmt(contFalt)}</b> con faltantes · <b>${fmt(contSobr)}</b> con sobrantes`;
-        if ($('kpi-faltantes-vcm')) $('kpi-faltantes-vcm').textContent = fmt(tot.ft);
-        if ($('kpi-sobrantes-vcm')) $('kpi-sobrantes-vcm').textContent = fmt(tot.sb);
-        if ($('kpi-adicional')) $('kpi-adicional').textContent = fmt(tot.ad);
-        if ($('kpi-correcto')) $('kpi-correcto').textContent = fmt(tot.correcto);
+        // Los cuatro conceptos: la cifra sube con animación y la tarjeta hace un pulso leve al cambiar.
+        [['kpi-faltantes-vcm', tot.ft], ['kpi-sobrantes-vcm', tot.sb], ['kpi-adicional', tot.ad], ['kpi-correcto', tot.correcto]].forEach(([id, v], i) => {
+            const el = $(id);
+            if (!el) return;
+            const changed = el._val !== v;
+            el._val = v;
+            animateNumber(el, v, true);
+            if (changed && !REDUCED_MOTION && el.closest('.db-vcm-card')?.animate) {
+                el.closest('.db-vcm-card').animate(
+                    [{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-3px) scale(1.025)' }, { transform: 'translateY(0) scale(1)' }],
+                    { duration: 520, delay: i * 70, easing: 'cubic-bezier(.2,.8,.2,1)' });
+            }
+        });
     }
 
     // ── HALLAZGOS ────────────────────────────────────────────────────────────
@@ -1110,16 +1116,15 @@ document.addEventListener('DOMContentLoaded', () => {
         $('sem-warn').textContent = c.warn || 0;
         $('sem-bad').textContent  = c.bad  || 0;
 
-        const recibidas = Math.max(tot.recibidas - tot.sb - tot.ad, 0);
-        const base = recibidas + tot.ft + tot.sb + tot.ad || 1;
+        const base = tot.correcto + tot.ft + tot.sb + tot.ad || 1;
         const segs = [
-            ['Recibidas', recibidas, C.ok],
-            ['Faltantes', tot.ft, C.bad],
-            ['Sobrantes', tot.sb, C.warn],
+            ['Correcto', tot.correcto, C.ok],
+            ['Faltante', tot.ft, C.bad],
+            ['Sobrante', tot.sb, C.warn],
             ['Adicional', tot.ad, C.violeta],
         ];
         $('split-bar').innerHTML = segs.map(([l, v, col]) => `<span style="width:${v / base * 100}%;background:${col}" title="${l}: ${fmt(v)}"></span>`).join('');
-        $('split-legend').innerHTML = '<strong style="width:100%;font-size:.7rem;color:var(--txt)">Composición de piezas</strong>' +
+        $('split-legend').innerHTML = '<strong style="width:100%;font-size:.7rem;color:var(--txt)">Piezas por concepto</strong>' +
             segs.map(([l, v, col]) => `<span><i style="background:${col}"></i>${l} <b>${fmt(v)}</b> (${pctTxt(v / base * 100)})</span>`).join('');
     }
 
@@ -1306,17 +1311,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const canvas = $('chart-tendencia');
         const manifs = [...sum.manifs].sort((a, b) => manifDate(a.key) - manifDate(b.key) || COLL.compare(a.key, b.key));
         if (chartEmpty(canvas, manifs.length ? '' : 'Sin reportes', 'tendencia')) return;
-        const labels = ['Exactitud', 'Recibidas', 'Faltantes', 'Sobrantes', 'Adicional'];
+        const labels = ['Exactitud', 'Correcto', 'Faltante', 'Sobrante', 'Adicional'];
         const pctRows = manifs.map(m => ({
             accuracy: m.pct == null ? null : +m.pct.toFixed(2),
-            received: m.pz ? +(m.recibidas / m.pz * 100).toFixed(2) : 0,
+            received: m.pz ? +(m.correcto / m.pz * 100).toFixed(2) : 0,
             missing: m.pz ? +(m.ft / m.pz * 100).toFixed(2) : 0,
             extra: m.pz ? +(m.sb / m.pz * 100).toFixed(2) : 0,
             additional: m.pz ? +(m.ad / m.pz * 100).toFixed(2) : 0
         }));
         const colors = ['#8E1A5B', '#0E9F6E', '#DC2626', '#D97706', '#2563EB', '#7C3AED'];
         const metricKeys = ['accuracy', 'received', 'missing', 'extra', 'additional'];
-        const rawOf = { accuracy: m => m.pct, received: m => m.recibidas, missing: m => m.ft, extra: m => m.sb, additional: m => m.ad };
+        const rawOf = { accuracy: m => m.pct, received: m => m.correcto, missing: m => m.ft, extra: m => m.sb, additional: m => m.ad };
         const datasets = manifs.map((m, index) => ({
             label: manifLabel(m.key),
             data: metricKeys.map(key => pctRows[index][key]),
@@ -1674,7 +1679,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const titles = { expected: 'Piezas esperadas por VCM', received: 'Piezas recibidas / registradas', missing: 'Piezas faltantes', extra: 'Piezas sobrantes', accuracy: 'Exactitud de recepción', containers: 'Contenedores con diferencias' };
         let body = '';
         if (kind === 'expected') body = `<p>Es la suma de la columna Cant. Manf. del archivo VCM: <b>${fmt(tot.pz)}</b> piezas que el sistema esperaba recibir.</p>`;
-        if (kind === 'received') body = `<p>Es la suma de las piezas registradas o escaneadas: <b>${fmt(tot.recibidas)}</b>. Comparadas contra ${fmt(tot.pz)} esperadas, quedan <b>${fmt(Math.max(tot.pz - tot.recibidas, 0))}</b> pendientes.</p>`;
         if (kind === 'missing') body = `<p>Son piezas esperadas que no aparecen como recibidas. Total: <b>${fmt(tot.ft)}</b>.</p>${topDetail(sum, 'ft')}`;
         if (kind === 'extra') body = `<p>Son piezas recibidas por encima de lo esperado (Sobrante): <b>${fmt(tot.sb)}</b>. La mercancía no manifestada (Adicional) se cuenta aparte: <b>${fmt(tot.ad)}</b>.</p>${topDetail(sum, 'sb')}`;
         if (kind === 'accuracy') body = `<p>Fórmula: (piezas esperadas − faltantes) ÷ piezas esperadas × 100.</p><div class="kpi-explain-formula">(<b>${fmt(tot.pz)}</b> − <b>${fmt(tot.ft)}</b>) ÷ <b>${fmt(tot.pz)}</b> = <strong>${pctTxt(tot.pct)}</strong></div><p>${tot.ft ? `La diferencia principal son ${fmt(tot.ft)} piezas faltantes.` : 'No hay faltantes registrados.'}</p>`;
@@ -1723,7 +1727,6 @@ document.addEventListener('DOMContentLoaded', () => {
             [],
             ['Indicador', 'Valor'],
             ['Piezas esperadas (VCM)', tot.pz],
-            ['Piezas recibidas / registradas', tot.recibidas],
             ['Correcto (piezas)', tot.correcto],
             ['Faltante (piezas)', tot.ft],
             ['Sobrante (piezas)', tot.sb],
@@ -1887,6 +1890,8 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.btnConfirmUpload.addEventListener('click', async () => {
         if (!State.parsedFile) return;
         const { file, rows, manifiestos, isMultiple, savedName } = State.parsedFile;
+        // Seguridad: si el reporte ya está cargado, se pregunta antes de sobrescribirlo.
+        if (!(await confirmDuplicate(file, rows, manifiestos))) return;
         UI.btnConfirmUpload.disabled = true;
         UI.btnConfirmUpload.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Subiendo...';
         try {
@@ -1908,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const chunks = chunkRowsBySize(manifestRows);
                 const chunkGroup = chunks.length > 1 ? db.collection(COLLECTION).doc().id : null;
-                const meta = { manifestoId, fileName: savedName, uploadedBy: State.currentUser.uid, uploadedByEmail: State.currentUser.email, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                const meta = { manifestoId, fileName: savedName, originalName: file.name, uploadedBy: State.currentUser.uid, uploadedByEmail: State.currentUser.email, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() };
                 const batch = db.batch();
                 chunks.forEach((chunk, i) => {
                     const doc = chunkGroup ? { ...meta, chunkGroup, part: i, parts: chunks.length, rows: chunk } : { ...meta, rows: chunk };
@@ -1927,6 +1932,95 @@ document.addEventListener('DOMContentLoaded', () => {
             UI.btnConfirmUpload.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Subir';
         }
     });
+
+    // ── REPORTE REPETIDO: COMPARAR O REEMPLAZAR ──────────────────────────────
+    // Devuelve true si se debe subir (no había duplicado o el usuario eligió Reemplazar).
+    async function confirmDuplicate(file, rows, manifiestos) {
+        const dups = manifiestos.filter(m => State.allReportes.some(r => r.manifestoId === m));
+        const sameName = State.allReportes.filter(r => r.originalName && r.originalName === file.name && !manifiestos.includes(r.manifestoId));
+        if (!dups.length && !sameName.length) return true;
+
+        State.uploadModal.hide();   // el modal de Bootstrap atrapa el foco; se cierra mientras se pregunta
+        const back = ok => { State.uploadModal.show(); return ok; };
+        const info = dups.map(m => {
+            const prev = State.allReportes.find(r => r.manifestoId === m);
+            const d = toDate(prev.uploadedAt);
+            return `<li><b>${esc(manifLabel(m))}</b> — cargado ${d ? esc(fmtDateTime(d)) : 'sin fecha'}${prev.uploadedByEmail ? ' por ' + esc(prev.uploadedByEmail) : ''}${prev.originalName ? ` (archivo <i>${esc(prev.originalName)}</i>)` : ''}</li>`;
+        }).join('');
+        const nameNote = sameName.length ? `<p class="dup-note"><i class="bi bi-info-circle-fill"></i> Ya se subió un archivo llamado <b>${esc(file.name)}</b> para ${sameName.map(r => esc(manifLabel(r.manifestoId))).join(', ')}.</p>` : '';
+
+        if (!dups.length) {
+            const r = await Swal.fire({ icon: 'warning', title: 'Archivo con el mismo nombre', html: nameNote + '<p>Los manifiestos de este archivo son distintos, así que no se reemplaza nada. ¿Subirlo de todos modos?</p>',
+                showCancelButton: true, confirmButtonText: 'Subir', cancelButtonText: 'Cancelar', customClass: { popup: 'db-swal-popup' } });
+            return back(r.isConfirmed);
+        }
+
+        for (;;) {
+            const first = await Swal.fire({
+                icon: 'warning', title: dups.length > 1 ? 'Estos reportes ya están cargados' : 'Este reporte ya está cargado',
+                html: `<ul class="dup-list">${info}</ul>${nameNote}<p>Puedes <b>comparar</b> el archivo nuevo contra el cargado (por ejemplo, si es el mismo reporte con más mercancía escaneada) o <b>reemplazarlo</b> directamente. Reemplazar sobrescribe los resultados actuales.</p>`,
+                showDenyButton: true, showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-arrow-left-right"></i> Comparar', denyButtonText: '<i class="bi bi-arrow-repeat"></i> Reemplazar', cancelButtonText: 'Cancelar',
+                confirmButtonColor: C.vino, denyButtonColor: C.bad, customClass: { popup: 'db-swal-popup dup-popup' }
+            });
+            if (first.isDenied) return back(await confirmReplace(dups));
+            if (!first.isConfirmed) return back(false);
+
+            const cmp = await Swal.fire({
+                title: 'Comparación', html: dups.map(m => compareHtml(m, rows.filter(r => r.Manifiesto === m))).join(''),
+                width: 760, showCancelButton: true, showDenyButton: true,
+                confirmButtonText: '<i class="bi bi-arrow-repeat"></i> Reemplazar con el nuevo', denyButtonText: 'Volver', cancelButtonText: 'Cancelar',
+                confirmButtonColor: C.bad, customClass: { popup: 'db-swal-popup dup-popup' }
+            });
+            if (cmp.isConfirmed) return back(await confirmReplace(dups));
+            if (!cmp.isDenied) return back(false);
+        }
+    }
+
+    async function confirmReplace(dups) {
+        const r = await Swal.fire({ icon: 'warning', title: '¿Sobrescribir?', html: `Se borrarán los resultados actuales de <b>${dups.map(m => esc(manifLabel(m))).join(', ')}</b> y se guardarán los del archivo nuevo. No se puede deshacer.`,
+            showCancelButton: true, confirmButtonText: 'Sí, reemplazar', cancelButtonText: 'Cancelar', confirmButtonColor: C.bad, customClass: { popup: 'db-swal-popup' } });
+        return r.isConfirmed;
+    }
+
+    // Totales y diferencias por SKU (contenedor + artículo) entre lo cargado y el archivo nuevo.
+    function compareHtml(m, newRows) {
+        const oldRows = State.idx?.byManif.get(m) || [];
+        const sumUp = list => {
+            const t = { lineas: list.length, pz: 0, reg: 0, correcto: 0, faltante: 0, sobrante: 0, adicional: 0, conts: new Set(), keys: new Map() };
+            for (const r of list) {
+                t.pz += num(r.Piezas); t.reg += num(r.Registradas); t.correcto += num(r.Correcto);
+                t.faltante += num(r.Faltantes); t.sobrante += num(r.Sobrante); t.adicional += num(r.Adicional);
+                t.conts.add(r.Contenedor);
+                const k = r.Contenedor + '|' + (r.Articulo || '');
+                t.keys.set(k, (t.keys.get(k) || 0) + num(r.Registradas));
+            }
+            return t;
+        };
+        const a = sumUp(oldRows), b = sumUp(newRows);
+        let nuevos = 0, quitados = 0, cambiados = 0;
+        b.keys.forEach((reg, k) => { if (!a.keys.has(k)) nuevos++; else if (a.keys.get(k) !== reg) cambiados++; });
+        a.keys.forEach((_, k) => { if (!b.keys.has(k)) quitados++; });
+        const row = (label, x, y) => {
+            const d = y - x;
+            return `<tr><td>${label}</td><td class="num">${fmt(x)}</td><td class="num">${fmt(y)}</td><td class="num ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '+' : ''}${fmt(d)}</td></tr>`;
+        };
+        let verdict;
+        if (!nuevos && !quitados && !cambiados && a.lineas === b.lineas) verdict = ['same', 'Es igual al que ya está cargado. No hace falta reemplazarlo.'];
+        else if (b.reg > a.reg && !quitados) verdict = ['good', `Parece el mismo reporte con <b>${fmt(b.reg - a.reg)}</b> piezas escaneadas más. Reemplazarlo actualiza los resultados.`];
+        else if (b.reg < a.reg) verdict = ['bad', `El archivo nuevo tiene <b>${fmt(a.reg - b.reg)}</b> piezas escaneadas <b>menos</b> que el cargado. Revisa que no sea una versión anterior.`];
+        else verdict = ['warn', 'Los archivos tienen diferencias. Revisa la tabla antes de reemplazar.'];
+        return `<div class="dup-cmp">
+            <h4>${esc(manifLabel(m))}</h4>
+            <table><thead><tr><th></th><th class="num">Cargado</th><th class="num">Archivo nuevo</th><th class="num">Diferencia</th></tr></thead><tbody>
+                ${row('Líneas', a.lineas, b.lineas)}${row('Contenedores', a.conts.size, b.conts.size)}${row('Piezas esperadas', a.pz, b.pz)}
+                ${row('Piezas escaneadas', a.reg, b.reg)}${row('Correcto', a.correcto, b.correcto)}${row('Faltante', a.faltante, b.faltante)}
+                ${row('Sobrante', a.sobrante, b.sobrante)}${row('Adicional', a.adicional, b.adicional)}
+            </tbody></table>
+            <p class="dup-skus">SKU nuevos: <b>${fmt(nuevos)}</b> · ya no vienen: <b>${fmt(quitados)}</b> · con cantidad escaneada distinta: <b>${fmt(cambiados)}</b></p>
+            <p class="dup-verdict ${verdict[0]}">${verdict[1]}</p>
+        </div>`;
+    }
 
     // Divide filas en bloques de ~700 KB para respetar el límite de 1 MiB por documento de Firestore.
     function chunkRowsBySize(rows, maxBytes = 700000) {

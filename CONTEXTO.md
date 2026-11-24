@@ -588,3 +588,13 @@ Pruebas: 153 verificaciones automáticas en Chrome sin errores de JavaScript. Cu
 **Carga desde la caché del navegador (2026-11-24):** antes cada visita descargaba de Firestore todos los reportes (unos 60 MB con 18 reportes). Ahora `loadReportes` muestra primero lo guardado en el navegador (`get({ source: 'cache' })`) y en segundo plano compara la versión del documento `reportesDashboard/_meta` con la del servidor. Solo si cambió vuelve a descargar todo y redibuja, y avisa con "Datos actualizados". Subir o borrar un reporte cambia esa versión (`bumpMeta`); si no existe, la crea el primer administrador que entra. La primera visita en un navegador nuevo sigue descargando todo. `_meta` no tiene `rows`; SKU y Dashboard lo ignoran.
 
 **Pendiente (propuesta):** la carga sigue bajando todas las filas de todos los reportes. Si crecen mucho más, conviene guardar al subir un resumen por reporte (totales por sección, área y contenedor) en una colección aparte, y bajar las filas de un reporte solo cuando se elige.
+
+### Dashboard: solo los cuatro conceptos, animación y aviso de reporte repetido 2026-11-24
+
+- Se quitó el indicador "Piezas recibidas": confundía porque no coincide con "Correcto". Recibidas incluía las piezas que llegaron en artículos incompletos. El encabezado, la barra del semáforo, el comparativo por reporte y el Resumen exportado muestran ahora los cuatro conceptos: Correcto, Faltante, Sobrante y Adicional.
+- Tarjetas de los cuatro conceptos con movimiento leve: entrada escalonada, la cifra sube con animación, la tarjeta hace un pulso al cambiar de valor, el ícono flota suavemente y hay un brillo al pasar el mouse. Se desactiva si el equipo pide reducir movimiento (`prefers-reduced-motion`).
+- **Reporte repetido:** si al subir un archivo su manifiesto ya está cargado, antes de escribir nada aparece un aviso con tres opciones:
+  - **Comparar:** tabla de cargado contra archivo nuevo (líneas, contenedores, piezas esperadas, piezas escaneadas y los cuatro conceptos), más SKU nuevos, SKU que ya no vienen y SKU con cantidad distinta. Incluye una conclusión: igual, mismo reporte con más mercancía escaneada, o con menos (posible versión anterior).
+  - **Reemplazar:** pide una segunda confirmación antes de sobrescribir.
+  - **Cancelar.**
+- También avisa si ya se subió un archivo con el mismo nombre para otro manifiesto. Desde ahora cada carga guarda `originalName`, el nombre original del archivo.

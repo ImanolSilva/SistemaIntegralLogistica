@@ -562,3 +562,50 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
 @media (max-width: 760px) {
     .db-filters { grid-template-columns: 1fr; }
 }
+
+/* ── Cuatro conceptos con movimiento leve ── */
+@keyframes dbRise { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes dbFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes dbSheen { from { transform: translateX(-120%) skewX(-18deg); } to { transform: translateX(260%) skewX(-18deg); } }
+.db-vcm-concepts > * { animation: dbRise .7s cubic-bezier(.2,.8,.2,1) both; }
+.db-vcm-concepts > :nth-child(2) { animation-delay: .07s; }
+.db-vcm-concepts > :nth-child(3) { animation-delay: .14s; }
+.db-vcm-concepts > :nth-child(4) { animation-delay: .21s; }
+.db-vcm-concepts > :nth-child(5) { animation-delay: .28s; }
+.db-vcm-card { position: relative; overflow: hidden; transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease, border-color .3s ease; }
+.db-vcm-card::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); transform: translateX(-120%) skewX(-18deg); pointer-events: none; }
+.db-vcm-card:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(142,26,91,.14); border-color: #f3c6dd; }
+.db-vcm-card:hover::after { animation: dbSheen .9s ease; }
+.db-vcm-card > i { animation: dbFloat 4.5s ease-in-out infinite; box-shadow: 0 6px 14px rgba(43,32,39,.15); }
+.db-vcm-card:nth-of-type(2) > i { animation-delay: .6s; }
+.db-vcm-card:nth-of-type(3) > i { animation-delay: 1.2s; }
+.db-vcm-card:nth-of-type(4) > i { animation-delay: 1.8s; }
+.db-vcm-card b { font-variant-numeric: tabular-nums; }
+.db-concept { transition: transform .2s ease; }
+.db-table tbody tr:hover .db-concept { transform: translateY(-1px); }
+@media (prefers-reduced-motion: reduce) {
+    .db-vcm-concepts > *, .db-vcm-card > i, .db-vcm-card:hover::after { animation: none !important; }
+    .db-vcm-card, .db-vcm-card:hover { transition: none; transform: none; }
+}
+.db-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 1280px) { .db-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .db-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ── Aviso de reporte repetido ── */
+.dup-popup .dup-list { text-align: left; margin: .4rem 0 .8rem; padding-left: 1.1rem; font-size: .85rem; }
+.dup-popup .dup-note { font-size: .8rem; color: #92400E; background: var(--warn-soft); border-radius: 10px; padding: .45rem .7rem; text-align: left; }
+.dup-popup p { font-size: .86rem; text-align: left; }
+.dup-cmp { text-align: left; margin-bottom: 1rem; }
+.dup-cmp h4 { font-size: .9rem; font-weight: 900; margin: 0 0 .4rem; }
+.dup-cmp table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.dup-cmp th, .dup-cmp td { padding: .35rem .5rem; border-bottom: 1px solid #F1E7EC; }
+.dup-cmp th { font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--txt3); }
+.dup-cmp .num { text-align: right; font-variant-numeric: tabular-nums; }
+.dup-cmp td.up { color: var(--ok); font-weight: 800; }
+.dup-cmp td.down { color: var(--bad); font-weight: 800; }
+.dup-skus { font-size: .78rem; color: var(--txt2); margin: .5rem 0; }
+.dup-verdict { padding: .55rem .75rem; border-radius: 10px; font-size: .82rem; font-weight: 600; }
+.dup-verdict.good { background: var(--ok-soft); color: var(--ok); }
+.dup-verdict.bad  { background: var(--bad-soft); color: var(--bad); }
+.dup-verdict.warn { background: var(--warn-soft); color: #92400E; }
+.dup-verdict.same { background: #F3EAF0; color: var(--txt2); }
