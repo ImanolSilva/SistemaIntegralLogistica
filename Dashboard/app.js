@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── CONSTANTES ───────────────────────────────────────────────────────────
     const COLLECTION   = "reportesDashboard";
     const META_ID      = "_meta";      // documento de control de versión (no es un reporte)
+    const ALL_KEY      = "__todos__";  // opción "Todos los reportes" del filtro Reporte
     const DATOS_COLL   = "datosMaestros";
     const DATOS_DOC    = "secciones";
     const COMPLEMENTO_JEFATURA = "../Complementos/Jefatura.json";
@@ -86,7 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const State = {
         currentUser: null,
         isAdmin: false,
-        allReportes: [],
+        allReportes: [],      // reportes con filas descargadas (los del reporte elegido)
+        reportIndex: [],      // lista de reportes sin filas: { manifestoId, ids, uploadedAt, ... }
+        loadedKey: '',        // reporte cuyas filas están en allRows ('' = ninguno, ALL_KEY = todos)
+        rowCache: new Map(),  // filas ya descargadas por manifiesto, para cambiar de reporte al instante
         allRows: [],
         filteredRows: [],
         idx: null,            // índices calculados una vez al cargar
@@ -170,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('welcome-greeting').textContent = `${greet}, ${name}`;
 
         await loadMasterData();
-        await loadReportes();
+        await initReports();
     });
 
     $('logout-btn').addEventListener('click', () => {
@@ -187,8 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateAdminSummary() {
         const secs  = Object.keys(State.masterMap).length;
-        $('admin-summary').textContent = `${State.allReportes.length} reportes · ${fmt(State.allRows.length)} filas · ${secs ? secs + ' secciones maestras' : 'Datos maestros sin cargar'}`;
-        $('tab-count-avance').textContent = State.allReportes.length;
+        $('admin-summary').textContent = `${State.reportIndex.length} reportes · ${secs ? secs + ' secciones maestras' : 'Datos maestros sin cargar'}`;
+        $('tab-count-avance').textContent = State.reportIndex.length;
     }
 
     // ── DATOS MAESTROS ───────────────────────────────────────────────────────
@@ -474,8 +478,9 @@ document.addEventListener('DOMContentLoaded', () => {
             State.masterMap = sections;
             setDatosStatus(Object.keys(sections).length, 'ahora mismo');
             State.datosModal.hide();
-            // Volver a leer para reflejar las nuevas áreas (las filas se enriquecen en su lugar)
-            await loadReportes();
+            // Volver a leer el reporte abierto para reflejar las nuevas áreas
+            State.rowCache.clear();
+            if (State.loadedKey) await onReportChange(true);
             Swal.fire({ icon: 'success', title: '¡Listo!', text: `${Object.keys(sections).length} secciones cargadas.`, timer: 2300, showConfirmButton: false });
         } catch (err) { console.error(err); showDatosError('Error al guardar.'); }
         finally { UI.btnDatosConfirm.disabled = false; UI.btnDatosConfirm.innerHTML = '<i class="bi bi-database-fill-up"></i> Guardar'; }
@@ -487,10 +492,115 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── CARGA DE REPORTES ────────────────────────────────────────────────────
+    // ── LISTA DE REPORTES SIN FILAS ──────────────────────────────────────────
+    // Al abrir solo se pide a Firestore (API REST con máscara de campos) el nombre, fecha y autor
+    // de cada documento, sin las filas. Las filas se descargan al elegir un reporte.
+    async function loadReportIndex() {
+        const fieldsWanted = ['manifestoId', 'uploadedAt', 'uploadedByEmail', 'fileName', 'originalName', 'chunkGroup', 'part'];
+        const token = await auth.currentUser.getIdToken();
+        const base = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/${COLLECTION}`;
+        const mask = fieldsWanted.map(f => 'mask.fieldPaths=' + f).join('&');
+        const docs = [];
+        let pageToken = '';
+        do {
+            const res = await fetch(`${base}?pageSize=300&${mask}${pageToken ? '&pageToken=' + encodeURIComponent(pageToken) : ''}`, { headers: { Authorization: 'Bearer ' + token } });
+            if (!res.ok) throw new Error('Lista de reportes: HTTP ' + res.status);
+            const body = await res.json();
+            (body.documents || []).forEach(d => docs.push(d));
+            pageToken = body.nextPageToken || '';
+        } while (pageToken);
+        const val = v => !v ? '' : v.stringValue ?? v.integerValue ?? (v.timestampValue ? new Date(v.timestampValue) : '');
+        const byM = new Map();
+        docs.forEach(d => {
+            const id = d.name.split('/').pop();
+            if (id === META_ID) return;
+            const f = d.fields || {};
+            const m = String(val(f.manifestoId) || 'GENERAL');
+            const up = val(f.uploadedAt) || null;
+            let e = byM.get(m);
+            if (!e) byM.set(m, e = { manifestoId: m, ids: [], uploadedAt: up, uploadedByEmail: val(f.uploadedByEmail), fileName: val(f.fileName), originalName: val(f.originalName) });
+            e.ids.push(id);
+            if (up && (!e.uploadedAt || up > e.uploadedAt)) e.uploadedAt = up;
+        });
+        State.reportIndex = [...byM.values()].sort((a, b) => (toDate(b.uploadedAt)?.getTime() || 0) - (toDate(a.uploadedAt)?.getTime() || 0) || COLL.compare(a.manifestoId, b.manifestoId));
+        State.manifestInfo = {};
+        State.reportIndex.forEach(r => { State.manifestInfo[r.manifestoId] = { date: toDate(r.uploadedAt), by: r.uploadedByEmail || '', file: r.fileName || '' }; });
+    }
+
+    function fillReportSelect() {
+        const items = State.reportIndex.map(r => {
+            const d = toDate(r.uploadedAt);
+            return { value: r.manifestoId, label: manifLabel(r.manifestoId) + (d ? ' · ' + fmtDate(d) : '') };
+        });
+        if (items.length > 1) items.push({ value: ALL_KEY, label: 'Todos los reportes (carga completa, más lento)' });
+        fillSelect(UI.filterManifiesto, items, 'Elige un reporte…');
+    }
+
+    // selectKey: reporte a abrir al terminar (por ejemplo, el que se acaba de subir).
+    async function initReports(selectKey) {
+        try {
+            await loadReportIndex();
+        } catch (e) {
+            // Si la lista ligera falla, se usa la carga completa de siempre.
+            console.warn('No se pudo leer la lista de reportes; se cargan todos.', e);
+            State.reportIndex = [];
+            fillSelect(UI.filterManifiesto, [{ value: ALL_KEY, label: 'Todos los reportes' }], 'Elige un reporte…');
+            UI.filterManifiesto.value = ALL_KEY;
+            await onReportChange(true);
+            return;
+        }
+        fillReportSelect();
+        renderAdminList();
+        updateAdminSummary();
+        const keep = selectKey || State.loadedKey;
+        const exists = k => k === ALL_KEY ? State.reportIndex.length > 1 : State.reportIndex.some(r => r.manifestoId === k);
+        if (keep && exists(keep)) { UI.filterManifiesto.value = keep; await onReportChange(true); }
+        else { UI.filterManifiesto.value = ''; await onReportChange(); }
+    }
+
+    // Abre el reporte elegido en el filtro Reporte (o muestra el esqueleto si no hay ninguno).
+    let reportLoadSeq = 0;
+    async function onReportChange(force) {
+        const key = UI.filterManifiesto.value;
+        UI.filterManifiesto.classList.toggle('is-set', !!key);
+        if (key === State.loadedKey && !force) { applyFilters(); return; }
+        // Cambiar de reporte limpia los demás filtros.
+        UI.filterJefatura.value = ''; UI.filterSeccion.value = '';
+        setContFilterValue('');
+        if (!key) { State.loadedKey = ''; showPickState(); return; }
+        const seq = ++reportLoadSeq;
+        await loadReportes({ manifestoId: key === ALL_KEY ? '' : key, seq });
+    }
+
+    // Esqueleto sin información mientras no se elige un reporte.
+    function showPickState() {
+        setContFilterValue('');
+        State.allReportes = []; State.allRows = []; State.filteredRows = []; State.idx = null;
+        State.sum = summarize([]);
+        renderToken++;
+        UI.dataContent.style.display = 'none';
+        UI.noDataState.style.display = State.reportIndex.length ? 'none' : 'block';
+        if ($('pick-state')) $('pick-state').style.display = State.reportIndex.length ? 'block' : 'none';
+        [UI.filterJefatura, UI.filterSeccion].forEach(el => fillSelect(el, [], el === UI.filterJefatura ? 'Todas las áreas' : 'Todas las secciones'));
+        setFiltersEnabled(false);
+        renderHero(State.sum);
+        $('hero-scope').innerHTML = State.reportIndex.length
+            ? `Hay <strong>${fmt(State.reportIndex.length)}</strong> reportes cargados. Elige uno en el filtro <strong>Reporte</strong> para generar su resumen.`
+            : 'Todavía no hay resultados para mostrar.';
+        renderActiveFilters();
+        hideLoading();
+    }
+
+    function setFiltersEnabled(on) {
+        [UI.filterJefatura, UI.filterSeccion, UI.filterCont].forEach(el => { if (el) el.disabled = !on; });
+    }
+
+    // Descarga las filas. opts.manifestoId: solo ese reporte; sin él, todos.
     // opts.fresh: leer del servidor (después de subir o borrar). opts.background: sin pantalla de carga.
     async function loadReportes(opts = {}) {
         if (!opts.background) showLoading();
         try {
+            if (opts.manifestoId) { await loadOneReport(opts); return; }
             // Primero lo que el navegador ya tiene guardado: se muestra al instante sin volver a
             // descargar todos los reportes. Después se revisa en segundo plano si hubo cambios.
             // Sin orderBy: los registros sin uploadedAt también deben aparecer.
@@ -502,6 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (_) { snap = null; }
             }
             if (!fromCache) snap = await db.collection(COLLECTION).get(opts.fresh ? { source: 'server' } : undefined);
+            if (opts.seq && opts.seq !== reportLoadSeq) return;   // se eligió otro reporte mientras cargaba
             // Reportes grandes se guardan en varias partes (límite 1 MiB por documento); se reagrupan por chunkGroup.
             const grouped = {};
             const reportes = [];
@@ -546,16 +657,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             await yieldToBrowser();
-            State.allRows = enrichRows(all);
-            await yieldToBrowser();
-            State.idx = await buildIndex(State.allRows);
-            await yieldToBrowser();
-            State.art.cache = null;
-            renderAdminList();
-            updateAdminSummary();
-            applyFilters({ progressive: true });
-            // El texto de búsqueda de contenedores se arma cuando el navegador está libre.
-            prebuildContSearch();
+            enrichRows(all);
+            // Cada manifiesto queda guardado en memoria para abrirlo después sin descargarlo.
+            const byM = new Map();
+            State.allReportes.forEach(r => { const k = r.manifestoId || 'GENERAL'; if (!byM.has(k)) byM.set(k, []); byM.get(k).push(r); });
+            byM.forEach((reps, k) => State.rowCache.set(k, reps));
+            await showRows(all, ALL_KEY, opts.seq);
             if (fromCache) checkForUpdates(snap);
         } catch (e) {
             console.error(e);
@@ -566,6 +673,59 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally { if (!opts.background) hideLoading(); }
     }
 
+    // Un solo reporte: se descarga con una consulta por manifiesto (o se toma de la memoria).
+    async function loadOneReport(opts) {
+        const m = opts.manifestoId;
+        let reps = State.rowCache.get(m);
+        if (!reps) {
+            const snap = await db.collection(COLLECTION).where('manifestoId', '==', m).get();
+            if (opts.seq && opts.seq !== reportLoadSeq) return;
+            reps = groupReportDocs(snap.docs);
+            const rows = [];
+            reps.forEach(r => { for (const row of r.rows) rows.push(row); });
+            enrichRows(rows);
+            State.rowCache.set(m, reps);
+        }
+        if (opts.seq && opts.seq !== reportLoadSeq) return;
+        State.allReportes = reps;
+        const all = [];
+        reps.forEach(r => { for (const row of r.rows) all.push(row); });
+        await showRows(all, m, opts.seq);
+    }
+
+    // Une las partes de un reporte grande (chunkGroup) y prepara sus filas.
+    function groupReportDocs(docs) {
+        const grouped = {}, reps = [];
+        for (const d of docs) {
+            if (d.id === META_ID) continue;
+            const data = d.data();
+            const rows = prepareRows(data.rows || [], data.manifestoId);
+            delete data.rows;
+            const key = data.chunkGroup || d.id;
+            let e = grouped[key];
+            if (!e) { e = grouped[key] = { id: d.id, ...data, ids: [], parts: [] }; reps.push(e); }
+            e.ids.push(d.id); e.parts.push({ part: data.part || 0, rows });
+        }
+        reps.forEach(e => { e.parts.sort((a, b) => a.part - b.part); e.rows = []; e.parts.forEach(p => { for (const r of p.rows) e.rows.push(r); }); delete e.parts; });
+        return reps;
+    }
+
+    // Índices y dibujo de las filas descargadas.
+    async function showRows(rows, key, seq) {
+        await yieldToBrowser();
+        if (seq && seq !== reportLoadSeq) return;
+        State.allRows = rows;
+        State.idx = await buildIndex(rows);
+        if (seq && seq !== reportLoadSeq) return;
+        State.loadedKey = key;
+        State.art.cache = null;
+        if ($('pick-state')) $('pick-state').style.display = 'none';
+        setFiltersEnabled(true);
+        applyFilters({ progressive: true });
+        // El texto de búsqueda de contenedores se arma cuando el navegador está libre.
+        prebuildContSearch();
+    }
+
     // Documento reportesDashboard/_meta: cambia su versión cada vez que se sube o borra un reporte.
     // Si la versión del servidor es la misma que la guardada en el navegador, no se descarga nada.
     async function checkForUpdates(cacheSnap) {
@@ -574,6 +734,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const server = await db.collection(COLLECTION).doc(META_ID).get({ source: 'server' });
             const current = server.exists ? server.data().version : null;
             if (current && current === cached) return;
+            if (State.loadedKey !== ALL_KEY) return;
+            State.rowCache.clear();
             await loadReportes({ fresh: true, background: true });
             if (!current) { if (State.isAdmin) await bumpMeta(); return; }
             Swal.fire({ toast: true, position: 'bottom-end', icon: 'info', title: 'Datos actualizados', timer: 2500, showConfirmButton: false });
@@ -603,10 +765,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function refreshFilterOptions() {
         const idx = State.idx;
         if (!idx) return;
-        fillSelect(UI.filterManifiesto, idx.manifList.map(m => ({ value: m, label: manifLabel(m) })), 'Todos los reportes');
-
-        const fM = UI.filterManifiesto.value;
-        const combosM = fM ? idx.combos.filter(c => c.m === fM) : idx.combos;
+        // El filtro Reporte decide qué filas se descargan; aquí solo se encadenan Área y Sección.
+        const combosM = idx.combos;
         const areas = uniq(combosM.map(c => c.a)).sort(areaSort);
         fillSelect(UI.filterJefatura, areas.map(a => ({ value: a, label: a })), 'Todas las áreas');
 
@@ -620,7 +780,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function currentFilters() {
-        return { m: UI.filterManifiesto.value, a: UI.filterJefatura.value, s: UI.filterSeccion.value, c: State.filterCont };
+        // m siempre vacío: las filas en memoria ya son solo las del reporte elegido.
+        return { m: '', a: UI.filterJefatura.value, s: UI.filterSeccion.value, c: State.filterCont };
     }
 
     // ¿El contenedor tiene filas con el reporte/área/sección elegidos?
@@ -664,6 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         renderActiveFilters();
 
+        if (!State.loadedKey) { showPickState(); return; }
         if (State.allRows.length === 0) {
             UI.noDataState.style.display = 'block';
             UI.dataContent.style.display = 'none';
@@ -676,14 +838,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (progressive) renderAllProgressive(); else renderAll();
     }
 
-    [UI.filterManifiesto, UI.filterJefatura, UI.filterSeccion].forEach(el => el.addEventListener('change', applyFilters));
+    UI.filterManifiesto.addEventListener('change', () => onReportChange());
+    [UI.filterJefatura, UI.filterSeccion].forEach(el => el.addEventListener('change', applyFilters));
+    // Limpiar quita Área, Sección y Contenedor; el reporte abierto se conserva.
     $('btn-reset-filters').addEventListener('click', () => {
-        UI.filterManifiesto.value = ''; UI.filterJefatura.value = ''; UI.filterSeccion.value = '';
+        UI.filterJefatura.value = ''; UI.filterSeccion.value = '';
         setContFilterValue('');
         applyFilters();
     });
 
     function setFilter(el, value) {
+        if (el === UI.filterManifiesto) { el.value = value; onReportChange(); return; }
         el.value = el.value === value ? '' : value;
         applyFilters();
     }
@@ -691,7 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderActiveFilters() {
         const box = $('filter-active');
         const list = [
-            { lbl: 'Reporte', text: UI.filterManifiesto.value ? UI.filterManifiesto.options[UI.filterManifiesto.selectedIndex]?.text : '', clear: () => { UI.filterManifiesto.value = ''; } },
+            { lbl: 'Reporte', text: UI.filterManifiesto.value ? UI.filterManifiesto.options[UI.filterManifiesto.selectedIndex]?.text : '', clear: () => { UI.filterManifiesto.value = ''; State.loadedKey = ''; } },
             { lbl: 'Área',    text: UI.filterJefatura.value ? UI.filterJefatura.options[UI.filterJefatura.selectedIndex]?.text : '', clear: () => { UI.filterJefatura.value = ''; } },
             { lbl: 'Sección', text: UI.filterSeccion.value ? UI.filterSeccion.options[UI.filterSeccion.selectedIndex]?.text : '', clear: () => { UI.filterSeccion.value = ''; } },
             { lbl: 'Contenedor', text: State.filterCont, clear: () => setContFilterValue('') },
@@ -947,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         animateNumber($('wb-contenedores'), sum.conts.length);
 
         const parts = [];
-        if (UI.filterManifiesto.value) parts.push(`reporte <strong>${esc(manifLabel(UI.filterManifiesto.value))}</strong>`);
+        if (UI.filterManifiesto.value && UI.filterManifiesto.value !== ALL_KEY) parts.push(`reporte <strong>${esc(manifLabel(UI.filterManifiesto.value))}</strong>`);
         if (UI.filterJefatura.value)   parts.push(`área <strong>${esc(UI.filterJefatura.value)}</strong>`);
         if (UI.filterSeccion.value)    parts.push(`sección <strong>${esc(UI.filterSeccion.value)}</strong>`);
         if (State.filterCont)          parts.push(`contenedor <strong>${esc(State.filterCont)}</strong>`);
@@ -956,10 +1121,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `${scope} VCM esperaba <strong>${fmt(tot.pz)}</strong> piezas: <strong>${fmt(tot.correcto)}</strong> correctas, <strong>${fmt(tot.ft)}</strong> faltantes, <strong>${fmt(tot.sb)}</strong> sobrantes y <strong>${fmt(tot.ad)}</strong> adicionales.`
             : 'Todavía no hay resultados para mostrar.';
 
-        const last = State.allReportes.find(r => toDate(r.uploadedAt));
+        const last = State.reportIndex.find(r => toDate(r.uploadedAt));
         $('wb-fecha').textContent = last
             ? `Última carga: ${fmtDateTime(toDate(last.uploadedAt))}${last.uploadedByEmail ? ' · por ' + last.uploadedByEmail : ''}`
-            : (State.allReportes.length ? 'Fecha de carga no disponible' : 'Sin cargas registradas');
+            : (State.reportIndex.length ? 'Fecha de carga no disponible' : 'Sin cargas registradas');
 
         const pct = tot.pct ?? 0;
         const tone = toneOf(tot.pct);
@@ -1366,7 +1531,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const active = UI.filterJefatura.value;
         let areaList = sum.areas;
         if (active) {
-            const fM = UI.filterManifiesto.value, fS = UI.filterSeccion.value, fC = State.filterCont;
+            const fM = '', fS = UI.filterSeccion.value, fC = State.filterCont;
             const base = fC ? State.idx.byCont.get(fC) || [] : fS ? State.idx.bySec.get(fS) || [] : fM ? State.idx.byManif.get(fM) || [] : State.allRows;
             const rows = (fM || fS || fC) ? base.filter(r => (!fM || r.Manifiesto === fM) && (!fS || r.Seccion === fS) && (!fC || r.Contenedor === fC)) : base;
             areaList = summarizeAreas(rows);
@@ -1652,7 +1817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('art-count').textContent = `${fmt(list.length)} ${what}${fC ? '' : ' · elige un contenedor para ver toda su mercancía'}`;
 
         // El reporte se muestra si puede haber el mismo contenedor en varios reportes.
-        const showRep = !UI.filterManifiesto.value && (!fC || (State.idx.contInfo.get(fC)?.manifs.size || 0) > 1);
+        const showRep = (State.idx?.manifList.length || 0) > 1 && (!fC || (State.idx.contInfo.get(fC)?.manifs.size || 0) > 1);
         $('tbody-articulos').innerHTML = pageRows.map(a => `<tr>
                 <td data-label="Contenedor"><span class="db-mono">${esc(a.contenedor)}</span>${showRep ? `<span class="sub">${esc(manifLabel(a.manifiesto))}</span>` : ''}</td>
                 <td data-label="Artículo"><span class="db-mono">${esc(a.articulo)}</span></td>
@@ -1720,7 +1885,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const resumen = [
             ['Dashboard de Resultados — Sistema Liverpool'],
             ['Generado', fmtDateTime(new Date())],
-            ['Reporte', UI.filterManifiesto.value ? manifLabel(UI.filterManifiesto.value) : 'Todos'],
+            ['Reporte', UI.filterManifiesto.value && UI.filterManifiesto.value !== ALL_KEY ? manifLabel(UI.filterManifiesto.value) : 'Todos'],
             ['Área', UI.filterJefatura.value || 'Todas'],
             ['Sección', UI.filterSeccion.value || 'Todas'],
             ['Contenedor', State.filterCont || 'Todos'],
@@ -1774,18 +1939,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── LISTA ADMIN ──────────────────────────────────────────────────────────
     function renderAdminList() {
         if (!State.isAdmin) return;
-        if (!State.allReportes.length) { UI.adminList.innerHTML = '<div class="db-file-empty">No hay reportes cargados aún.</div>'; return; }
-        UI.adminList.innerHTML = State.allReportes.map(rep => {
+        if (!State.reportIndex.length) { UI.adminList.innerHTML = '<div class="db-file-empty">No hay reportes cargados aún.</div>'; return; }
+        UI.adminList.innerHTML = State.reportIndex.map(rep => {
             const d = toDate(rep.uploadedAt);
             const label = rep.manifestoId?.startsWith('varios') ? 'Varios manifiestos' : (rep.manifestoId || '—');
-            const t = rep.tot || agg(rep.rows || []);
             return `<div class="db-file">
                 <span class="db-file-icon"><i class="bi bi-file-earmark-spreadsheet-fill"></i></span>
                 <div style="min-width:0">
                     <div class="db-file-name">${esc(manifLabel(label))}</div>
                     <div class="db-file-meta">${esc(rep.fileName || '—')} · ${d ? fmtDateTime(d) : 'sin fecha'}${rep.uploadedByEmail ? ' · ' + esc(rep.uploadedByEmail) : ''}</div>
                 </div>
-                <div class="db-file-stats">${fmt(rep.rows?.length || 0)} filas<br>${pctTxt(t.pct ?? 0)} exactitud</div>
+                <div class="db-file-stats">${rep.originalName ? esc(truncate(rep.originalName, 28)) + '<br>' : ''}${fmt(rep.ids.length)} ${rep.ids.length === 1 ? 'parte' : 'partes'}</div>
                 <button class="db-file-del" data-id="${esc((rep.ids || [rep.id]).join(','))}" data-name="${esc(label)}" title="Eliminar"><i class="bi bi-trash3-fill"></i></button>
             </div>`;
         }).join('');
@@ -1804,11 +1968,14 @@ document.addEventListener('DOMContentLoaded', () => {
             docId.split(',').filter(Boolean).forEach(id => batch.delete(db.collection(COLLECTION).doc(id)));
             await batch.commit();
             await bumpMeta();
+            State.rowCache.clear();
             Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1700, showConfirmButton: false });
-            await loadReportes({ fresh: true });
+            await initReports();
         } catch (e) {
-            hideLoading();
+            console.error(e);
             Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar.' });
+        } finally {
+            hideLoading();
         }
     }
 
@@ -1898,7 +2065,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await storage.ref(`${STORAGE_PATH}${savedName}`).put(file);
             for (const manifestoId of manifiestos) {
                 const manifestRows = isMultiple ? rows.filter(r => r.Manifiesto === manifestoId) : rows;
-                const localExisting = State.allReportes.filter(r => r.manifestoId === manifestoId);
+                const localExisting = State.reportIndex.filter(r => r.manifestoId === manifestoId);
                 if (localExisting.length > 0) {
                     const batch = db.batch();
                     localExisting.forEach(r => (r.ids || [r.id]).forEach(id => batch.delete(db.collection(COLLECTION).doc(id))));
@@ -1924,7 +2091,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await bumpMeta();
             State.uploadModal.hide();
             Swal.fire({ icon: 'success', title: '¡Listo!', text: isMultiple ? `${manifiestos.length} manifiestos cargados.` : `Manifiesto ${manifiestos[0]} cargado.`, timer: 2300, showConfirmButton: false });
-            await loadReportes({ fresh: true });
+            manifiestos.forEach(m => State.rowCache.delete(m));
+            State.rowCache.delete(ALL_KEY);
+            await initReports(manifiestos[0]);
         } catch (err) {
             console.error(err); showUploadError('Error al subir. Intenta de nuevo.');
         } finally {
@@ -1936,14 +2105,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── REPORTE REPETIDO: COMPARAR O REEMPLAZAR ──────────────────────────────
     // Devuelve true si se debe subir (no había duplicado o el usuario eligió Reemplazar).
     async function confirmDuplicate(file, rows, manifiestos) {
-        const dups = manifiestos.filter(m => State.allReportes.some(r => r.manifestoId === m));
-        const sameName = State.allReportes.filter(r => r.originalName && r.originalName === file.name && !manifiestos.includes(r.manifestoId));
+        const dups = manifiestos.filter(m => State.reportIndex.some(r => r.manifestoId === m));
+        const sameName = State.reportIndex.filter(r => r.originalName && r.originalName === file.name && !manifiestos.includes(r.manifestoId));
         if (!dups.length && !sameName.length) return true;
 
         State.uploadModal.hide();   // el modal de Bootstrap atrapa el foco; se cierra mientras se pregunta
         const back = ok => { State.uploadModal.show(); return ok; };
         const info = dups.map(m => {
-            const prev = State.allReportes.find(r => r.manifestoId === m);
+            const prev = State.reportIndex.find(r => r.manifestoId === m);
             const d = toDate(prev.uploadedAt);
             return `<li><b>${esc(manifLabel(m))}</b> — cargado ${d ? esc(fmtDateTime(d)) : 'sin fecha'}${prev.uploadedByEmail ? ' por ' + esc(prev.uploadedByEmail) : ''}${prev.originalName ? ` (archivo <i>${esc(prev.originalName)}</i>)` : ''}</li>`;
         }).join('');
@@ -1966,8 +2135,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (first.isDenied) return back(await confirmReplace(dups));
             if (!first.isConfirmed) return back(false);
 
+            Swal.fire({ title: 'Comparando…', html: '<span class="spinner-border spinner-border-sm me-1"></span> Leyendo el reporte que ya está cargado.', allowOutsideClick: false, showConfirmButton: false, customClass: { popup: 'db-swal-popup' } });
+            let oldBy;
+            try { oldBy = await fetchReportRows(dups); }
+            catch (e) { console.error(e); await Swal.fire({ icon: 'error', title: 'No se pudo comparar', text: e.message || '' }); continue; }
+            Swal.close();
             const cmp = await Swal.fire({
-                title: 'Comparación', html: dups.map(m => compareHtml(m, rows.filter(r => r.Manifiesto === m))).join(''),
+                title: 'Comparación', html: dups.map(m => compareHtml(m, rows.filter(r => r.Manifiesto === m), oldBy.get(m) || [])).join(''),
                 width: 760, showCancelButton: true, showDenyButton: true,
                 confirmButtonText: '<i class="bi bi-arrow-repeat"></i> Reemplazar con el nuevo', denyButtonText: 'Volver', cancelButtonText: 'Cancelar',
                 confirmButtonColor: C.bad, customClass: { popup: 'db-swal-popup dup-popup' }
@@ -1984,8 +2158,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Totales y diferencias por SKU (contenedor + artículo) entre lo cargado y el archivo nuevo.
-    function compareHtml(m, newRows) {
-        const oldRows = State.idx?.byManif.get(m) || [];
+    // Filas ya guardadas de cada manifiesto (de memoria o de Firestore), para comparar.
+    async function fetchReportRows(ms) {
+        const out = new Map();
+        for (const m of ms) {
+            let reps = State.rowCache.get(m);
+            if (!reps) {
+                const snap = await db.collection(COLLECTION).where('manifestoId', '==', m).get();
+                reps = groupReportDocs(snap.docs);
+            }
+            const rows = [];
+            reps.forEach(r => { for (const row of r.rows) rows.push(row); });
+            out.set(m, rows);
+        }
+        return out;
+    }
+
+    function compareHtml(m, newRows, oldRows) {
         const sumUp = list => {
             const t = { lineas: list.length, pz: 0, reg: 0, correcto: 0, faltante: 0, sobrante: 0, adicional: 0, conts: new Set(), keys: new Map() };
             for (const r of list) {

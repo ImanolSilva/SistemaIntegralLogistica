@@ -598,3 +598,13 @@ Pruebas: 153 verificaciones automáticas en Chrome sin errores de JavaScript. Cu
   - **Reemplazar:** pide una segunda confirmación antes de sobrescribir.
   - **Cancelar.**
 - También avisa si ya se subió un archivo con el mismo nombre para otro manifiesto. Desde ahora cada carga guarda `originalName`, el nombre original del archivo.
+
+### Dashboard: se elige el reporte antes de descargar 2026-11-24
+
+- Al abrir ya no se descargan las filas de ningún reporte. `loadReportIndex` pide a la API REST de Firestore (`documents/reportesDashboard` con `mask.fieldPaths`) solo `manifestoId`, `uploadedAt`, `uploadedByEmail`, `fileName`, `originalName`, `chunkGroup` y `part` de cada documento. Con eso se llena el filtro Reporte ("Elige un reporte…", cada reporte con su fecha y, si hay más de uno, "Todos los reportes (carga completa, más lento)").
+- Mientras no se elige un reporte se muestra un esqueleto animado (`#pick-state`) con un mensaje, y Área, Sección y Contenedor quedan deshabilitados.
+- Al elegir un reporte se descargan solo sus documentos (`where('manifestoId', '==', …)`) y se arma el resumen. Lo ya descargado queda en memoria (`State.rowCache`), así que volver a un reporte es inmediato. "Todos" usa la carga completa con caché del navegador.
+- El filtro Reporte decide qué se descarga; ya no filtra filas. Cambiar de reporte limpia Área, Sección y Contenedor. "Limpiar" conserva el reporte abierto. Quitar el chip Reporte regresa al esqueleto.
+- Tras subir un archivo se abre el reporte subido. Tras borrar, se vuelve a leer la lista. La comparación de reporte repetido descarga el reporte guardado solo al pulsar "Comparar".
+- La lista de administración muestra nombre original, fecha y número de partes (ya no filas ni exactitud, que requerían descargar todo).
+- Si la API REST no responde, se usa la carga completa de antes.

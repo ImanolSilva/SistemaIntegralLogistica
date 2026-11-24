@@ -609,3 +609,22 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
 .dup-verdict.bad  { background: var(--bad-soft); color: var(--bad); }
 .dup-verdict.warn { background: var(--warn-soft); color: #92400E; }
 .dup-verdict.same { background: #F3EAF0; color: var(--txt2); }
+
+/* ── Esqueleto antes de elegir un reporte ── */
+@keyframes dbSkel { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.db-pick { margin-top: .5rem; animation: dbRise .6s cubic-bezier(.2,.8,.2,1) both; }
+.db-pick-msg { display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.3rem; margin-bottom: 1rem; border: 1px dashed #f0b8d6; border-radius: 18px; background: linear-gradient(135deg, #fff, #fff4fa); }
+.db-pick-msg h3 { margin: 0 0 .2rem; font-size: 1rem; font-weight: 900; color: var(--txt); }
+.db-pick-msg p { margin: 0; font-size: .82rem; color: var(--txt2); }
+.db-pick-icon { display: grid; place-items: center; flex: 0 0 46px; width: 46px; height: 46px; border-radius: 14px; color: #fff; font-size: 1.3rem; background: linear-gradient(135deg, #8e1a5b, #e6007e); animation: dbFloat 4.5s ease-in-out infinite; }
+.db-skel { display: grid; gap: .85rem; }
+.db-skel-row { display: grid; gap: .85rem; }
+.db-skel-row.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.db-skel-row.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.db-skel-row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.db-skel-row i { display: block; height: 96px; border-radius: 18px; border: 1px solid var(--line); background: linear-gradient(90deg, #f6eef3 25%, #fdf8fb 50%, #f6eef3 75%); background-size: 200% 100%; animation: dbSkel 1.6s ease-in-out infinite; }
+.db-skel-row.four i { height: 70px; }
+.db-skel-row i.tall { height: 240px; }
+.db-filter select:disabled, .db-combo input:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 760px) { .db-skel-row.five, .db-skel-row.four, .db-skel-row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .db-pick, .db-pick-icon, .db-skel-row i { animation: none !important; } }

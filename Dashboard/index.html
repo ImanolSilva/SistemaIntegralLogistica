@@ -156,6 +156,23 @@
         </section>
 
         <!-- Sin datos -->
+        <!-- Esqueleto: se ve hasta que se elige un reporte -->
+        <div id="pick-state" class="db-pick" style="display:none">
+            <div class="db-pick-msg">
+                <span class="db-pick-icon"><i class="bi bi-file-earmark-bar-graph"></i></span>
+                <div>
+                    <h3>Elige un reporte</h3>
+                    <p>Selecciona un reporte en el filtro <b>Reporte</b> para generar su resumen. Así solo se descarga lo que vas a ver.</p>
+                </div>
+            </div>
+            <div class="db-skel" aria-hidden="true">
+                <div class="db-skel-row five"><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="db-skel-row four"><i></i><i></i><i></i><i></i></div>
+                <div class="db-skel-row two"><i class="tall"></i><i class="tall"></i></div>
+                <div class="db-skel-row one"><i class="tall"></i></div>
+            </div>
+        </div>
+
         <div id="no-data-state" class="db-empty" style="display:none">
             <i class="bi bi-cloud-upload"></i>
             <h3>Aún no hay resultados</h3>
