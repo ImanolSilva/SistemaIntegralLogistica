@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../shared.css">
     <script src="../shared-ui.js" defer></script>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20261124">
     <link rel="stylesheet" href="../theme.css">
 </head>
 <body>
@@ -139,6 +139,14 @@
             <div class="db-filter">
                 <label for="filter-seccion"><i class="bi bi-grid-3x3-gap"></i> Sección</label>
                 <select id="filter-seccion"><option value="">Todas las secciones</option></select>
+            </div>
+            <div class="db-filter">
+                <label for="filter-contenedor"><i class="bi bi-box-seam"></i> Contenedor</label>
+                <div class="db-combo">
+                    <input type="search" id="filter-contenedor" placeholder="Escribe el contenedor…" autocomplete="off" spellcheck="false"
+                           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="filter-contenedor-list">
+                    <ul class="db-combo-list" id="filter-contenedor-list" role="listbox" hidden></ul>
+                </div>
             </div>
             <div class="db-filter-actions">
                 <button class="db-btn db-btn-ghost" id="btn-reset-filters" type="button"><i class="bi bi-arrow-counterclockwise"></i> Limpiar</button>
@@ -324,10 +332,11 @@
                                 <th data-sort="manifiesto">Reporte</th>
                                 <th data-sort="seccion">Sección</th>
                                 <th data-sort="jefatura">Área</th>
-                                <th data-sort="lineas" class="num">Líneas</th>
                                 <th data-sort="pz" class="num">Piezas</th>
-                                <th data-sort="ft" class="num">Faltantes</th>
-                                <th data-sort="sb" class="num">Sobrantes</th>
+                                <th data-sort="correcto" class="num">Correcto</th>
+                                <th data-sort="ft" class="num">Faltante</th>
+                                <th data-sort="sb" class="num">Sobrante</th>
+                                <th data-sort="ad" class="num">Adicional</th>
                                 <th data-sort="pct" class="num">Exactitud</th>
                                 <th data-sort="estado">Estado</th>
                             </tr>
@@ -340,26 +349,37 @@
 
             <!-- ═══ ARTÍCULOS ═══ -->
             <div id="articulos-block" style="display:none">
-                <div class="db-section-title"><span>Artículos con más diferencias</span><small>Top 15 por piezas con diferencia</small></div>
+                <div class="db-section-title"><span id="art-title">Artículos por contenedor</span><small id="art-count">—</small></div>
                 <section class="db-panel db-panel-flush">
-                    <div class="db-table-tools"><label class="db-search"><i class="bi bi-search"></i><input type="search" id="article-search" placeholder="Filtrar SKU, descripción o área…"></label></div>
+                    <div class="db-toolbar">
+                        <div class="db-search"><i class="bi bi-search"></i><input type="search" id="article-search" placeholder="Buscar contenedor, SKU, descripción o área…"></div>
+                        <div class="db-chips" id="art-status-chips">
+                            <button class="db-chip" data-status="dif">Con diferencia</button>
+                            <button class="db-chip" data-status="all">Todos</button>
+                            <button class="db-chip" data-status="correcto">Correcto</button>
+                            <button class="db-chip" data-status="faltante">Faltante</button>
+                            <button class="db-chip" data-status="sobrante">Sobrante</button>
+                            <button class="db-chip" data-status="adicional">Adicional</button>
+                        </div>
+                    </div>
                     <div class="db-table-wrap">
                         <table class="db-table" id="table-articulos">
                             <thead>
                                 <tr>
-                                    <th>Artículo</th>
-                                    <th>Descripción</th>
-                                    <th>Área</th>
-                                    <th class="num">Contenedores</th>
-                                    <th class="num">Piezas</th>
-                                    <th class="num">Faltantes</th>
-                                    <th class="num">Sobrantes</th>
-                                    <th class="num">Exactitud</th>
+                                    <th data-sort="contenedor">Contenedor</th>
+                                    <th data-sort="articulo">Artículo</th>
+                                    <th data-sort="desc">Descripción</th>
+                                    <th data-sort="area">Área</th>
+                                    <th data-sort="pz" class="num">Esperadas</th>
+                                    <th data-sort="reg" class="num">Registradas</th>
+                                    <th data-sort="dif" class="num">Diferencia</th>
+                                    <th data-sort="concepto">Concepto</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-articulos"></tbody>
                         </table>
                     </div>
+                    <div class="db-pager" id="art-pager"></div>
                 </section>
             </div>
 
@@ -370,9 +390,11 @@
                     <div><dt>Piezas esperadas (VCM)</dt><dd>Total indicado por VCM: lo que el sistema esperaba recibir.</dd></div>
                     <div><dt>Piezas recibidas</dt><dd>Total registrado o escaneado en el resultado. La diferencia contra VCM muestra lo pendiente.</dd></div>
                     <div><dt>Faltantes</dt><dd>Piezas manifestadas que no se encontraron al recibir.</dd></div>
-                    <div><dt>Sobrantes</dt><dd>Piezas que llegaron de más o que no venían en el manifiesto.</dd></div>
+                    <div><dt>Sobrantes</dt><dd>Piezas que llegaron de más contra lo manifestado (status Sobrante).</dd></div>
+                    <div><dt>Adicional</dt><dd>Mercancía que no venía en el manifiesto. Se cuenta aparte: no suma también como sobrante.</dd></div>
+                    <div><dt>Conceptos</dt><dd>Cada línea del archivo VCM trae un status: <b>Correcto</b>, <b>Faltante</b>, <b>Sobrante</b> o <b>Adicional</b>. Elige un contenedor en los filtros para ver todos sus SKU con su concepto.</dd></div>
                     <div><dt>Exactitud</dt><dd>(Piezas − Faltantes) ÷ Piezas. La meta es 95%; entre 85% y 95% requiere atención y menos de 85% es crítico.</dd></div>
-                    <div><dt>Estado de contenedor</dt><dd><b>Sin diferencia</b>: ni faltantes ni sobrantes. <b>Con faltantes</b> / <b>Con sobrantes</b>: solo un tipo de diferencia. <b>Mixto</b>: ambos.</dd></div>
+                    <div><dt>Estado de contenedor</dt><dd><b>Sin diferencia</b>: ni faltantes ni sobrantes. <b>Con faltantes</b> / <b>Con sobrantes</b> (incluye adicionales): solo un tipo de diferencia. <b>Mixto</b>: ambos.</dd></div>
                     <div><dt>Sin área asignada</dt><dd>Secciones que no existen en Datos Maestros. Actualízalos para asignarles jefatura.</dd></div>
                 </dl>
             </details>
@@ -440,8 +462,13 @@
                     <div class="preview-row"><span class="preview-label">Archivo</span><span class="preview-value" id="prev-filename">—</span></div>
                     <div class="preview-row"><span class="preview-label">Filas</span><span class="preview-value" id="prev-rows">—</span></div>
                     <div class="preview-row"><span class="preview-label">Piezas / Faltantes / Sobrantes</span><span class="preview-value" id="prev-totales">—</span></div>
+                    <div class="preview-row"><span class="preview-label">Líneas por concepto</span><span class="preview-value" id="prev-conceptos">—</span></div>
+                    <div class="preview-row"><span class="preview-label">Columnas reconocidas</span><span class="preview-value" id="prev-columnas">—</span></div>
                     <div class="preview-row"><span class="preview-label">Jefaturas</span><span class="preview-value" id="prev-jefaturas">—</span></div>
                     <div class="preview-row"><span class="preview-label">Secciones</span><span class="preview-value" id="prev-secciones">—</span></div>
+                </div>
+                <div id="upload-warn" class="db-warn" style="display:none">
+                    <i class="bi bi-exclamation-circle-fill me-1"></i><span id="upload-warn-msg"></span>
                 </div>
                 <div id="upload-error" class="db-error" style="display:none">
                     <i class="bi bi-exclamation-triangle-fill me-1"></i><span id="upload-error-msg"></span>
@@ -465,7 +492,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 <script src="../access-control.js"></script>
-<script src="app.js?v=20261119"></script>
+<script src="app.js?v=20261124"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const hamburgerBtn = document.getElementById('hamburger-btn');

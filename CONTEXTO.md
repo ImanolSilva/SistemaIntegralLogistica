@@ -114,7 +114,7 @@ Centro ejecutivo de **resultados manifestados**. Los administradores suben un Ex
   - Detecta automáticamente las columnas Manifiesto (10 dígitos), Jefatura, Sección, Contenedor, Artículo, Descripción, Piezas, Faltantes y Sobrantes.
   - Volver a subir un manifiesto reemplaza su versión anterior.
 - **Datos Maestros (solo admin):** Excel con Sección, Descripción, Jefatura, Gerente y Bodega. Con él se asigna el área de cada sección. Las secciones que no aparecen se muestran como "Sin área asignada".
-- **Filtros encadenados:** Reporte, Área y Sección. Muestran chips de filtros activos y se pueden limpiar.
+- **Filtros encadenados:** Reporte, Área, Sección y Contenedor. Muestran chips de filtros activos y se pueden limpiar. Contenedor se busca escribiendo (sugiere hasta 50 coincidencias según los otros filtros); también se elige pulsando una fila de la tabla de contenedores.
 - **Encabezado:** saludo, frase resumen, totales, última carga y un medidor de exactitud con la meta de 95%.
 - **6 indicadores:**
   - piezas manifestadas;
@@ -144,12 +144,13 @@ Centro ejecutivo de **resultados manifestados**. Los administradores suben un Ex
 - **Tarjetas por área:** posición, exactitud, estado, piezas, faltantes, sobrantes, contenedores y la sección más afectada.
 - **Tablas:**
   - por sección: ordenable, con su peso en los faltantes;
-  - por contenedor: agrupada, con búsqueda, filtro por estado, ordenable y paginada de 20 en 20;
-  - top 15 artículos con diferencias.
-- **Exportar a Excel** lo filtrado. El archivo trae las hojas Resumen, Áreas, Secciones, Contenedores y Detalle.
+  - por contenedor: agrupada, con búsqueda, filtro por estado, ordenable y paginada de 20 en 20; columnas Correcto, Faltante, Sobrante y Adicional;
+  - artículos por contenedor: una fila por SKU dentro de su contenedor (Contenedor es la primera columna), con Esperadas, Registradas, Diferencia y Concepto. Sin contenedor elegido muestra las líneas con diferencia; con un contenedor elegido muestra toda su mercancía, también la correcta. Chips por concepto, búsqueda y paginación de 20 en 20.
+- **Exportar a Excel** lo filtrado. El archivo trae las hojas Resumen, Áreas, Secciones, Contenedores y Detalle, con los cuatro conceptos (Correcto, Faltante, Sobrante, Adicional) y el concepto de cada línea.
 - **Fórmulas:**
   - Exactitud = (Piezas − Faltantes) ÷ Piezas.
-  - Piezas recibidas = Piezas − Faltantes.
+  - Piezas recibidas = Cant. Registrada. Si el archivo no la trae pero sí Diferencia: Piezas + Diferencia; si tampoco: Piezas − Faltantes + Sobrantes + Adicional.
+  - Un renglón Adicional cuenta solo como Adicional, no también como Sobrante.
 
 ### Buscador de SKUs (`SKU/`)
 - Busca por SKU, contenedor o manifiesto.
@@ -344,6 +345,11 @@ El Dashboard acepta archivos Excel con encabezados equivalentes. La normalizacio
 | Faltantes | Faltantes, Faltante, Faltan |
 | Sobrantes | Sobrantes, Sobrante, Exceso, Mercancia de mas |
 | Manifiesto | Manifiesto, Manifesto, Folio, Reporte |
+| Cant. registrada | Cant. Registrada, Cantidad registrada, Registradas, Recibidas |
+| Diferencia / Status | Diferencia; Status, Estado, Estatus, Resultado, Concepto |
+| Descripción | Descripción, Desc. Artículo |
+
+- Los encabezados se comparan sin acentos, espacios ni signos ("Desc. Artículo" = "descarticulo"). Antes "Desc. Artículo" no se reconocía y los reportes guardados quedaron sin descripción de artículo.
 
 - Si el archivo no trae manifiesto, el registro se agrupa como `GENERAL`.
 - Cada documento de `reportesDashboard` guarda `manifestoId`, `fileName`, `uploadedBy`, `uploadedByEmail`, `uploadedAt` y `rows[]`.
@@ -526,3 +532,57 @@ Resultado: 42/42 verificaciones de flujo PDIS (subida, lista, filtros, estados e
 - Dashboard PDIS: la tabla de detalle tiene etiquetas para celular, anchos por columna, ID y SKU sin partir, fecha sin hora cuando es fecha de carga y comentarios completos; el detalle por sección de una jefatura se desplaza en horizontal si no cabe.
 - Verificado con un detector automático de contenido cortado en 1440, 1280, 1024, 820 y 390 px: sin cortes.
 - 2026-11-17: las etiquetas de estado de las tablas ("Sin diferencia", "Con faltantes", etc.) van en una sola línea y la columna Estado de Contenedores tiene ancho propio (15%).
+
+### Dashboard de Resultados: rendimiento, filtro Contenedor y cuatro conceptos 2026-11-24
+
+**Se trababa** ("La página no responde") con 18 reportes y unas 191 mil filas. La página recorría todas las filas otra vez por cada artículo, por cada sección y por cada área, y lo repetía en cada tecla del buscador de artículos. Con 191 mil filas de prueba, la carga bloqueaba la página unos 2½ minutos; "Limpiar" tardaba 40–60 s y cada tecla del buscador de artículos hasta 60 s.
+
+Cambios en `Dashboard/app.js`:
+- `prepareRows` deja cada fila lista una sola vez al cargar (números, textos reparados, concepto) y las modifica en su lugar, sin copiarlas.
+- `buildIndex` arma índices por reporte, sección y contenedor, y da a cada fila un número de contenedor (`_ci`) y de línea de artículo (`_ai`). Filtros, tablas y gráficas agrupan con esos números.
+- `summarize` calcula en una sola pasada los totales, áreas, secciones, contenedores y reportes de lo filtrado.
+- Los buscadores esperan 200 ms. El orden de la tabla de artículos se guarda por vista.
+- Las gráficas se actualizan (`drawChart`) en vez de destruirse y crearse de nuevo.
+- La carga cede el turno al navegador entre pasos: lectura por documento, índices cada ~50 ms y primer dibujo por partes (`renderAllProgressive`: indicadores, cada gráfica, tarjetas y tablas). El texto de búsqueda de contenedores se arma por partes en tiempo libre.
+- Las gráficas no se animan (`Chart.defaults.animation = false`): con muchos datos la animación volvía a dibujar todo en cada cuadro.
+- Todos los ordenamientos usan un solo `Intl.Collator`; `localeCompare` con opciones era muy lento con miles de contenedores.
+- Exportar con más de 50 mil líneas pregunta si se incluye la hoja Detalle: con todo cargado pesa unos 100 MB y tarda más de un minuto.
+
+Medición con 191 mil filas sintéticas, Chrome sin limitar CPU (scripts en el scratchpad de la sesión: `bench.mjs` con un Firebase simulado):
+
+| Acción | Antes | Después |
+|---|---|---|
+| Carga inicial (bloqueo más largo) | ~140 s seguidos | 1.8–2 s (carga total 3.6 s con la máquina libre) |
+| Elegir reporte | 1.3 s | 0.1–0.3 s |
+| Limpiar filtros | 40–50 s | 0.2–0.4 s |
+| Escribir en el buscador de artículos (6 teclas) | 39–46 s de bloqueo | 0–0.16 s |
+| Buscador de secciones | 0.4–0.8 s | 0 s |
+
+**Filtro Contenedor:** quinto filtro principal, encadenado con Reporte, Área y Sección. Se escribe el código y sugiere hasta 50 contenedores válidos con los otros filtros; acepta Enter, flechas, Escape y lector de códigos. También se elige pulsando una fila de la tabla de contenedores, y tiene su chip en "Filtros activos".
+
+**Tabla de artículos por contenedor** (antes "top 15 artículos con diferencias"):
+- Una fila por SKU dentro de su contenedor; Contenedor es la primera columna.
+- Columnas Esperadas, Registradas, Diferencia y Concepto.
+- Chips: Con diferencia, Todos, Correcto, Faltante, Sobrante y Adicional. Paginada de 20 en 20.
+- Con un contenedor elegido se muestran todos sus SKU, también los correctos.
+
+**Cuatro conceptos:**
+- La tabla de contenedores tiene columnas Correcto, Faltante, Sobrante y Adicional.
+- La exportación trae los cuatro en todas las hojas y el concepto de cada línea en Detalle.
+- Un renglón Adicional ya no se cuenta también como Sobrante. Se corrige al leer los reportes ya guardados; no hace falta volver a subirlos.
+- `SKU/app.js` toma `Adicional` como sobrante para su etiqueta de estado.
+
+**"Solo aparece lo faltante":** se revisaron los archivos reales 6000543185, 6000547066, 6000549560 y 6000551249 (hoja `DetalleFolioManifiesto`). Traen todas sus líneas con Status "Faltante" y Cant. Registrada 0. Los encabezados sí se leían bien, salvo "Desc. Artículo", que no se reconocía por el punto: esos reportes se guardaron sin descripción de artículo y hay que volver a subirlos para tenerla.
+
+Para que se vean los cuatro conceptos, el reporte VCM debe exportarse después de escanear y sin filtrar el Status. Al subir un archivo, la vista previa ahora:
+- muestra las columnas reconocidas y las líneas por concepto;
+- avisa si todo viene en Cant. Registrada 0 o con un solo concepto;
+- rechaza el archivo si no hay columna de cantidad registrada, Diferencia, Faltantes ni Sobrantes (antes se asumía cero sin avisar).
+
+Otros cambios:
+- La exactitud es (Piezas − Faltantes) ÷ Piezas en todo el tablero.
+- La jefatura "Sin Asignar" de `Jefatura.json` cuenta como "Sin área asignada".
+
+Pruebas: 153 verificaciones automáticas en Chrome sin errores de JavaScript. Cubrieron el filtro Contenedor, la tabla de artículos, los cuatro conceptos contra cálculos propios, la exportación, la vista previa con el archivo real y con archivos de prueba, y el diseño en 390, 1024 y 1366 px.
+
+**Pendiente (propuesta):** la carga sigue bajando todas las filas de todos los reportes. Si crecen mucho más, conviene guardar al subir un resumen por reporte (totales por sección, área y contenedor) en una colección aparte, y bajar las filas de un reporte solo cuando se elige.

@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const k = (r.NumeroContenedor || '').trim().toUpperCase();
             const d = dashByKey[k];
             if (!d) return r;
-            const ft = toNum(d.Faltantes), sb = toNum(d.Sobrante), pz = toNum(d.Piezas);
+            const ft = toNum(d.Faltantes), sb = toNum(d.Sobrante) + toNum(d.Adicional), pz = toNum(d.Piezas);
             const est = ft > 0 ? 'Faltante' : sb > 0 ? 'Sobrante' : pz > 0 ? 'Escaneado' : null;
             return est ? { ...r, Estatus: est } : r;
         });
@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else
                     bannerBadge = `<span class="banner-badge bb-green"><i class="bi bi-check-circle-fill"></i>Completo <span style="font-size:0.7rem;opacity:0.8">(cerrado)</span></span>`;
             } else if (dash) {
-                const ft = toNum(dash.Faltantes), sb = toNum(dash.Sobrante), pz = toNum(dash.Piezas);
+                const ft = toNum(dash.Faltantes), sb = toNum(dash.Sobrante) + toNum(dash.Adicional), pz = toNum(dash.Piezas);
                 if (ft > 0)       bannerBadge = `<span class="banner-badge bb-red"><i class="bi bi-x-circle-fill"></i>Faltante</span>`;
                 else if (sb > 0)  bannerBadge = `<span class="banner-badge bb-purple"><i class="bi bi-plus-circle-fill"></i>Sobrante</span>`;
                 else if (pz > 0)  bannerBadge = `<span class="banner-badge bb-green"><i class="bi bi-check-circle-fill"></i>Escaneado</span>`;
@@ -592,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let bannerBadge = `<span class="banner-badge bb-gray"><i class="bi bi-question-circle"></i>Sin dashboard</span>`;
             if (dash) {
-                const ft = toNum(dash.Faltantes), sb = toNum(dash.Sobrante), pz = toNum(dash.Piezas);
+                const ft = toNum(dash.Faltantes), sb = toNum(dash.Sobrante) + toNum(dash.Adicional), pz = toNum(dash.Piezas);
                 if (ft > 0)      bannerBadge = `<span class="banner-badge bb-red"><i class="bi bi-x-circle-fill"></i>Faltante</span>`;
                 else if (sb > 0) bannerBadge = `<span class="banner-badge bb-purple"><i class="bi bi-plus-circle-fill"></i>Sobrante</span>`;
                 else if (pz > 0) bannerBadge = `<span class="banner-badge bb-green"><i class="bi bi-check-circle-fill"></i>Escaneado</span>`;
@@ -692,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let bannerBadge = `<span class="banner-badge bb-gray"><i class="bi bi-question-circle"></i>Sin dashboard</span>`;
             if (dash) {
-                const ft = toNum(dash.Faltantes), sb = toNum(dash.Sobrante), pz = toNum(dash.Piezas);
+                const ft = toNum(dash.Faltantes), sb = toNum(dash.Sobrante) + toNum(dash.Adicional), pz = toNum(dash.Piezas);
                 if (ft > 0)      bannerBadge = `<span class="banner-badge bb-red"><i class="bi bi-x-circle-fill"></i>Faltante</span>`;
                 else if (sb > 0) bannerBadge = `<span class="banner-badge bb-purple"><i class="bi bi-plus-circle-fill"></i>Sobrante</span>`;
                 else if (pz > 0) bannerBadge = `<span class="banner-badge bb-green"><i class="bi bi-check-circle-fill"></i>Escaneado</span>`;
