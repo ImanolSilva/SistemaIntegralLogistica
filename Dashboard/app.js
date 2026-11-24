@@ -1851,6 +1851,57 @@ document.addEventListener('DOMContentLoaded', () => {
         Swal.fire({ title: titles[kind], html: `<div class="kpi-explain">${body}</div>`, confirmButtonText: 'Entendido', customClass: { popup: 'db-swal-popup' } });
     }
     function topDetail(sum, key) { const groups = sum.secs.filter(g => g[key] > 0).sort((a,b) => b[key] - a[key]).slice(0, 6); return groups.length ? `<div class="kpi-detail-list">${groups.map(g => `<div><b>Sección ${esc(g.key)}</b><span>${fmt(g[key])} piezas</span></div>`).join('')}</div>` : '<p class="text-success">No hay registros para este resultado.</p>'; }
+    // ── QUÉ ES CADA CONCEPTO (clic en sus tarjetas) ──────────────────────────
+    const CONCEPTO_INFO = {
+        correcto:  { qty: 'correcto', col: 'Correctas', def: 'El artículo venía en el manifiesto y llegó <b>completo</b>: lo escaneado es igual a lo esperado.', ej: 'Se esperaban 10 piezas y llegaron 10.' },
+        faltante:  { qty: 'ft', col: 'Faltan', def: 'El artículo venía en el manifiesto pero llegó <b>de menos</b> o no llegó.', ej: 'Se esperaban 10 piezas y llegaron 7: <b>3 faltantes</b>.' },
+        sobrante:  { qty: 'sb', col: 'Sobran', def: 'El artículo <b>sí venía</b> en el manifiesto, pero llegó <b>de más</b>.', ej: 'Se esperaban 10 piezas y llegaron 13: <b>3 sobrantes</b>.' },
+        adicional: { qty: 'ad', col: 'Adicional', def: 'El artículo <b>no venía</b> en el manifiesto (Cant. Manf. = 0) y aun así llegó. Es mercancía no manifestada.', ej: 'No se esperaba ninguna pieza y llegaron 3: <b>3 adicionales</b>.' },
+    };
+
+    function showConceptDetail(c) {
+        const info = CONCEPTO_INFO[c];
+        if (!info || !State.filteredRows.length) return;
+        // Artículos (dentro de su contenedor) que tienen este concepto con los filtros actuales.
+        const groups = new Map();
+        for (const r of State.filteredRows) {
+            if (r.Concepto !== c) continue;
+            let g = groups.get(r._ai);
+            if (!g) groups.set(r._ai, g = { contenedor: r.Contenedor, articulo: r.Articulo || '—', desc: r.Descripcion || '', pz: 0, reg: 0, ft: 0, sb: 0, ad: 0, correcto: 0 });
+            g.pz += r.Piezas; g.reg += r.Registradas; g.ft += r.Faltantes; g.sb += r.Sobrante; g.ad += r.Adicional; g.correcto += r.Correcto;
+            if (!g.desc && r.Descripcion) g.desc = r.Descripcion;
+        }
+        const list = [...groups.values()].sort((a, b) => b[info.qty] - a[info.qty] || b.pz - a.pz);
+        const total = list.reduce((s, g) => s + g[info.qty], 0);
+        const TOP = 25;
+        const rowsHtml = list.slice(0, TOP).map(g => `<tr>
+                <td><span class="db-mono">${esc(g.contenedor)}</span></td><td><span class="db-mono">${esc(g.articulo)}</span></td>
+                <td>${esc(truncate(g.desc || '—', 38))}</td>
+                <td class="num">${fmt(g.pz)}</td><td class="num">${fmt(g.reg)}</td><td class="num"><b>${fmt(g[info.qty])}</b></td></tr>`).join('');
+        Swal.fire({
+            title: `<span class="db-concept ${c}"><i class="bi ${CONCEPTOS[c].icon}"></i>${CONCEPTOS[c].label}</span>`,
+            width: 820,
+            html: `<div class="concept-detail">
+                <p class="cd-def">${info.def}</p>
+                <p class="cd-ej"><i class="bi bi-lightbulb-fill"></i> Ejemplo: ${info.ej}</p>
+                <p class="cd-sum">Con los filtros actuales: <b>${fmt(total)}</b> piezas en <b>${fmt(list.length)}</b> ${list.length === 1 ? 'artículo' : 'artículos'}.</p>
+                ${list.length ? `<div class="cd-wrap"><table><thead><tr><th>Contenedor</th><th>Artículo</th><th>Descripción</th><th class="num">Esperadas</th><th class="num">Registradas</th><th class="num">${info.col}</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
+                ${list.length > TOP ? `<p class="cd-more">Se muestran los ${TOP} con más piezas. Usa “Ver todos en la tabla” para la lista completa.</p>` : ''}` : '<p class="cd-more">No hay artículos con este concepto en lo que estás viendo.</p>'}
+            </div>`,
+            showCancelButton: !!list.length, confirmButtonText: list.length ? '<i class="bi bi-table"></i> Ver todos en la tabla' : 'Entendido', cancelButtonText: 'Cerrar',
+            confirmButtonColor: C.vino, customClass: { popup: 'db-swal-popup' }
+        }).then(r => {
+            if (!r.isConfirmed || !list.length) return;
+            State.art.status = c; State.art.page = 1;
+            renderArticulos();
+            $('articulos-block')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
+    document.querySelectorAll('.db-vcm-card[data-concept]').forEach(card => {
+        card.addEventListener('click', () => showConceptDetail(card.dataset.concept));
+        card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showConceptDetail(card.dataset.concept); } });
+    });
+
     document.querySelectorAll('.db-kpi[data-kpi]').forEach(card => { card.addEventListener('click', () => showKpiExplanation(card.dataset.kpi)); card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showKpiExplanation(card.dataset.kpi); } }); });
 
     // ── EXPORTAR ─────────────────────────────────────────────────────────────

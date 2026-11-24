@@ -628,3 +628,21 @@ table.db-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
 .db-filter select:disabled, .db-combo input:disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 760px) { .db-skel-row.five, .db-skel-row.four, .db-skel-row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .db-pick, .db-pick-icon, .db-skel-row i { animation: none !important; } }
+
+/* ── Tarjetas de concepto clicables ── */
+.db-vcm-card[data-concept] { cursor: pointer; }
+.db-vcm-card[data-concept]:focus-visible { outline: 3px solid rgba(230,0,126,.35); outline-offset: 2px; }
+.db-vcm-more { display: inline-flex; align-items: center; gap: .2rem; margin-top: .2rem; font-style: normal; font-size: .62rem; font-weight: 800; color: var(--rosa); opacity: .75; transition: opacity .2s, gap .2s; }
+.db-vcm-card:hover .db-vcm-more { opacity: 1; gap: .35rem; }
+.concept-detail { text-align: left; }
+.concept-detail .cd-def { font-size: .92rem; color: var(--txt); margin: 0 0 .5rem; }
+.concept-detail .cd-ej { font-size: .82rem; color: #92400E; background: var(--warn-soft); border-radius: 10px; padding: .45rem .7rem; margin: 0 0 .7rem; }
+.concept-detail .cd-ej i { margin-right: .3rem; }
+.concept-detail .cd-sum { font-size: .82rem; color: var(--txt2); margin: 0 0 .5rem; }
+.concept-detail .cd-wrap { max-height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+.concept-detail table { width: 100%; border-collapse: collapse; font-size: .76rem; }
+.concept-detail th { position: sticky; top: 0; background: #fff7fb; font-size: .64rem; text-transform: uppercase; letter-spacing: .05em; color: var(--txt3); text-align: left; }
+.concept-detail th, .concept-detail td { padding: .4rem .55rem; border-bottom: 1px solid #F5EDF1; }
+.concept-detail .num { text-align: right; font-variant-numeric: tabular-nums; }
+.concept-detail .cd-more { font-size: .74rem; color: var(--txt3); margin: .5rem 0 0; }
+.swal2-title .db-concept { font-size: 1rem; padding: .35rem .9rem; }

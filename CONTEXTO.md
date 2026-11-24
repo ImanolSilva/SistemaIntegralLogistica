@@ -608,3 +608,4 @@ Pruebas: 153 verificaciones automáticas en Chrome sin errores de JavaScript. Cu
 - Tras subir un archivo se abre el reporte subido. Tras borrar, se vuelve a leer la lista. La comparación de reporte repetido descarga el reporte guardado solo al pulsar "Comparar".
 - La lista de administración muestra nombre original, fecha y número de partes (ya no filas ni exactitud, que requerían descargar todo).
 - Si la API REST no responde, se usa la carga completa de antes.
+- 2026-11-24: las cuatro tarjetas de concepto son clicables (`showConceptDetail`). Cada una abre una ventana con qué significa el concepto, un ejemplo, el total de piezas y artículos con los filtros actuales y los 25 artículos con más piezas. El botón "Ver todos en la tabla" activa ese concepto en la tabla de artículos.
